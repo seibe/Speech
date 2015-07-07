@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>PresenJS Client</title>
+	<link rel="stylesheet" href="style.css" />
+	<script defer src="index.js"></script>
+</head>
+<body>
+	<webview class="preview" id="preview" src="http://web.sfc.wide.ad.jp/~seibe/sotsuron/shoshin/english.html"></webview>
+	<div class="control">
+		<button id="btn-open" class="control-button">OPEN</button>
+		<button id="btn-cursor" class="control-button">CURSOR</button>
+		<button id="btn-prev" class="control-button">PREV</button>
+		<button id="btn-next" class="control-button">NEXT</button>
+	</div>
+	<dialog class="dialog" id="dialog">
+		<input type="text" class="dialog-input" id="input-url" placeholder="Input the slide URL here." />
+	</dialog>
+</body>
+</html>
