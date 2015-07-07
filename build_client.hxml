@@ -1,0 +1,5 @@
+-main presenjs.client.Main
+-cp src
+-dce full
+-js out/client/script.js
+#-debug

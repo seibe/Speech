@@ -1,5 +1,7 @@
 # PresenJS
 
+## Notice: This project is work in progress.
+
 A simple, in-browser, presentation system for sharing audience feedbacks, featuring:
 
 - Present Live - Broadcast your presentations to an audience of any size. Viewers can follow along in real-time from any device, anywhere in the world.
