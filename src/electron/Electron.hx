@@ -207,20 +207,20 @@ abstract ElectronDialogpProperty(String) to String
 
 typedef ElectronDialogConfig =
 {
-	@optional var title:String;
-	@optional var defaultPath:String;
-	@optional var filters:Array<Dynamic>;
-	@optional var properties:Array<String>;
+	@:optional var title:String;
+	@:optional var defaultPath:String;
+	@:optional var filters:Array<Dynamic>;
+	@:optional var properties:Array<String>;
 }
 
 typedef ElectronMessageBoxConfig =
 {
-	@optional var type:String;
-	@optional var buttons:Array<String>;
-	@optional var title:String;
-	@optional var message:String;
-	@optional var detail:String;
-	@optional var icon:ElectronNativeImage;
+	@:optional var type:String;
+	@:optional var buttons:Array<String>;
+	@:optional var title:String;
+	@:optional var message:String;
+	@:optional var detail:String;
+	@:optional var icon:ElectronNativeImage;
 }
 
 typedef ElectronDialog =
@@ -287,13 +287,13 @@ typedef ElectronProtocol =
 	function RequestFileJob(path:String):Void;
 	function RequestStringJob(options:{
 		var data:ElectronBuffer;
-		@optional var mimeType:String;
-		@optional var encoding:String;
+		@:optional var mimeType:String;
+		@:optional var encoding:String;
 	}):Void;
 	function RequestHttpJob(options: {
 		var url:String;
-		@optional var method:String;
-		@optional var referrer:String;
+		@:optional var method:String;
+		@:optional var referrer:String;
 	}):Void;
 	function RequestErrorJob(code:Int):Void;
 }
@@ -359,12 +359,12 @@ typedef ElectronClipboard =
 typedef ElectronCrashReporter =
 {
 	function start(options: {
-		@optional var productName:String;
-		@optional var companyName:String;
-		@optional var submitUrl:String;
-		@optional var autoSubmit:Bool;
-		@optional var ignoreSystemCrashHandler:Bool;
-		@optional var extra:Dynamic;
+		@:optional var productName:String;
+		@:optional var companyName:String;
+		@:optional var submitUrl:String;
+		@:optional var autoSubmit:Bool;
+		@:optional var ignoreSystemCrashHandler:Bool;
+		@:optional var extra:Dynamic;
 	}):Void;
 	function getLastCrashReport():Dynamic;
 	function getUploadedReports():Dynamic;

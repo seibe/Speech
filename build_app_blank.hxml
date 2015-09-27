@@ -1,0 +1,5 @@
+-main presenjs.app.Blank
+-cp src
+-dce full
+-js out/app/blank.js
+#-debug

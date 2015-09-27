@@ -42,6 +42,7 @@
   <!-- Executed before build -->
   <preBuildCommand>$(CompilerPath)\haxe.exe $(ProjectDir)\build_app_main.hxml
 $(CompilerPath)\haxe.exe $(ProjectDir)\build_app_index.hxml
+$(CompilerPath)\haxe.exe $(ProjectDir)\build_app_blank.hxml
 $(CompilerPath)\haxe.exe $(ProjectDir)\build_client.hxml
 $(CompilerPath)\haxe.exe $(ProjectDir)\build_server.hxml</preBuildCommand>
   <!-- Executed after build -->
