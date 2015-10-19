@@ -143,10 +143,10 @@ class Main
 				_frame.src = m.data.slideUrl;
 				
 			case "onComment":
-				_board.innerHTML = "<li>" + m.data.text + "<br/><small>(" + m.data.name + ")</small></li>" + _board.innerHTML;
+				_board.innerHTML = "<li>" + StringTools.htmlEscape(m.data.text) + "<br/><small>(" + StringTools.htmlEscape(m.data.name) + ")</small></li>" + _board.innerHTML;
 				
 			case "onError":
-				_board.innerHTML = "<li class='system'>エラー: " + m.data + "</li>" + _board.innerHTML;
+				_board.innerHTML = "<li class='system'>エラー: " + StringTools.htmlEscape(m.data) + "</li>" + _board.innerHTML;
 				
 			default:
 				trace("unknown message");

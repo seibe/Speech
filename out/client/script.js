@@ -16,6 +16,12 @@ Std.__name__ = true;
 Std.string = function(s) {
 	return js_Boot.__string_rec(s,"");
 };
+var StringTools = function() { };
+StringTools.__name__ = true;
+StringTools.htmlEscape = function(s,quotes) {
+	s = s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
+	if(quotes) return s.split("\"").join("&quot;").split("'").join("&#039;"); else return s;
+};
 var js_Boot = function() { };
 js_Boot.__name__ = true;
 js_Boot.__string_rec = function(o,s) {
@@ -171,10 +177,10 @@ presenjs_client_Main.prototype = {
 			this._frame.src = m.data.slideUrl;
 			break;
 		case "onComment":
-			this._board.innerHTML = "<li>" + Std.string(m.data.text) + "<br/><small>(" + Std.string(m.data.name) + ")</small></li>" + this._board.innerHTML;
+			this._board.innerHTML = "<li>" + StringTools.htmlEscape(m.data.text) + "<br/><small>(" + StringTools.htmlEscape(m.data.name) + ")</small></li>" + this._board.innerHTML;
 			break;
 		case "onError":
-			this._board.innerHTML = "<li class='system'>エラー: " + Std.string(m.data) + "</li>" + this._board.innerHTML;
+			this._board.innerHTML = "<li class='system'>エラー: " + StringTools.htmlEscape(m.data) + "</li>" + this._board.innerHTML;
 			break;
 		default:
 			console.log("unknown message");
