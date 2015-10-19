@@ -86,7 +86,7 @@ js_Boot.__string_rec = function(o,s) {
 	}
 };
 var presenjs_client_Main = function() {
-	this.WS_URL = "ws://seibe.jp:8081/ws/presenjs";
+	this.WS_URL = "ws://localhost:8081/ws/presenjs";
 	window.onload = $bind(this,this.init);
 };
 presenjs_client_Main.__name__ = true;

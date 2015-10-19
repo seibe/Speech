@@ -1,6 +1,0 @@
--main presenjs.app.Index
--cp src
--dce full
--lib nodejs
--js out/app/index.js
-#-debug

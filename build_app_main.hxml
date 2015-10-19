@@ -1,6 +1,0 @@
--main presenjs.app.Main
--cp src
--dce full
--lib nodejs
--js out/app/main.js
-#-debug

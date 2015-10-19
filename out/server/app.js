@@ -32,14 +32,6 @@ Std.__name__ = true;
 Std.string = function(s) {
 	return js_Boot.__string_rec(s,"");
 };
-var haxe_Json = function() { };
-haxe_Json.__name__ = true;
-haxe_Json.stringify = function(obj,replacer,insertion) {
-	return JSON.stringify(obj,replacer,insertion);
-};
-haxe_Json.parse = function(jsonString) {
-	return JSON.parse(jsonString);
-};
 var js__$Boot_HaxeError = function(val) {
 	Error.call(this);
 	this.val = val;
@@ -120,8 +112,8 @@ js_Boot.__string_rec = function(o,s) {
 		return String(o);
 	}
 };
-var js_Node = function() { };
-js_Node.__name__ = true;
+var js_node_Crypto = require("crypto");
+var js_node_Fs = require("fs");
 var presenjs_server_Response = { __ename__ : true, __constructs__ : ["ON_CREATE","ON_ENTER","ON_LEAVE","ON_BEGIN","ON_PAUSE","ON_END","ON_OPEN","ON_CHANGE","ON_COMMENT","ON_ERROR"] };
 presenjs_server_Response.ON_CREATE = function(roomUrl) { var $x = ["ON_CREATE",0,roomUrl]; $x.__enum__ = presenjs_server_Response; $x.toString = $estr; return $x; };
 presenjs_server_Response.ON_ENTER = function(userId,totalNum) { var $x = ["ON_ENTER",1,userId,totalNum]; $x.__enum__ = presenjs_server_Response; $x.toString = $estr; return $x; };
@@ -152,13 +144,15 @@ presenjs_server_Main.prototype = {
 	onOpen: function(client) {
 		var _g1 = this;
 		client.on("message",function(data,flags) {
-			var d = haxe_Json.parse(data);
+			var d = JSON.parse(data);
 			console.log(d.type);
 			var _g = d.type;
 			switch(_g) {
 			case "create":
-				var name = js_Node.require("crypto").createHash("sha1").update(Std.string(new Date().getTime()) + Std.string(Math.random())).digest("hex");
-				js_Node.require("fs").writeFile(__dirname + "/file/" + name + ".txt",Std.string(d.timestamp) + ",create\r\n",null,function(e) {
+				var hash = js_node_Crypto.createHash("sha1");
+				hash.update(Std.string(new Date().getTime()) + Std.string(Math.random()));
+				var name = hash.digest("hex");
+				js_node_Fs.writeFile(__dirname + "/file/" + name + ".txt",Std.string(d.timestamp) + ",create\r\n",function(e) {
 					if(e != null) console.log(e);
 				});
 				var room = { title : d.data.option.title, filename : name, presenter : client, audience : [], slideUrl : null};
@@ -229,11 +223,11 @@ presenjs_server_Main.prototype = {
 					++_g24;
 					if(r4.filename == d.data.roomId) {
 						r4.audience.push(client);
-						client.send(haxe_Json.stringify({ type : "onEnter", data : { title : r4.title, slideUrl : r4.slideUrl}},null,null));
+						client.send(JSON.stringify({ type : "onEnter", data : { title : r4.title, slideUrl : r4.slideUrl}}));
 						return;
 					}
 				}
-				client.send(haxe_Json.stringify({ type : "onError", data : "指定された部屋は存在しないか、中継が終了しています"},null,null));
+				client.send(JSON.stringify({ type : "onError", data : "指定された部屋は存在しないか、中継が終了しています"}));
 				client.close();
 				break;
 			case "comment":
@@ -243,12 +237,12 @@ presenjs_server_Main.prototype = {
 					var r5 = _g35[_g25];
 					++_g25;
 					if(r5.filename == d.data.roomId) {
-						_g1.write(r5,d.timestamp,haxe_Json.stringify({ name : d.data.name, text : d.data.text, url : d.data.slideUrl},null,null));
+						_g1.write(r5,d.timestamp,JSON.stringify({ name : d.data.name, text : d.data.text, url : d.data.slideUrl}));
 						_g1.send(r5,presenjs_server_Response.ON_COMMENT(d.data.name,d.data.text),d.requestId);
 						return;
 					}
 				}
-				client.send(haxe_Json.stringify({ type : "onError", data : "指定された部屋は存在しないか、中継が終了しています"},null,null));
+				client.send(JSON.stringify({ type : "onError", data : "指定された部屋は存在しないか、中継が終了しています"}));
 				client.close();
 				break;
 			default:
@@ -325,7 +319,7 @@ presenjs_server_Main.prototype = {
 		}
 		obj.timestamp = new Date().getTime();
 		obj.reqestId = requestId;
-		var data = haxe_Json.stringify(obj,null,null);
+		var data = JSON.stringify(obj);
 		room.presenter.send(data);
 		var _g = 0;
 		var _g1 = room.audience;
@@ -336,7 +330,7 @@ presenjs_server_Main.prototype = {
 		}
 	}
 	,write: function(room,timestamp,data) {
-		js_Node.require("fs").appendFile(__dirname + "/file/" + room.filename + ".txt",timestamp + "," + data + "\r\n",null,function(e) {
+		js_node_Fs.appendFile(__dirname + "/file/" + room.filename + ".txt",timestamp + "," + data + "\r\n",function(e) {
 			if(e != null) console.log(e);
 		});
 	}
@@ -350,6 +344,5 @@ if(Array.prototype.indexOf) HxOverrides.indexOf = function(a,o,i) {
 String.__name__ = true;
 Array.__name__ = true;
 Date.__name__ = ["Date"];
-js_Node.require = require;
 presenjs_server_Main.main();
 })(typeof console != "undefined" ? console : {log:function(){}});

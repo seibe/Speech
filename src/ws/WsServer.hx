@@ -1,6 +1,8 @@
 package ws;
-import js.Node.NodeHttpServer;
-import js.Node.NodeHttpServerReq;
+
+import js.node.events.EventEmitter;
+import js.node.http.Server;
+import js.node.http.IncomingMessage;
 
 @:enum
 abstract WsSocketState(String) to String
@@ -44,6 +46,7 @@ typedef WsSocket =
 	var protocolVersion:Dynamic;
 	// var url:Dynamic; *only for client
 	var supports:Dynamic;
+	var upgradeReq:Dynamic;
 	//var onopen(null,default):Dynamic; *only for client
 	var onerror(null,default):Dynamic;
 	var onclose(null,default):Dynamic;
@@ -72,7 +75,7 @@ typedef WsServerConfig =
 {
 	@:optional var host:String;
 	@:optional var port:Int;
-	@:optional var server:NodeHttpServer;
+	@:optional var server:Server;
 	@:optional var verifyClient:Dynamic;
 	@:optional var handleProtocols:Dynamic;
 	@:optional var path:String;
@@ -82,23 +85,10 @@ typedef WsServerConfig =
 }
 
 @:jsRequire('ws', 'Server')
-extern class WsServer
+extern class WsServer extends EventEmitter<WsServer>
 {
-    function new(?options:WsServerConfig, ?callback:Dynamic):Void;
-	
-	var clients:Array<WsSocket>;
-	
+    var clients:Array<WsSocket>;
+	function new(?options:WsServerConfig, ?callback:Dynamic):Void;
 	function close():Void;
-	function handleUpgrade(request:NodeHttpServerReq, ?socket:Dynamic, ?upgradeHead:Dynamic, ?callback:Dynamic):Void;
-	
-	// extends EventEmitter
-	function addListener(event:String, listener:Dynamic):Dynamic;
-	function on(event:String, listener:Dynamic):Dynamic;
-	function once(event:String, listener:Dynamic):Void;
-	function removeListener(event:String, listener:Dynamic):Void;
-	function removeAllListeners(event:String):Void;
-	function listeners(event:String):Array<Dynamic>;
-	function setMaxListeners(m:Int):Void;
-	function emit(event:String, args:haxe.extern.Rest<Dynamic>):Void;
-	function broadcast(data:Dynamic):Void;
+	function handleUpgrade(request:IncomingMessage, ?socket:Dynamic, ?upgradeHead:Dynamic, ?callback:Dynamic):Void;
 }

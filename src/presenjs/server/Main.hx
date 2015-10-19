@@ -1,6 +1,11 @@
 package presenjs.server;
+
 import haxe.Json;
+import js.Error;
 import js.Node;
+import js.node.Crypto;
+import js.node.crypto.Hash;
+import js.node.Fs;
 import presenjs.server.Main.Room;
 import ws.WsServer;
 
@@ -45,7 +50,7 @@ class Main
 		
 		// サーバー立ち上げ
 		_server = new WsServer( { port: 8081, path: '/ws/presenjs' } );
-		_server.on(WsServerEventType.CONNECTION, onOpen);
+		_server.on("connection", onOpen);
 	}
 
 	/* ------------------------------------- */
@@ -63,8 +68,10 @@ class Main
 			switch (d.type)
 			{
 				case "create":
-					var name:String = Node.crypto.createHash("sha1").update(Std.string(Date.now().getTime()) + Std.string(Math.random())).digest("hex");
-					Node.fs.writeFile(Node.__dirname + "/file/" + name + ".txt", d.timestamp + ",create\r\n", function(e:NodeErr):Void { if (e != null) trace(e); } );
+					var hash:Hash = Crypto.createHash("sha1");
+					hash.update( Std.string(Date.now().getTime()) + Std.string(Math.random()) );
+					var name:String = hash.digest("hex");
+					Fs.writeFile(Node.__dirname + "/file/" + name + ".txt", d.timestamp + ",create\r\n", function(e:Error):Void { if (e != null) trace(e); } );
 					var room:Room = {
 						title: d.data.option.title,
 						filename: name,
@@ -262,10 +269,10 @@ class Main
 	
 	private function write(room:Room, timestamp:String, data:String):Void
 	{
-		Node.fs.appendFile(
+		Fs.appendFile(
 			Node.__dirname + "/file/" + room.filename + ".txt",
 			timestamp + "," + data + "\r\n",
-			function(e:NodeErr):Void { if (e != null) trace(e); }
+			function(e:Error):Void { if (e != null) trace(e); }
 		);
 	}
 	

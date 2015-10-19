@@ -1,6 +1,6 @@
 -main presenjs.server.Main
 -cp src
 -dce full
--lib nodejs
+-lib hxnodejs
 -js out/server/app.js
 #-debug

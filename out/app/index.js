@@ -19,14 +19,6 @@ Std.__name__ = true;
 Std.string = function(s) {
 	return js_Boot.__string_rec(s,"");
 };
-var haxe_Json = function() { };
-haxe_Json.__name__ = true;
-haxe_Json.stringify = function(obj,replacer,insertion) {
-	return JSON.stringify(obj,replacer,insertion);
-};
-haxe_Json.parse = function(jsonString) {
-	return JSON.parse(jsonString);
-};
 var haxe_Log = function() { };
 haxe_Log.__name__ = true;
 haxe_Log.trace = function(v,infos) {
@@ -158,7 +150,7 @@ presenjs_app_Request.END.__enum__ = presenjs_app_Request;
 presenjs_app_Request.OPEN = function(slideUrl,option) { var $x = ["OPEN",4,slideUrl,option]; $x.__enum__ = presenjs_app_Request; $x.toString = $estr; return $x; };
 presenjs_app_Request.CHANGE = function(slideUrl) { var $x = ["CHANGE",5,slideUrl]; $x.__enum__ = presenjs_app_Request; $x.toString = $estr; return $x; };
 var presenjs_app_Index = function() {
-	this.WS_URL = "ws://seibe.jp:8081/ws/presenjs";
+	this.WS_URL = "ws://localhost:8081/ws/presenjs";
 	window.onload = $bind(this,this.init);
 };
 presenjs_app_Index.__name__ = true;
@@ -249,7 +241,7 @@ presenjs_app_Index.prototype = {
 		}
 		obj.timestamp = new Date().getTime();
 		obj.requestId = this._reqCount++;
-		this._ws.send(haxe_Json.stringify(obj,null,null));
+		this._ws.send(JSON.stringify(obj));
 		return this._reqCount;
 	}
 	,onConnect: function(e) {
@@ -261,7 +253,7 @@ presenjs_app_Index.prototype = {
 		this._isConnect = false;
 	}
 	,onReceive: function(e) {
-		var resp = haxe_Json.parse(e.data);
+		var resp = JSON.parse(e.data);
 		var _g = resp.type;
 		switch(_g) {
 		case "onCreate":

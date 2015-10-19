@@ -28,7 +28,7 @@
   </build>
   <!-- haxelib libraries -->
   <haxelib>
-    <library name="nodejs" />
+    <library name="hxnodejs" />
   </haxelib>
   <!-- Class files to compile (other referenced classes will automatically be included) -->
   <compileTargets>
@@ -40,9 +40,7 @@
     <hidden path="obj" />
   </hiddenPaths>
   <!-- Executed before build -->
-  <preBuildCommand>$(CompilerPath)\haxe.exe $(ProjectDir)\build_app_main.hxml
-$(CompilerPath)\haxe.exe $(ProjectDir)\build_app_index.hxml
-$(CompilerPath)\haxe.exe $(ProjectDir)\build_app_blank.hxml
+  <preBuildCommand>$(CompilerPath)\haxe.exe $(ProjectDir)\build_app.hxml
 $(CompilerPath)\haxe.exe $(ProjectDir)\build_client.hxml
 $(CompilerPath)\haxe.exe $(ProjectDir)\build_server.hxml</preBuildCommand>
   <!-- Executed after build -->
