@@ -1,0 +1,19 @@
+-cp src
+-dce full
+-lib hxnodejs
+#-debug
+
+--each
+
+-main presenjs.app.Main
+-js out/app/main.js
+
+--next
+
+-main presenjs.app.Index
+-js out/app/index.js
+
+--next
+
+-main presenjs.app.Blank
+-js out/app/blank.js

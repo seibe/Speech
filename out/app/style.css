@@ -1,0 +1,137 @@
+* {
+	margin: 0;
+	border: 0;
+	padding: 0;
+	outline: none;
+}
+
+html {
+	font-family: 'Meiryo UI';
+	font-size: 62.5%;
+	overflow: hidden;
+}
+html, body {
+	width: 100%;
+	height: 100%;
+}
+
+button {
+	cursor: pointer;
+}
+button[disabled] {
+	cursor: default;
+	opacity: 0.1;
+	pointer-events: none;
+}
+
+
+/*******************
+  BLANK HTML
+*******************/
+
+.blank {
+	font-size: 120%;
+	padding: 2em;
+	background: #eee;
+}
+
+.blank-form {
+	margin: 20px 0;
+	position: relative;
+}
+#blank-form-input {
+	width: 28em;
+	height: 2em;
+	box-sizing: border-box;
+	
+	margin: 0;
+	padding: 10px;
+	border: 2px solid #999;
+	border-radius: 2px 0 0 2px;
+	
+	background: #fff;
+	color: #666;
+	font-size: 1rem;
+	
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+#blank-form-submit {
+	width: 5em;
+	height: 2em;
+	box-sizing: border-box;
+	
+	margin: 0;
+	padding: 10px;
+	border-radius: 0 2px 2px 0;
+	
+	background: #999;
+	color: #333;
+	font-size: 1rem;
+	
+	position: absolute;
+	top: 0;
+	left: 28em;
+	cursor: pointer;
+}
+#blank-form-submit:hover {
+	background: #aaa;
+}
+#blank-form-submit:hover:active {
+	background: #ccc;
+}
+
+
+
+/*******************
+  BLANK HTML
+*******************/
+
+.preview 
+{
+    width: 100%;
+	height: calc(100% - 64px);
+	display: block;
+}
+
+
+.head {
+	position: relative;
+}
+
+.control {
+	width: 100%;
+	height: 56px;
+	padding: 8px 0 0 12px;
+	background: #666;
+}
+.control-btn {
+	width: 48px;
+	height: 48px;
+	border-radius: 2px;
+	padding: 10px;
+	background: none;
+}
+.control-btn > img {
+	width: 28px;
+	height: 28px;
+}
+.control-btn:hover {
+	background: #444;
+}
+.control-btn:hover:active {
+	background: #222;
+}
+
+.info {
+	color: #fff;
+	font-size: 1rem;
+	
+	position: absolute;
+	bottom: 16px;
+	right: 16px;
+}
+#info-console {
+	text-align: right;
+}
