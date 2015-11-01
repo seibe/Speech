@@ -1,4 +1,4 @@
-package presenjs.app;
+package speech.renderer;
 import js.Browser;
 import js.html.ButtonElement;
 import js.html.InputElement;

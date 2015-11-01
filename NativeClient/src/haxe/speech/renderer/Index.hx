@@ -1,4 +1,4 @@
-package presenjs.app;
+package speech.renderer;
 
 import electron.Electron;
 import electron.ElectronNativeImage;

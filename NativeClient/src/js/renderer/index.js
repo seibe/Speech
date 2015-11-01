@@ -136,28 +136,28 @@ js_Boot.__string_rec = function(o,s) {
 		return String(o);
 	}
 };
-var presenjs_app_Request = { __ename__ : true, __constructs__ : ["CREATE","BEGIN","PAUSE","END","OPEN","CHANGE"] };
-presenjs_app_Request.CREATE = function(option) { var $x = ["CREATE",0,option]; $x.__enum__ = presenjs_app_Request; $x.toString = $estr; return $x; };
-presenjs_app_Request.BEGIN = ["BEGIN",1];
-presenjs_app_Request.BEGIN.toString = $estr;
-presenjs_app_Request.BEGIN.__enum__ = presenjs_app_Request;
-presenjs_app_Request.PAUSE = ["PAUSE",2];
-presenjs_app_Request.PAUSE.toString = $estr;
-presenjs_app_Request.PAUSE.__enum__ = presenjs_app_Request;
-presenjs_app_Request.END = ["END",3];
-presenjs_app_Request.END.toString = $estr;
-presenjs_app_Request.END.__enum__ = presenjs_app_Request;
-presenjs_app_Request.OPEN = function(slideUrl,option) { var $x = ["OPEN",4,slideUrl,option]; $x.__enum__ = presenjs_app_Request; $x.toString = $estr; return $x; };
-presenjs_app_Request.CHANGE = function(slideUrl) { var $x = ["CHANGE",5,slideUrl]; $x.__enum__ = presenjs_app_Request; $x.toString = $estr; return $x; };
-var presenjs_app_Index = function() {
+var speech_renderer_Request = { __ename__ : true, __constructs__ : ["CREATE","BEGIN","PAUSE","END","OPEN","CHANGE"] };
+speech_renderer_Request.CREATE = function(option) { var $x = ["CREATE",0,option]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
+speech_renderer_Request.BEGIN = ["BEGIN",1];
+speech_renderer_Request.BEGIN.toString = $estr;
+speech_renderer_Request.BEGIN.__enum__ = speech_renderer_Request;
+speech_renderer_Request.PAUSE = ["PAUSE",2];
+speech_renderer_Request.PAUSE.toString = $estr;
+speech_renderer_Request.PAUSE.__enum__ = speech_renderer_Request;
+speech_renderer_Request.END = ["END",3];
+speech_renderer_Request.END.toString = $estr;
+speech_renderer_Request.END.__enum__ = speech_renderer_Request;
+speech_renderer_Request.OPEN = function(slideUrl,option) { var $x = ["OPEN",4,slideUrl,option]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
+speech_renderer_Request.CHANGE = function(slideUrl) { var $x = ["CHANGE",5,slideUrl]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
+var speech_renderer_Index = function() {
 	this.WS_URL = "ws://localhost:8081/ws/presenjs";
 	window.onload = $bind(this,this.init);
 };
-presenjs_app_Index.__name__ = true;
-presenjs_app_Index.main = function() {
-	new presenjs_app_Index();
+speech_renderer_Index.__name__ = true;
+speech_renderer_Index.main = function() {
+	new speech_renderer_Index();
 };
-presenjs_app_Index.prototype = {
+speech_renderer_Index.prototype = {
 	init: function() {
 		var _g = this;
 		this._isBegin = this._isCreate = this._isConnect = false;
@@ -182,15 +182,15 @@ presenjs_app_Index.prototype = {
 			if(reg.match(url)) {
 				btnBegin.disabled = true;
 				btnEnd.disabled = false;
-				_g.send(presenjs_app_Request.BEGIN);
-				_g.send(presenjs_app_Request.OPEN(url,{ }));
+				_g.send(speech_renderer_Request.BEGIN);
+				_g.send(speech_renderer_Request.OPEN(url,{ }));
 				_g._isBegin = true;
 				_g._prevUrl = url;
 			}
 		});
 		btnEnd.addEventListener("click",function(e2) {
 			btnEnd.disabled = true;
-			_g.send(presenjs_app_Request.END);
+			_g.send(speech_renderer_Request.END);
 		});
 		this._webview.addEventListener("keydown",function(e3) {
 			if(!_g._isBegin) return;
@@ -198,13 +198,13 @@ presenjs_app_Index.prototype = {
 				var url1 = _g._webview.getUrl();
 				if(_g._prevUrl != url1) {
 					_g._console.innerHTML += "<br/>" + url1;
-					_g.send(presenjs_app_Request.CHANGE(url1));
+					_g.send(speech_renderer_Request.CHANGE(url1));
 					_g._prevUrl = url1;
 				}
 			},250);
 		});
 		this._webview.addEventListener("did-finish-load",function() {
-			haxe_Log.trace("did_finish_load",{ fileName : "Index.hx", lineNumber : 107, className : "presenjs.app.Index", methodName : "init", customParams : [_g._webview.getUrl()]});
+			haxe_Log.trace("did_finish_load",{ fileName : "Index.hx", lineNumber : 107, className : "speech.renderer.Index", methodName : "init", customParams : [_g._webview.getUrl()]});
 		});
 		haxe_Timer.delay(function() {
 			_g._webview.openDevTools();
@@ -245,9 +245,9 @@ presenjs_app_Index.prototype = {
 		return this._reqCount;
 	}
 	,onConnect: function(e) {
-		haxe_Log.trace("connect",{ fileName : "Index.hx", lineNumber : 173, className : "presenjs.app.Index", methodName : "onConnect"});
+		haxe_Log.trace("connect",{ fileName : "Index.hx", lineNumber : 173, className : "speech.renderer.Index", methodName : "onConnect"});
 		this._isConnect = true;
-		if(!this._isCreate) this.send(presenjs_app_Request.CREATE({ title : "test room", aspect : "4:3"}));
+		if(!this._isCreate) this.send(speech_renderer_Request.CREATE({ title : "test room", aspect : "4:3"}));
 	}
 	,onDisconnect: function(e) {
 		this._isConnect = false;
@@ -272,12 +272,12 @@ presenjs_app_Index.prototype = {
 		case "onLeave":
 			break;
 		case "onError":
-			haxe_Log.trace("resp error",{ fileName : "Index.hx", lineNumber : 216, className : "presenjs.app.Index", methodName : "onReceive", customParams : [resp.data]});
+			haxe_Log.trace("resp error",{ fileName : "Index.hx", lineNumber : 216, className : "speech.renderer.Index", methodName : "onReceive", customParams : [resp.data]});
 			break;
 		}
 	}
 	,onError: function(e) {
-		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 222, className : "presenjs.app.Index", methodName : "onError", customParams : [e]});
+		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 222, className : "speech.renderer.Index", methodName : "onError", customParams : [e]});
 	}
 };
 var $_, $fid = 0;
@@ -285,5 +285,5 @@ function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id
 String.__name__ = true;
 Array.__name__ = true;
 Date.__name__ = ["Date"];
-presenjs_app_Index.main();
+speech_renderer_Index.main();
 })(typeof console != "undefined" ? console : {log:function(){}});

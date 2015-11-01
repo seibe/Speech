@@ -1,4 +1,4 @@
-package presenjs.app;
+package speech;
 
 import electron.Electron;
 import electron.ElectronBrowserWindow;

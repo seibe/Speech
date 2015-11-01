@@ -11,13 +11,13 @@ EReg.prototype = {
 		return this.r.m != null;
 	}
 };
-var presenjs_app_Blank = function() {
+var speech_renderer_Blank = function() {
 	window.onload = $bind(this,this.init);
 };
-presenjs_app_Blank.main = function() {
-	new presenjs_app_Blank();
+speech_renderer_Blank.main = function() {
+	new speech_renderer_Blank();
 };
-presenjs_app_Blank.prototype = {
+speech_renderer_Blank.prototype = {
 	init: function() {
 		var txt = window.document.getElementById("blank-form-input");
 		var btn = window.document.getElementById("blank-form-submit");
@@ -30,5 +30,5 @@ presenjs_app_Blank.prototype = {
 };
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; }
-presenjs_app_Blank.main();
+speech_renderer_Blank.main();
 })(typeof console != "undefined" ? console : {log:function(){}});
