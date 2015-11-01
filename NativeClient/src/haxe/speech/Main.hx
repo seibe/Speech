@@ -19,8 +19,17 @@ class Main
 	
 	private function init():Void
 	{
-		var win = new ElectronBrowserWindow( { width: 800, height: 664 } );
+		var win = new ElectronBrowserWindow({
+			width: 800,
+			height: 664,
+			'min-width': 600,
+			'min-height': 400,
+			'accept-first-mouse': true,
+			'title-bar-style': 'hidden'
+		});
+		
 		win.loadUrl('file://' + Node.__dirname + '/index.html');
+		
 		win.on(ElectronBrowserWindowEventType.CLOSED, function():Void {
 			win = null;
 		});

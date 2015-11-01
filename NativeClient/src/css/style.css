@@ -88,11 +88,13 @@ button[disabled] {
   BLANK HTML
 *******************/
 
+.preview-container {
+	display: flex;
+	align-items: stretch;
+}
 .preview 
 {
     width: 100%;
-	height: calc(100% - 64px);
-	display: block;
 }
 
 

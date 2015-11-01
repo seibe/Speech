@@ -1,23 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="UTF-8">
-	<title>PresenJS Client</title>
+	<meta charset="utf-8">
+	<title>Speech NativeClient</title>
+	<link rel="stylesheet" href="css/photon.css" />
 	<link rel="stylesheet" href="css/style.css" />
-	<script defer src="js/renderer/index.js"></script>
+	<script src="js/renderer/index.js"></script>
 </head>
 <body>
-	<header class="head">
-		<div class="control">
-			<button id="btn-open" class="control-btn"><img alt="open" src="img/folder265.png" /></button>
-			<button id="btn-begin" class="control-btn"><img alt="begin" src="img/record8.png" /></button>
-			<button id="btn-end" class="control-btn" disabled><img alt="end" src="img/track4.png" /></button>
-			<button id="btn-cursor" class="control-btn" disabled><img alt="cursor" src="img/click4.png" /></button>
+	<div class="window">
+		<div class="window-content">
+			<div class="pane-group">
+				
+				<div class="pane pane-sm sidebar">
+					<nav class="nav-group">
+						<h1 class="nav-group-title">Start</h1>
+						<span class="nav-group-item"><span class="icon icon-home"></span>seibe</span>
+						<span class="nav-group-item"><span class="icon icon-folder"></span>Documents</span>
+						<span class="nav-group-item"><span class="icon icon-download"></span>Downloads</span>
+					</nav>
+				</div>
+				
+				<div class="pane preview-container" id="preview-container">
+					<webview class="preview" id="preview" src="blank.html" autosize="on" disablewebsecurity></webview>
+				</div>
+				
+			</div>
 		</div>
-		<div class="info">
-			<p id="info-console"></p>
-		</div>
-	</header>
-	<webview class="preview" id="preview" src="blank.html" disablewebsecurity></webview>
+	</div>
 </body>
 </html>
