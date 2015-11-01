@@ -1,6 +1,8 @@
 node_modules
+dist
 vendor
 old
+_old
 docs
 *.psd
 *.ai
