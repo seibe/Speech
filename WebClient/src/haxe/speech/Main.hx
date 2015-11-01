@@ -1,4 +1,4 @@
-package presenjs.client;
+package speech;
 
 import haxe.Json;
 import js.Browser;
@@ -53,7 +53,7 @@ class Main
 			return;
 		}
 		_roomId = _roomId.substr(1);
-		_frame.src = "wait.jpg";
+		_frame.src = "img/wait.jpg";
 		
 		// 3. WebSocketサーバーに接続する
 		_ws = new WebSocket(WS_URL);

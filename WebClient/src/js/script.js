@@ -91,15 +91,15 @@ js_Boot.__string_rec = function(o,s) {
 		return String(o);
 	}
 };
-var presenjs_client_Main = function() {
+var speech_Main = function() {
 	this.WS_URL = "ws://localhost:8081/ws/presenjs";
 	window.onload = $bind(this,this.init);
 };
-presenjs_client_Main.__name__ = true;
-presenjs_client_Main.main = function() {
-	new presenjs_client_Main();
+speech_Main.__name__ = true;
+speech_Main.main = function() {
+	new speech_Main();
 };
-presenjs_client_Main.prototype = {
+speech_Main.prototype = {
 	init: function() {
 		var _g = this;
 		this._isConnect = false;
@@ -116,7 +116,7 @@ presenjs_client_Main.prototype = {
 			return;
 		}
 		this._roomId = HxOverrides.substr(this._roomId,1,null);
-		this._frame.src = "wait.jpg";
+		this._frame.src = "img/wait.jpg";
 		this._ws = new WebSocket(this.WS_URL);
 		this._ws.addEventListener("open",$bind(this,this.onConnect));
 		this._ws.addEventListener("close",$bind(this,this.onDisconnect));
@@ -192,5 +192,5 @@ function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id
 String.__name__ = true;
 Array.__name__ = true;
 Date.__name__ = ["Date"];
-presenjs_client_Main.main();
+speech_Main.main();
 })(typeof console != "undefined" ? console : {log:function(){}});
