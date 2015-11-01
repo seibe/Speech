@@ -130,8 +130,8 @@ speech_renderer_Index.prototype = {
 		this._ws.addEventListener("close",$bind(this,this.onDisconnect));
 		this._ws.addEventListener("message",$bind(this,this.onReceive));
 		this._ws.addEventListener("error",$bind(this,this.onError));
-		this._webview = window.document.getElementById("preview");
-		this._webviewContainer = window.document.getElementById("preview-container");
+		this._webview = window.document.getElementById("player-main-webview");
+		this._webviewContainer = window.document.getElementById("player-main");
 		window.addEventListener("resize",$bind(this,this.onResize));
 		this.onResize();
 	}

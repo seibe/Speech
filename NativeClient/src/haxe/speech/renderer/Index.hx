@@ -62,8 +62,8 @@ class Index
 		_ws.addEventListener("error", onError);
 		
 		// 2. Dom要素を取得する
-		_webview = cast Browser.document.getElementById("preview");
-		_webviewContainer = Browser.document.getElementById("preview-container");
+		_webview = cast Browser.document.getElementById("player-main-webview");
+		_webviewContainer = Browser.document.getElementById("player-main");
 		
 		Browser.window.addEventListener("resize", onResize);
 		onResize();
