@@ -1,18 +1,5 @@
 (function (console) { "use strict";
 var $estr = function() { return js_Boot.__string_rec(this,''); };
-var EReg = function(r,opt) {
-	opt = opt.split("u").join("");
-	this.r = new RegExp(r,opt);
-};
-EReg.__name__ = true;
-EReg.prototype = {
-	match: function(s) {
-		if(this.r.global) this.r.lastIndex = 0;
-		this.r.m = this.r.exec(s);
-		this.r.s = s;
-		return this.r.m != null;
-	}
-};
 Math.__name__ = true;
 var Std = function() { };
 Std.__name__ = true;
@@ -23,30 +10,6 @@ var haxe_Log = function() { };
 haxe_Log.__name__ = true;
 haxe_Log.trace = function(v,infos) {
 	js_Boot.__trace(v,infos);
-};
-var haxe_Timer = function(time_ms) {
-	var me = this;
-	this.id = setInterval(function() {
-		me.run();
-	},time_ms);
-};
-haxe_Timer.__name__ = true;
-haxe_Timer.delay = function(f,time_ms) {
-	var t = new haxe_Timer(time_ms);
-	t.run = function() {
-		t.stop();
-		f();
-	};
-	return t;
-};
-haxe_Timer.prototype = {
-	stop: function() {
-		if(this.id == null) return;
-		clearInterval(this.id);
-		this.id = null;
-	}
-	,run: function() {
-	}
 };
 var js_Boot = function() { };
 js_Boot.__name__ = true;
@@ -159,7 +122,6 @@ speech_renderer_Index.main = function() {
 };
 speech_renderer_Index.prototype = {
 	init: function() {
-		var _g = this;
 		this._isBegin = this._isCreate = this._isConnect = false;
 		this._prevUrl = "";
 		this._reqCount = 0;
@@ -169,46 +131,12 @@ speech_renderer_Index.prototype = {
 		this._ws.addEventListener("message",$bind(this,this.onReceive));
 		this._ws.addEventListener("error",$bind(this,this.onError));
 		this._webview = window.document.getElementById("preview");
-		this._console = window.document.getElementById("info-console");
-		var btnOpen = window.document.getElementById("btn-open");
-		var btnBegin = window.document.getElementById("btn-begin");
-		var btnEnd = window.document.getElementById("btn-end");
-		btnOpen.addEventListener("click",function(e) {
-			_g._webview.src = "file://" + __dirname + "/blank.html";
-		});
-		btnBegin.addEventListener("click",function(e1) {
-			var reg = new EReg("http(s)?://([\\w-]+\\.)+[\\w-]+(/[\\w-./?%&=]*)?","");
-			var url = _g._webview.getUrl();
-			if(reg.match(url)) {
-				btnBegin.disabled = true;
-				btnEnd.disabled = false;
-				_g.send(speech_renderer_Request.BEGIN);
-				_g.send(speech_renderer_Request.OPEN(url,{ }));
-				_g._isBegin = true;
-				_g._prevUrl = url;
-			}
-		});
-		btnEnd.addEventListener("click",function(e2) {
-			btnEnd.disabled = true;
-			_g.send(speech_renderer_Request.END);
-		});
-		this._webview.addEventListener("keydown",function(e3) {
-			if(!_g._isBegin) return;
-			haxe_Timer.delay(function() {
-				var url1 = _g._webview.getUrl();
-				if(_g._prevUrl != url1) {
-					_g._console.innerHTML += "<br/>" + url1;
-					_g.send(speech_renderer_Request.CHANGE(url1));
-					_g._prevUrl = url1;
-				}
-			},250);
-		});
-		this._webview.addEventListener("did-finish-load",function() {
-			haxe_Log.trace("did_finish_load",{ fileName : "Index.hx", lineNumber : 107, className : "speech.renderer.Index", methodName : "init", customParams : [_g._webview.getUrl()]});
-		});
-		haxe_Timer.delay(function() {
-			_g._webview.openDevTools();
-		},1000);
+		this._webviewContainer = window.document.getElementById("preview-container");
+		window.addEventListener("resize",$bind(this,this.onResize));
+		this.onResize();
+	}
+	,onResize: function() {
+		this._webview.style.height = Std.string(this._webviewContainer.offsetHeight) + "px";
 	}
 	,send: function(req) {
 		var obj = { };
@@ -245,7 +173,7 @@ speech_renderer_Index.prototype = {
 		return this._reqCount;
 	}
 	,onConnect: function(e) {
-		haxe_Log.trace("connect",{ fileName : "Index.hx", lineNumber : 173, className : "speech.renderer.Index", methodName : "onConnect"});
+		haxe_Log.trace("connect",{ fileName : "Index.hx", lineNumber : 189, className : "speech.renderer.Index", methodName : "onConnect"});
 		this._isConnect = true;
 		if(!this._isCreate) this.send(speech_renderer_Request.CREATE({ title : "test room", aspect : "4:3"}));
 	}
@@ -272,12 +200,12 @@ speech_renderer_Index.prototype = {
 		case "onLeave":
 			break;
 		case "onError":
-			haxe_Log.trace("resp error",{ fileName : "Index.hx", lineNumber : 216, className : "speech.renderer.Index", methodName : "onReceive", customParams : [resp.data]});
+			haxe_Log.trace("resp error",{ fileName : "Index.hx", lineNumber : 232, className : "speech.renderer.Index", methodName : "onReceive", customParams : [resp.data]});
 			break;
 		}
 	}
 	,onError: function(e) {
-		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 222, className : "speech.renderer.Index", methodName : "onError", customParams : [e]});
+		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 238, className : "speech.renderer.Index", methodName : "onError", customParams : [e]});
 	}
 };
 var $_, $fid = 0;

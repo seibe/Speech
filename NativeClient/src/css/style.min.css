@@ -9,7 +9,8 @@ button[disabled]{cursor:default;opacity:0.1;pointer-events:none;}
 #blank-form-submit{width:5em;height:2em;box-sizing:border-box;margin:0;padding:10px;border-radius:0 2px 2px 0;background:#999;color:#333;font-size:1rem;position:absolute;top:0;left:28em;cursor:pointer;}
 #blank-form-submit:hover{background:#aaa;}
 #blank-form-submit:hover:active{background:#ccc;}
-.preview{width:100%;height:calc(100% - 64px);display:block;}
+.preview-container{display:flex;align-items:stretch;}
+.preview{width:100%;}
 .head{position:relative;}
 .control{width:100%;height:56px;padding:8px 0 0 12px;background:#666;}
 .control-btn{width:48px;height:48px;border-radius:2px;padding:10px;background:none;}

@@ -45,8 +45,8 @@
   <!-- Other project options -->
   <options>
     <option showHiddenPaths="False" />
-    <option testMovie="Unknown" />
-    <option testMovieCommand="" />
+    <option testMovie="Custom" />
+    <option testMovieCommand="electron $(ProjectDir)\src" />
   </options>
   <!-- Plugin storage -->
   <storage />

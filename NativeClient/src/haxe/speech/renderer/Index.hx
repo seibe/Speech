@@ -1,6 +1,7 @@
 package speech.renderer;
 
 import electron.Electron;
+import electron.ElectronBrowserWindow;
 import electron.ElectronNativeImage;
 import electron.WebViewElement;
 import haxe.Json;
@@ -32,6 +33,9 @@ class Index
 	private var _console:Element;
 	
 	private var _reqCount:Int;
+	
+	private var _myself:ElectronBrowserWindow;
+	private var _webviewContainer:Element;
 	private var _webview:WebViewElement;
 	
 	static function main() 
@@ -59,6 +63,12 @@ class Index
 		
 		// 2. Dom要素を取得する
 		_webview = cast Browser.document.getElementById("preview");
+		_webviewContainer = Browser.document.getElementById("preview-container");
+		
+		Browser.window.addEventListener("resize", onResize);
+		onResize();
+		
+		/*
 		_console = Browser.document.getElementById("info-console");
 		var btnOpen:ButtonElement = cast Browser.document.getElementById("btn-open");
 		var btnBegin:ButtonElement = cast Browser.document.getElementById("btn-begin");
@@ -91,6 +101,7 @@ class Index
 		
 		//_prevUrl = _webview.getUrl();
 		_webview.addEventListener("keydown", function(e:Dynamic):Void {
+			trace("on key down");
 			if (!_isBegin) return;
 			Timer.delay( function():Void {
 				// 前回とURLが異なっていればページ移動したと看做す
@@ -101,13 +112,18 @@ class Index
 					_prevUrl = url;
 				}
 			}, 250);
-		});
+		});*/
 		
 		// デバッグ用イベント
-		_webview.addEventListener(WebViewEventType.DID_FINISH_LOAD, function():Void { trace("did_finish_load", _webview.getUrl()); } );
+		//_webview.addEventListener(WebViewEventType.DID_FINISH_LOAD, function():Void { trace("did_finish_load", _webview.getUrl()); } );
+		//Timer.delay(function():Void { _webview.openDevTools(); }, 1000);
 		//_webview.addEventListener("keydown", function(e):Void{ Timer.delay(capture, 250); });
 		//_webview.addEventListener("hashchange", function(e):Void { trace("onPopState!!!"); } );
-		Timer.delay(function():Void { _webview.openDevTools(); }, 1000);
+	}
+	
+	private function onResize():Void
+	{
+		_webview.style.height = Std.string(_webviewContainer.offsetHeight) + "px";
 	}
 	
 	private function send(req:Request):Int
