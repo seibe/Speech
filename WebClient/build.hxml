@@ -1,0 +1,5 @@
+-cp src/haxe
+-main speech.Main
+-dce full
+-js src/js/script.js
+#-debug

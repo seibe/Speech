@@ -1,0 +1,6 @@
+-main speech.Main
+-cp src
+-dce full
+-lib hxnodejs
+-js dist/app.js
+#-debug

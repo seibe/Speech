@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>PresenJS Client</title>
+	<link rel="stylesheet" href="css/style.css" />
+	<script defer src="js/renderer/index.js"></script>
+</head>
+<body>
+	<header class="head">
+		<div class="control">
+			<button id="btn-open" class="control-btn"><img alt="open" src="img/folder265.png" /></button>
+			<button id="btn-begin" class="control-btn"><img alt="begin" src="img/record8.png" /></button>
+			<button id="btn-end" class="control-btn" disabled><img alt="end" src="img/track4.png" /></button>
+			<button id="btn-cursor" class="control-btn" disabled><img alt="cursor" src="img/click4.png" /></button>
+		</div>
+		<div class="info">
+			<p id="info-console"></p>
+		</div>
+	</header>
+	<webview class="preview" id="preview" src="blank.html" disablewebsecurity></webview>
+</body>
+</html>
