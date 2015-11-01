@@ -1,4 +1,4 @@
-package presenjs.server;
+package speech;
 
 import haxe.Json;
 import js.Error;
@@ -6,7 +6,6 @@ import js.Node;
 import js.node.Crypto;
 import js.node.crypto.Hash;
 import js.node.Fs;
-import presenjs.server.Main.Room;
 import ws.WsServer;
 
 typedef Room = {
