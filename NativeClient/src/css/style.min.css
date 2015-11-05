@@ -1,22 +1,32 @@
-*{margin:0;border:0;padding:0;outline:none;}
-html{font-family:'Meiryo UI';font-size:62.5%;overflow:hidden;}
-html,body{width:100%;height:100%;}
-button{cursor:pointer;}
-button[disabled]{cursor:default;opacity:0.1;pointer-events:none;}
+.hide{display:none!important;}
 .blank{font-size:120%;padding:2em;background:#eee;}
 .blank-form{margin:20px 0;position:relative;}
-#blank-form-input{width:28em;height:2em;box-sizing:border-box;margin:0;padding:10px;border:2px solid #999;border-radius:2px 0 0 2px;background:#fff;color:#666;font-size:1rem;position:absolute;top:0;left:0;}
+#blank-form-input{width:28em;height:2em;box-sizing:border-box;margin:0;padding:10px;border:2px solid #999;border-radius:2px 0 0 2px;background:#fff;color:#666;font-size:1rem;cursor:text;position:absolute;top:0;left:0;}
 #blank-form-submit{width:5em;height:2em;box-sizing:border-box;margin:0;padding:10px;border-radius:0 2px 2px 0;background:#999;color:#333;font-size:1rem;position:absolute;top:0;left:28em;cursor:pointer;}
 #blank-form-submit:hover{background:#aaa;}
 #blank-form-submit:hover:active{background:#ccc;}
-.preview-container{display:flex;align-items:stretch;}
-.preview{width:100%;}
-.head{position:relative;}
-.control{width:100%;height:56px;padding:8px 0 0 12px;background:#666;}
-.control-btn{width:48px;height:48px;border-radius:2px;padding:10px;background:none;}
-.control-btn>img{width:28px;height:28px;}
-.control-btn:hover{background:#444;}
-.control-btn:hover:active{background:#222;}
-.info{color:#fff;font-size:1rem;position:absolute;bottom:16px;right:16px;}
-#info-console{text-align:right;}
+.main{height:100%;overflow-x:hidden;}
+#scene-setup{max-width:480px;padding:0 20px 20px;}
+#scene-live{height:100%;padding:0 20px;display:flex;flex-direction:column;}
+.header{height:120px;position:relative;}
+.header-title{width:100%;margin-bottom:-3px;}
+.header-uri{width:100%;cursor:text;-webkit-user-select:text;}
+.header-share{position:absolute;top:30px;right:20px;}
+.player{min-height:320px;margin:20px 0;background:#f6f6f6;flex:1;display:flex;}
+.player-main{margin:0;padding:0;list-style:none;position:relative;flex:1;z-index:0;display:flex;flex-direction:column-reverse;align-items:flex-start;overflow:hidden;}
+.player-main-item:not(.active){max-width:140px;height:auto;margin-bottom:10px;background:#eee;overflow:hidden;}
+.player-main-item:not(.active)>input[type=checkbox]{display:none;}
+.player-main-item:not(.active)>input[type=checkbox]+div{background:#333;position:relative;}
+.player-main-item:not(.active)>input[type=checkbox]+div>label,.player-main-item:not(.active)>input[type=checkbox]+div>button{width:24px;height:24px;margin:0;border:1px solid #ccc;padding:0;text-align:center;color:#000;background:#ddd;cursor:pointer;position:absolute;display:none;}
+.player-main-item:not(.active)>input[type=checkbox]+div>*:not(button):not(label){width:140px;height:auto;}
+.player-main-item:not(.active)>input[type=checkbox]+div:hover>label{display:block;top:0;right:25px;}
+.player-main-item:not(.active)>input[type=checkbox]+div:hover>button{display:block;top:0;right:0;}
+.player-main-item:not(.active)>input[type=checkbox]:checked+div{width:24px;height:24px;}
+.player-main-item:not(.active)>input[type=checkbox]:checked+div>label{display:block;right:0;}
+.player-main-item:not(.active)>input[type=checkbox]:checked+div>*:not(label){display:none;}
+.player-main-item.active{width:100%;height:100%;max-width:none;margin:0;background:#000;position:absolute;top:0;left:0;display:block;z-index:-1;}
+.player-main-item.active input,.player-main-item.active button{display:none;}
+.player-main-item.active webview{width:100%;display:block;}
+.player-comment{width:300px;border-left:1px solid #ddd;background:#eee;overflow-y:auto;}
+.controller{height:50px;}
 

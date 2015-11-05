@@ -10,7 +10,7 @@ speech_Main.main = function() {
 };
 speech_Main.prototype = {
 	init: function() {
-		var win = new electron_ElectronBrowserWindow({ width : 800, height : 664, 'min-width' : 600, 'min-height' : 400, 'accept-first-mouse' : true, 'title-bar-style' : "hidden"});
+		var win = new electron_ElectronBrowserWindow({ width : 1280, height : 720, 'min-width' : 600, 'min-height' : 400, 'accept-first-mouse' : true, 'title-bar-style' : "hidden"});
 		win.loadUrl("file://" + __dirname + "/index.html");
 		win.on("closed",function() {
 			win = null;
