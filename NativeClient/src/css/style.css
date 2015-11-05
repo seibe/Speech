@@ -1,5 +1,15 @@
 
 /*******************
+  CONTROL
+*******************/
+
+.hide {
+    display: none !important;
+}
+
+
+
+/*******************
   BLANK HTML
 *******************/
 
@@ -26,6 +36,7 @@
 	background: #fff;
 	color: #666;
 	font-size: 1rem;
+	cursor: text;
 	
 	position: absolute;
 	top: 0;
@@ -57,12 +68,31 @@
 }
 
 
-
-/*******************
-  BLANK HTML
-*******************/
+/*********************
+  PANE
+*********************/
 
 .main {
+    height: 100%;
+    overflow-x: hidden;
+}
+
+
+/*********************
+  SCENE - setup
+*********************/
+
+#scene-setup {
+    max-width: 480px;
+	padding: 0 20px 20px;
+}
+
+
+/*********************
+  SCENE - live
+*********************/
+
+#scene-live {
     height: 100%;
     padding: 0 20px;
     display: flex;
@@ -79,28 +109,170 @@
 }
 .header-uri {
     width: 100%;
-    pointer-events: all;
+	cursor: text;
+	-webkit-user-select: text;
 }
 .header-share {
     position: absolute;
     top: 30px;
-    right:  0;
+    right:  20px;
 }
 
 .player {
-    margin-bottom: 15px;
-    background: #333;
+    min-height: 320px;
+    margin: 20px 0;
+    background: #f6f6f6;
     flex: 1;
     display: flex;
 }
 .player-main {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	position: relative;
     flex: 1;
+    z-index: 0;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    overflow: hidden;
 }
-.player-main-webview {
+.player-main-item:not(.active) {
+    max-width: 140px;
+    height: auto;
+    margin-bottom: 10px;
+    background: #eee;
+    overflow: hidden;
+}
+.player-main-item:not(.active) > input[type=checkbox] {
+	display: none;
+}
+.player-main-item:not(.active) > input[type=checkbox] + div {
+    background: #333;
+    position: relative;
+}
+.player-main-item:not(.active) > input[type=checkbox] + div > label,
+.player-main-item:not(.active) > input[type=checkbox] + div > button {
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    border: 1px solid #ccc;
+    padding: 0;
+    text-align: center;
+    color: #000;
+    background: #ddd;
+    cursor: pointer;
+    position: absolute;
+    
+    display: none;
+}
+.player-main-item:not(.active) > input[type=checkbox] + div > *:not(button):not(label) {
+    width: 140px;
+    height: auto;
+}
+.player-main-item:not(.active) > input[type=checkbox] + div:hover > label {
+    display: block;
+    top: 0;
+    right: 25px;
+}
+.player-main-item:not(.active) > input[type=checkbox] + div:hover > button {
+    display: block;
+    top: 0;
+    right: 0;
+}
+.player-main-item:not(.active) > input[type=checkbox]:checked + div {
+    width: 24px;
+    height: 24px;
+}
+.player-main-item:not(.active) > input[type=checkbox]:checked + div > label {
+    display: block;
+    right: 0;
+}
+.player-main-item:not(.active) > input[type=checkbox]:checked + div > *:not(label) {
+    display: none;
+}
+.player-main-item.active {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    margin: 0;
+    background: #000;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    z-index: -1;
+}
+.player-main-item.active input,
+.player-main-item.active button {
+    display: none;
+}
+.player-main-item.active webview {
+	width: 100%;
 	display: block;
 }
+/*
+.player-main-over {
+    position: absolute;
+	left: 0;
+	bottom: 20px;
+}
+.player-main-over-item {
+	margin: 0 0 10px 0;
+}
+.player-main-over-item > input[type=checkbox] {
+	display: none;
+}
+.player-main-over-item > input[type=checkbox] + div {
+    background: #111;
+    position: relative;
+}
+.player-main-over-item > input[type=checkbox] + div > label,
+.player-main-over-item > input[type=checkbox] + div > button {
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    border: 1px solid #ccc;
+    padding: 0;
+    text-align: center;
+    color: #000;
+    background: #ddd;
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    right: 25px;
+    
+    display: none;
+}
+.player-main-over-item > input[type=checkbox] + div:hover > label {
+    display: block;
+}
+.player-main-over-item > input[type=checkbox] + div > label > video {
+    background: #111;
+}
+.player-main-over-item > input[type=checkbox] + div:hover > button {
+    display: block;
+    top: 0;
+    right: 0;
+}
+.player-main-over-item > input[type=checkbox]:checked + div {
+    width: 24px;
+    height: 24px;
+}
+.player-main-over-item > input[type=checkbox]:checked + div > label {
+    display: block;
+    right: 0;
+}
+.player-main-over-item > input[type=checkbox]:checked + div > button {
+    display: none;
+}
+.player-main-over-item > input[type=checkbox]:checked + div > video {
+    display: none;
+}
+*/
 .player-comment {
     width: 300px;
+	border-left: 1px solid #ddd;
     background: #eee;
     overflow-y: auto;
 }

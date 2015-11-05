@@ -12,8 +12,3 @@
 
 -main speech.renderer.Index
 -js src/js/renderer/index.js
-
---next
-
--main speech.renderer.Blank
--js src/js/renderer/blank.js

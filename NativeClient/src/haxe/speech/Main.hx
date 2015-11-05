@@ -20,8 +20,8 @@ class Main
 	private function init():Void
 	{
 		var win = new ElectronBrowserWindow({
-			width: 800,
-			height: 664,
+			width: 1280,
+			height: 720,
 			'min-width': 600,
 			'min-height': 400,
 			'accept-first-mouse': true,
@@ -33,6 +33,5 @@ class Main
 		win.on(ElectronBrowserWindowEventType.CLOSED, function():Void {
 			win = null;
 		});
-	}
-	
+	}	
 }

@@ -22,136 +22,198 @@
 				</div>
 				
 				<div class="pane main">
-                    <div class="header">
-                        <h1 class="header-title">THE PRESENTATION TITLE</h1>
-                        <input class="header-uri" type="text" value="http://hogehoge.com/hogehoge" readonly></input>
-                        <button class="header-share btn btn-large btn-primary">SHARE</button>
+                    
+                    <div class="scene" id="scene-setup">
+                        <h2>Setup</h2>
+                        <div class="form-group">
+                            <label>Slide address</label>
+                            <input type="url" class="form-control" id="input-setup-slide-url" placeholder="http://" required pattern="https?://.+">
+                        </div>
+                        <div class="form-group">
+                            <label>Presentation title</label>
+                            <input type="text" class="form-control" id="input-setup-title" placeholder="No title" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Description (option)</label>
+                            <textarea class="form-control" id="input-setup-description" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Video source</label>
+                            <select class="form-control" id="select-setup-video">
+                                <option value="">None</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Audio source</label>
+                            <select class="form-control" id="select-setup-audio">
+                                <option value="">None</option>
+                            </select>
+                        </div>
+						<!--
+                        <div class="form-group">
+                            <label>Data disclosure range</label>
+                            <select class="form-control">
+                                <option>Option one</option>
+                                <option>Option two</option>
+                                <option>Option three</option>
+                                <option>Option four</option>
+                                <option>Option five</option>
+                                <option>Option six</option>
+                                <option>Option seven</option>
+                                <option>Option eight</option>
+                            </select>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" />This is a checkbox</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" />This is a checkbox too</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" name="radios" checked />Keep your options open</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" name="radios">Be sure to remember to check for unknown unknowns</label>
+                        </div>
+						-->
+                        <div class="form-actions">
+                            <button class="btn btn-form btn-default" id="button-setup-cancel">Clear</button>
+                            <button class="btn btn-form btn-primary" id="button-setup-submit">Start</button>
+                        </div>
                     </div>
                     
-                    <div class="player">
-                        <div class="player-main" id="player-main">
-                            <webview class="player-main-webview" id="player-main-webview" src="blank.html" autosize="on" disablewebsecurity></webview>
+                    
+                    <div class="scene" id="scene-live">
+                        <div class="header">
+                            <h1 class="header-title" id="live-title">THE PRESENTATION TITLE</h1>
+                            <input class="header-uri" type="text" id="input-live-url" readonly></input>
+                            <button class="header-share btn btn-large btn-primary" id="live-button-share">SHARE</button>
                         </div>
-                        <div class="player-comment">
-                            <ul class="list-group">
-                                <li class="list-group-header">
-                                    <input class="form-control" type="text" placeholder="Search for someone">
-                                </li>
-                                <li class="list-group-item">
-                                    <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
-                                    <div class="media-body">
-                                    <strong>Seibe TAKAHASHI</strong>
-                                    <p>Tottemo iito omoi-masu!</p>
-                                    </div>
-                                </li>
-                                <li class="list-group-item">
-                                    <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
-                                    <div class="media-body">
-                                    <strong>Seibe TAKAHASHI</strong>
-                                    <p>Tottemo iito omoi-masu!</p>
-                                    </div>
-                                </li>
-                                <li class="list-group-item">
-                                    <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
-                                    <div class="media-body">
-                                    <strong>Seibe TAKAHASHI</strong>
-                                    <p>Tottemo iito omoi-masu!</p>
-                                    </div>
-                                </li>
-                                <li class="list-group-item">
-                                    <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
-                                    <div class="media-body">
-                                    <strong>Seibe TAKAHASHI</strong>
-                                    <p>Tottemo iito omoi-masu!</p>
-                                    </div>
-                                </li>
-                                <li class="list-group-item">
-                                    <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
-                                    <div class="media-body">
-                                    <strong>Seibe TAKAHASHI</strong>
-                                    <p>Tottemo iito omoi-masu!</p>
-                                    </div>
-                                </li>
-                                <li class="list-group-item">
-                                    <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
-                                    <div class="media-body">
-                                    <strong>Seibe TAKAHASHI</strong>
-                                    <p>Tottemo iito omoi-masu!</p>
-                                    </div>
-                                </li>
-                                <li class="list-group-item">
-                                    <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
-                                    <div class="media-body">
-                                    <strong>Seibe TAKAHASHI</strong>
-                                    <p>Tottemo iito omoi-masu!</p>
-                                    </div>
-                                </li>
-                                <li class="list-group-item">
-                                    <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
-                                    <div class="media-body">
-                                    <strong>Seibe TAKAHASHI</strong>
-                                    <p>Tottemo iito omoi-masu!</p>
-                                    </div>
-                                </li>
-                                <li class="list-group-item">
-                                    <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
-                                    <div class="media-body">
-                                    <strong>Seibe TAKAHASHI</strong>
-                                    <p>Tottemo iito omoi-masu!</p>
-                                    </div>
-                                </li>
-                                <li class="list-group-item">
-                                    <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
-                                    <div class="media-body">
-                                    <strong>Seibe TAKAHASHI</strong>
-                                    <p>Tottemo iito omoi-masu!</p>
-                                    </div>
-                                </li>
-                                <li class="list-group-item">
-                                    <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
-                                    <div class="media-body">
-                                    <strong>Seibe TAKAHASHI</strong>
-                                    <p>Tottemo iito omoi-masu!</p>
-                                    </div>
-                                </li>
-                                <li class="list-group-item">
-                                    <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
-                                    <div class="media-body">
-                                    <strong>Seibe TAKAHASHI</strong>
-                                    <p>Tottemo iito omoi-masu!</p>
-                                    </div>
-                                </li>
-                                <li class="list-group-item">
-                                    <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
-                                    <div class="media-body">
-                                    <strong>Seibe TAKAHASHI</strong>
-                                    <p>Tottemo iito omoi-masu!</p>
-                                    </div>
-                                </li>
-                                <li class="list-group-item">
-                                    <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
-                                    <div class="media-body">
-                                    <strong>Seibe TAKAHASHI</strong>
-                                    <p>Tottemo iito omoi-masu!</p>
-                                    </div>
-                                </li>
-                                <li class="list-group-item">
-                                    <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
-                                    <div class="media-body">
-                                    <strong>Seibe TAKAHASHI</strong>
-                                    <p>Tottemo iito omoi-masu!</p>
-                                    </div>
-                                </li>
+						
+                        <div class="player">
+                            <ul class="player-main" id="live-player-main">
                             </ul>
+                            <div class="player-comment">
+                                <ul class="list-group">
+                                    <li class="list-group-header">
+                                        <input class="form-control" type="text" placeholder="Search for someone">
+                                    </li>
+                                    <li class="list-group-item">
+                                        <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
+                                        <div class="media-body">
+                                        <strong>Seibe TAKAHASHI</strong>
+                                        <p>Tottemo iito omoi-masu!</p>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
+                                        <div class="media-body">
+                                        <strong>Seibe TAKAHASHI</strong>
+                                        <p>Tottemo iito omoi-masu!</p>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
+                                        <div class="media-body">
+                                        <strong>Seibe TAKAHASHI</strong>
+                                        <p>Tottemo iito omoi-masu!</p>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
+                                        <div class="media-body">
+                                        <strong>Seibe TAKAHASHI</strong>
+                                        <p>Tottemo iito omoi-masu!</p>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
+                                        <div class="media-body">
+                                        <strong>Seibe TAKAHASHI</strong>
+                                        <p>Tottemo iito omoi-masu!</p>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
+                                        <div class="media-body">
+                                        <strong>Seibe TAKAHASHI</strong>
+                                        <p>Tottemo iito omoi-masu!</p>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
+                                        <div class="media-body">
+                                        <strong>Seibe TAKAHASHI</strong>
+                                        <p>Tottemo iito omoi-masu!</p>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
+                                        <div class="media-body">
+                                        <strong>Seibe TAKAHASHI</strong>
+                                        <p>Tottemo iito omoi-masu!</p>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
+                                        <div class="media-body">
+                                        <strong>Seibe TAKAHASHI</strong>
+                                        <p>Tottemo iito omoi-masu!</p>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
+                                        <div class="media-body">
+                                        <strong>Seibe TAKAHASHI</strong>
+                                        <p>Tottemo iito omoi-masu!</p>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
+                                        <div class="media-body">
+                                        <strong>Seibe TAKAHASHI</strong>
+                                        <p>Tottemo iito omoi-masu!</p>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
+                                        <div class="media-body">
+                                        <strong>Seibe TAKAHASHI</strong>
+                                        <p>Tottemo iito omoi-masu!</p>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
+                                        <div class="media-body">
+                                        <strong>Seibe TAKAHASHI</strong>
+                                        <p>Tottemo iito omoi-masu!</p>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
+                                        <div class="media-body">
+                                        <strong>Seibe TAKAHASHI</strong>
+                                        <p>Tottemo iito omoi-masu!</p>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <img class="img-circle media-object pull-left" src="img/avatar.jpg" width="32" height="32">
+                                        <div class="media-body">
+                                        <strong>Seibe TAKAHASHI</strong>
+                                        <p>Tottemo iito omoi-masu!</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="controller">
-                        <button class="btn btn-large btn-default">Add Media</button>
-                        <button class="btn btn-large btn-primary">Switch Camera</button>
-                        <button class="btn btn-large btn-positive">Use Pointer</button>
-                        <button class="btn btn-large btn-negative">Make Questionnaire</button>
-                        <button class="btn btn-large btn-warning">Finish Live</button>
+						
+                        <div class="controller">
+                            <button class="btn btn-large btn-default">Add Media</button>
+                            <button class="btn btn-large btn-default">Switch Camera</button>
+                            <button class="btn btn-large btn-default">Use Pointer</button>
+                            <button class="btn btn-large btn-default">Make Questionnaire</button>
+                            <button class="btn btn-large btn-negative">Finish Live</button>
+                        </div>
                     </div>
 				</div>
 				
