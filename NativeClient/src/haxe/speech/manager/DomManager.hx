@@ -1,6 +1,7 @@
 package speech.manager;
 
 import electron.WebViewElement;
+import haxe.Constraints.Function;
 import js.Browser;
 import js.html.ButtonElement;
 import js.html.Element;
@@ -76,7 +77,7 @@ class DomManager
 	* Scene change function
 	* @param scene the scene name
 	*/
-	public function changeScene(id:String):Void
+	public function changeScene(id:String, ?callback:Function):Void
 	{
 		if (_sceneMap[id] == null) return;
 		_nowScene = id;
@@ -86,6 +87,8 @@ class DomManager
 			if (key == id) _sceneMap[key].classList.remove("hide");
 			else _sceneMap[key].classList.add("hide");
 		}
+		
+		if (callback != null) callback();
 	}
 	
 	/**
@@ -107,9 +110,11 @@ class DomManager
 	* @param src slide url
 	* @return webview
 	*/
-	public function initSlideView(src:String):WebViewElement
+	public function initPlayer(src:String):WebViewElement
 	{
-		addMedia('<webview class="player-webview" id="live-slideview" src="' + src + '" autosize="on" disablewebsecurity></webview>');
+		get("player-main", "live").innerHTML = "";
+		
+		addMedia('<webview class="player-webview" id="live-slideview" src="' + src + '" autosize="on" disablewebsecurity></webview>', true);
 		_idMap["live-slideview"] = Browser.document.getElementById("live-slideview");
 		
 		return cast _idMap["live-slideview"];
@@ -165,7 +170,7 @@ class DomManager
 		_idMap.remove(_id);
 	}
 	
-	private function addMedia(innerHTML:String):Void
+	private function addMedia(innerHTML:String, forceActive:Bool = false):Void
 	{
 		var player = get("player-main", "live");
 		var i = Std.string(player.childElementCount);
@@ -177,11 +182,13 @@ class DomManager
 		var div = list.getElementsByTagName("div")[0];
 		div.insertAdjacentHTML("afterbegin", innerHTML);
 		
-		player.appendChild(list);
-		
-		if (player.childElementCount == 1) {
+		if (player.childElementCount == 0 || forceActive) {
+			var others = Browser.document.getElementsByClassName("player-main-item");
+			for (elem in others) elem.classList.remove("active");
 			list.classList.add("active");
 		}
+		
+		player.appendChild(list);
 	}
 	
 	private function setOptions(selectId:String, optionHtml:Array<String>):Void

@@ -55,8 +55,8 @@ class Index
 		_dom = new DomManager();
 		_media = new MediaManager();
 		
-		// 2. レイアウト
-		initSetup();
+		// 2. イベントリスナー登録
+		initEvent();
 		
 		// 3. WebSocketサーバーに接続する
 		_ws = new WebSocket(WS_URL);
@@ -65,23 +65,42 @@ class Index
 		_ws.addEventListener("message", onReceive);
 		_ws.addEventListener("error", onError);
 		
-		/*
-		btnEnd.addEventListener("click", function(e:Dynamic):Void {
-			btnEnd.disabled = true;
-			send(Request.END);
-		});
+		//
+		_dom.changeScene("setup");
 		
 		// デバッグ用イベント
-		_webview.addEventListener(WebViewEventType.DID_FINISH_LOAD, function():Void { trace("did_finish_load", _webview.getUrl()); } );
-		Timer.delay(function():Void { _webview.openDevTools(); }, 1000);
-		_webview.addEventListener("keydown", function(e):Void{ Timer.delay(capture, 250); });
-		_webview.addEventListener("hashchange", function(e):Void { trace("onPopState!!!"); } );
-		*/
+		// _webview.addEventListener(WebViewEventType.DID_FINISH_LOAD, function():Void { trace("did_finish_load", _webview.getUrl()); } );
+		// Timer.delay(function():Void { _webview.openDevTools(); }, 1000);
 	}
 	
-	private function initSetup():Void
+	private function initEvent():Void
 	{
-		_dom.changeScene("setup");
+		// スタートボタン
+		_dom.getButton("submit", "setup").addEventListener("click", function():Void {
+			var slideUrl = _dom.getInput("slide-url", "setup").value;
+			var title = _dom.getInput("title", "setup").value;
+			var urlCheck:EReg = ~/https?:\/\/.+/;
+			if (slideUrl.length > 0 && title.length > 0) {
+				if (!urlCheck.match(slideUrl)) {
+					_dom.getInput("slide-url", "setup").focus();
+					return;
+				}
+				
+				_dom.changeScene("live", onChangeSceneLive);
+			}
+		});
+		
+		// 配信終了ボタン
+		_dom.getButton("finish", "live").addEventListener("click", function(e:Dynamic):Void {
+			send(Request.END);
+			Browser.window.removeEventListener("resize", onResize);
+			_dom.changeScene("setup", onChangeSceneSetup);
+		});
+	}
+	
+	private function onChangeSceneSetup():Void
+	{
+		_dom.get("player-main", "live").innerHTML = "";
 		
 		// ソースセレクタ
 		var videoList = new Array<MediaStreamTrack>();
@@ -97,46 +116,13 @@ class Index
 			_dom.setMediaSource("video", videoList);
 			_dom.setMediaSource("audio", audioList);
 		});
-		
-		// クリアボタン
-		_dom.getButton("cancel").addEventListener("click", function():Void {
-			_dom.getInput("slide-url").value = "";
-			_dom.getInput("title").value = "";
-		});
-		
-		// スタートボタン
-		_dom.getButton("submit").addEventListener("click", function():Void {
-			var slideUrl = _dom.getInput("slide-url").value;
-			var title = _dom.getInput("title").value;
-			var urlCheck:EReg = ~/https?:\/\/.+/;
-			if (slideUrl.length > 0 && title.length > 0) {
-				if (!urlCheck.match(slideUrl)) {
-					_dom.getInput("slide-url").focus();
-					return;
-				}
-				initLive();
-			}
-		});
 	}
 	
-	private function initLive():Void
+	private function onChangeSceneLive():Void
 	{
-		_dom.changeScene("live");
-		
 		// タイトルテキスト
 		var title = _dom.getInput("title", "setup").value;
 		_dom.get("title").innerText = title;
-		
-		// スライドビュー
-		var slideUrl = _dom.getInput("slide-url", "setup").value;
-		_slideview = _dom.initSlideView(slideUrl);
-		_prevUrl = slideUrl;
-		
-		Browser.window.addEventListener("resize", onResize);
-		onResize();
-		_slideview.addEventListener("keydown", changeSlide);
-		_slideview.addEventListener("wheel", changeSlide);
-		_slideview.addEventListener("mouseup", changeSlide);
 		
 		// カメラとマイク
 		var selectVideo = _dom.getSelect("video", "setup");
@@ -148,12 +134,24 @@ class Index
 			trace("error getusermedia");
 		});
 		
+		// スライドビュー
+		var slideUrl = _dom.getInput("slide-url", "setup").value;
+		_slideview = _dom.initPlayer(slideUrl);
+		_slideview.addEventListener("keydown", onChangeSlide);
+		_slideview.addEventListener("wheel", onChangeSlide);
+		_slideview.addEventListener("mouseup", onChangeSlide);
+		_prevUrl = slideUrl;
+		
+		// temp event
+		Browser.window.addEventListener("resize", onResize);
+		onResize();
+		
 		// ブロードキャスト開始
 		send(Request.BEGIN);
 		send(Request.OPEN(slideUrl, {}));
 	}
 	
-	private function changeSlide():Void
+	private function onChangeSlide():Void
 	{
 		if (!_isBegin) return;
 		Timer.delay( function():Void {
@@ -168,7 +166,7 @@ class Index
 	
 	private function onResize():Void
 	{
-		var playerHeight = _dom.get("player-main").offsetHeight;
+		var playerHeight = _dom.get("player-main", "live").offsetHeight;
 		_slideview.style.height = Std.string(playerHeight) + "px";
 	}
 	
