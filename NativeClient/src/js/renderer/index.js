@@ -205,6 +205,9 @@ speech_manager_DomManager.prototype = {
 	,getSelect: function(id,sceneId) {
 		return this._get(id,sceneId,"select");
 	}
+	,getDialog: function(id,sceneId) {
+		return this._idMap.get("dialog-" + id);
+	}
 	,getScene: function(id) {
 		return this._idMap.get("scene-" + id);
 	}
@@ -214,7 +217,7 @@ speech_manager_DomManager.prototype = {
 		var $it0 = this._sceneMap.keys();
 		while( $it0.hasNext() ) {
 			var key = $it0.next();
-			haxe_Log.trace(key,{ fileName : "DomManager.hx", lineNumber : 86, className : "speech.manager.DomManager", methodName : "changeScene"});
+			haxe_Log.trace(key,{ fileName : "DomManager.hx", lineNumber : 93, className : "speech.manager.DomManager", methodName : "changeScene"});
 			if(key == id) this._sceneMap.get(key).classList.remove("hide"); else this._sceneMap.get(key).classList.add("hide");
 		}
 		if(callback != null) callback();
@@ -294,7 +297,7 @@ speech_manager_DomManager.prototype = {
 				this._idMap.set(elem.id,elem);
 				elem;
 			}
-			haxe_Log.trace(elem.id,{ fileName : "DomManager.hx", lineNumber : 204, className : "speech.manager.DomManager", methodName : "setElementList"});
+			haxe_Log.trace(elem.id,{ fileName : "DomManager.hx", lineNumber : 211, className : "speech.manager.DomManager", methodName : "setElementList"});
 		}
 		var child = elem.firstElementChild;
 		while(child != null) {
@@ -321,6 +324,16 @@ speech_manager_MediaManager.prototype = {
 		if(reqVideo && reqAudio) window.navigator.webkitGetUserMedia({ video : { optional : [{ sourceId : videoId}]}, audio : { optional : [{ sourceId : audioId}]}},success,error); else if(reqVideo) window.navigator.webkitGetUserMedia({ video : { optional : [{ sourceId : videoId}]}},success,error); else if(reqAudio) window.navigator.webkitGetUserMedia({ video : false, audio : { optional : [{ sourceId : audioId}]}},success,error);
 	}
 };
+var speech_renderer_State = { __ename__ : true, __constructs__ : ["SETUP","LIVE_STARTING","LIVE"] };
+speech_renderer_State.SETUP = ["SETUP",0];
+speech_renderer_State.SETUP.toString = $estr;
+speech_renderer_State.SETUP.__enum__ = speech_renderer_State;
+speech_renderer_State.LIVE_STARTING = ["LIVE_STARTING",1];
+speech_renderer_State.LIVE_STARTING.toString = $estr;
+speech_renderer_State.LIVE_STARTING.__enum__ = speech_renderer_State;
+speech_renderer_State.LIVE = ["LIVE",2];
+speech_renderer_State.LIVE.toString = $estr;
+speech_renderer_State.LIVE.__enum__ = speech_renderer_State;
 var speech_renderer_Request = { __ename__ : true, __constructs__ : ["CREATE","BEGIN","PAUSE","END","OPEN","CHANGE"] };
 speech_renderer_Request.CREATE = function(option) { var $x = ["CREATE",0,option]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
 speech_renderer_Request.BEGIN = ["BEGIN",1];
@@ -336,100 +349,120 @@ speech_renderer_Request.OPEN = function(slideUrl,option) { var $x = ["OPEN",4,sl
 speech_renderer_Request.CHANGE = function(slideUrl) { var $x = ["CHANGE",5,slideUrl]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
 var speech_renderer_Index = function() {
 	this.WS_URL = "ws://localhost:8081/ws/presenjs";
-	window.onload = $bind(this,this.init);
+	var _g = this;
+	window.onload = function() {
+		_g._state = null;
+		_g._prevUrl = "";
+		_g._reqCount = 0;
+		_g._slideview = null;
+		_g._dom = new speech_manager_DomManager();
+		_g._media = new speech_manager_MediaManager();
+		_g.setState(speech_renderer_State.SETUP);
+	};
+	window.onunload = function() {
+		if(_g._ws != null) _g._ws.close();
+	};
 };
 speech_renderer_Index.__name__ = true;
 speech_renderer_Index.main = function() {
 	new speech_renderer_Index();
 };
 speech_renderer_Index.prototype = {
-	init: function() {
-		this._isBegin = this._isCreate = this._isConnect = false;
-		this._prevUrl = "";
-		this._reqCount = 0;
-		this._slideview = null;
-		this._dom = new speech_manager_DomManager();
-		this._media = new speech_manager_MediaManager();
-		this.initEvent();
-		this._ws = new WebSocket(this.WS_URL);
-		this._ws.addEventListener("open",$bind(this,this.onConnect));
-		this._ws.addEventListener("close",$bind(this,this.onDisconnect));
-		this._ws.addEventListener("message",$bind(this,this.onReceive));
-		this._ws.addEventListener("error",$bind(this,this.onError));
-		this._dom.changeScene("setup");
-	}
-	,initEvent: function() {
+	setState: function(nextState) {
 		var _g = this;
-		this._dom.getButton("submit","setup").addEventListener("click",function() {
-			var slideUrl = _g._dom.getInput("slide-url","setup").value;
-			var title = _g._dom.getInput("title","setup").value;
-			var urlCheck = new EReg("https?://.+","");
-			if(slideUrl.length > 0 && title.length > 0) {
-				if(!urlCheck.match(slideUrl)) {
-					_g._dom.getInput("slide-url","setup").focus();
-					return;
+		if(this._state == nextState) return;
+		var temp = new haxe_ds_StringMap();
+		var _g1 = this._state;
+		if(_g1 == null) {
+		} else switch(_g1[1]) {
+		case 0:
+			var v = this._dom.getInput("title","setup").value;
+			if(__map_reserved.title != null) temp.setReserved("title",v); else temp.h["title"] = v;
+			v;
+			var v1 = this._dom.getSelect("video","setup").value;
+			if(__map_reserved.selectedVideo != null) temp.setReserved("selectedVideo",v1); else temp.h["selectedVideo"] = v1;
+			v1;
+			var v2 = this._dom.getSelect("audio","setup").value;
+			if(__map_reserved.selectedAudio != null) temp.setReserved("selectedAudio",v2); else temp.h["selectedAudio"] = v2;
+			v2;
+			var v3 = this._dom.getInput("slide-url","setup").value;
+			if(__map_reserved.slideUrl != null) temp.setReserved("slideUrl",v3); else temp.h["slideUrl"] = v3;
+			v3;
+			this._dom.getButton("submit").addEventListener("click",$bind(this,this.onClickButtonStart));
+			break;
+		case 1:
+			this._dom.getDialog("loading").close();
+			break;
+		case 2:
+			this._dom.get("player-main","live").innerHTML = "";
+			this.send(speech_renderer_Request.END);
+			this._ws.close();
+			this._ws = null;
+			window.removeEventListener("resize",$bind(this,this.onResize));
+			this._slideview.removeEventListener("keydown",$bind(this,this.onChangeSlide));
+			this._slideview.removeEventListener("wheel",$bind(this,this.onChangeSlide));
+			this._slideview.removeEventListener("mouseup",$bind(this,this.onChangeSlide));
+			break;
+		}
+		switch(nextState[1]) {
+		case 0:
+			this._dom.changeScene("setup");
+			var videoList = [];
+			var audioList = [];
+			this._media.getTrackList(function(data) {
+				var _g2 = 0;
+				while(_g2 < data.length) {
+					var track = data[_g2];
+					++_g2;
+					var _g11 = track.kind;
+					switch(_g11) {
+					case "video":
+						videoList.push(track);
+						break;
+					case "audio":
+						audioList.push(track);
+						break;
+					default:
+						haxe_Log.trace(track,{ fileName : "Index.hx", lineNumber : 127, className : "speech.renderer.Index", methodName : "setState"});
+					}
 				}
-				_g._dom.changeScene("live",$bind(_g,_g.onChangeSceneLive));
-			}
-		});
-		this._dom.getButton("finish","live").addEventListener("click",function(e) {
-			_g.send(speech_renderer_Request.END);
-			window.removeEventListener("resize",$bind(_g,_g.onResize));
-			_g._dom.changeScene("setup",$bind(_g,_g.onChangeSceneSetup));
-		});
-	}
-	,onChangeSceneSetup: function() {
-		var _g = this;
-		this._dom.get("player-main","live").innerHTML = "";
-		var videoList = [];
-		var audioList = [];
-		this._media.getTrackList(function(data) {
-			var _g1 = 0;
-			while(_g1 < data.length) {
-				var track = data[_g1];
-				++_g1;
-				var _g11 = track.kind;
-				switch(_g11) {
-				case "video":
-					videoList.push(track);
-					break;
-				case "audio":
-					audioList.push(track);
-					break;
-				default:
-					haxe_Log.trace(track,{ fileName : "Index.hx", lineNumber : 113, className : "speech.renderer.Index", methodName : "onChangeSceneSetup"});
-				}
-			}
-			_g._dom.setMediaSource("video",videoList);
-			_g._dom.setMediaSource("audio",audioList);
-		});
-	}
-	,onChangeSceneLive: function() {
-		var _g = this;
-		var title = this._dom.getInput("title","setup").value;
-		this._dom.get("title").innerText = title;
-		var selectVideo = this._dom.getSelect("video","setup");
-		var selectAudio = this._dom.getSelect("audio","setup");
-		this._media.getUserMedia(selectVideo.value,selectAudio.value,function(lms) {
-			var src = window.URL.createObjectURL(lms);
-			_g._dom.addVideo("webcam",src);
-		},function(err) {
-			haxe_Log.trace("error getusermedia",{ fileName : "Index.hx", lineNumber : 134, className : "speech.renderer.Index", methodName : "onChangeSceneLive"});
-		});
-		var slideUrl = this._dom.getInput("slide-url","setup").value;
-		this._slideview = this._dom.initPlayer(slideUrl);
-		this._slideview.addEventListener("keydown",$bind(this,this.onChangeSlide));
-		this._slideview.addEventListener("wheel",$bind(this,this.onChangeSlide));
-		this._slideview.addEventListener("mouseup",$bind(this,this.onChangeSlide));
-		this._prevUrl = slideUrl;
-		window.addEventListener("resize",$bind(this,this.onResize));
-		this.onResize();
-		this.send(speech_renderer_Request.BEGIN);
-		this.send(speech_renderer_Request.OPEN(slideUrl,{ }));
+				_g._dom.setMediaSource("video",videoList);
+				_g._dom.setMediaSource("audio",audioList);
+			});
+			this._dom.getButton("submit").addEventListener("click",$bind(this,this.onClickButtonStart));
+			break;
+		case 1:
+			this._dom.getDialog("loading").showModal();
+			this._ws = new WebSocket(this.WS_URL);
+			this._ws.addEventListener("open",$bind(this,this.onConnect));
+			this._ws.addEventListener("close",$bind(this,this.onDisconnect));
+			this._ws.addEventListener("message",$bind(this,this.onReceive));
+			this._ws.addEventListener("error",$bind(this,this.onError));
+			this._slideview = this._dom.initPlayer(__map_reserved.slideUrl != null?temp.getReserved("slideUrl"):temp.h["slideUrl"]);
+			this._prevUrl = __map_reserved.slideUrl != null?temp.getReserved("slideUrl"):temp.h["slideUrl"];
+			this._media.getUserMedia(__map_reserved.selectedVideo != null?temp.getReserved("selectedVideo"):temp.h["selectedVideo"],__map_reserved.selectedAudio != null?temp.getReserved("selectedAudio"):temp.h["selectedAudio"],function(lms) {
+				var src = window.URL.createObjectURL(lms);
+				_g._dom.addVideo("webcam",src);
+			},function(err) {
+				haxe_Log.trace("error getusermedia",{ fileName : "Index.hx", lineNumber : 157, className : "speech.renderer.Index", methodName : "setState"});
+			});
+			break;
+		case 2:
+			this._dom.changeScene("live");
+			window.addEventListener("resize",$bind(this,this.onResize));
+			this.onResize();
+			this._slideview.addEventListener("keydown",$bind(this,this.onChangeSlide));
+			this._slideview.addEventListener("wheel",$bind(this,this.onChangeSlide));
+			this._slideview.addEventListener("mouseup",$bind(this,this.onChangeSlide));
+			this._dom.getButton("finish").addEventListener("click",$bind(this,this.onClickButtonFinish));
+			this.send(speech_renderer_Request.OPEN(this._slideview.getUrl(),{ }));
+			break;
+		}
+		this._state = nextState;
 	}
 	,onChangeSlide: function() {
 		var _g = this;
-		if(!this._isBegin) return;
+		if(this._state != speech_renderer_State.LIVE) return;
 		haxe_Timer.delay(function() {
 			var url = _g._slideview.getUrl();
 			if(_g._prevUrl != url) {
@@ -441,6 +474,15 @@ speech_renderer_Index.prototype = {
 	,onResize: function() {
 		var playerHeight = this._dom.get("player-main","live").offsetHeight;
 		this._slideview.style.height = (playerHeight == null?"null":"" + playerHeight) + "px";
+	}
+	,onClickButtonStart: function() {
+		var slideUrl = this._dom.getInput("slide-url").value;
+		var title = this._dom.getInput("title").value;
+		var urlChecker = new EReg("https?://.+","");
+		if(slideUrl.length == 0 || title.length == 0 || !urlChecker.match(slideUrl)) this._dom.getInput("slide-url").focus(); else this.setState(speech_renderer_State.LIVE_STARTING);
+	}
+	,onClickButtonFinish: function() {
+		this.setState(speech_renderer_State.SETUP);
 	}
 	,send: function(req) {
 		var obj = { };
@@ -477,12 +519,10 @@ speech_renderer_Index.prototype = {
 		return this._reqCount;
 	}
 	,onConnect: function(e) {
-		haxe_Log.trace("connect",{ fileName : "Index.hx", lineNumber : 216, className : "speech.renderer.Index", methodName : "onConnect"});
-		this._isConnect = true;
-		if(!this._isCreate) this.send(speech_renderer_Request.CREATE({ title : "test room", aspect : "4:3"}));
+		this.send(speech_renderer_Request.CREATE({ title : "test room", aspect : "4:3"}));
 	}
 	,onDisconnect: function(e) {
-		this._isConnect = false;
+		this.setState(speech_renderer_State.SETUP);
 	}
 	,onReceive: function(e) {
 		var resp = JSON.parse(e.data);
@@ -490,26 +530,31 @@ speech_renderer_Index.prototype = {
 		switch(_g) {
 		case "onCreate":
 			this._dom.getInput("url","live").value = resp.data;
-			this._isCreate = true;
+			this.setState(speech_renderer_State.LIVE);
 			break;
 		case "onBegin":
-			this._isBegin = true;
+			haxe_Log.trace("onBegin",{ fileName : "Index.hx", lineNumber : 282, className : "speech.renderer.Index", methodName : "onReceive"});
 			break;
 		case "onPause":
+			haxe_Log.trace("onPause",{ fileName : "Index.hx", lineNumber : 285, className : "speech.renderer.Index", methodName : "onReceive"});
 			break;
 		case "onEnd":
+			haxe_Log.trace("onEnd",{ fileName : "Index.hx", lineNumber : 288, className : "speech.renderer.Index", methodName : "onReceive"});
 			break;
 		case "onEnter":
+			haxe_Log.trace("onEnter",{ fileName : "Index.hx", lineNumber : 291, className : "speech.renderer.Index", methodName : "onReceive"});
 			break;
 		case "onLeave":
+			haxe_Log.trace("onLeave",{ fileName : "Index.hx", lineNumber : 294, className : "speech.renderer.Index", methodName : "onReceive"});
 			break;
 		case "onError":
-			haxe_Log.trace("resp error",{ fileName : "Index.hx", lineNumber : 259, className : "speech.renderer.Index", methodName : "onReceive", customParams : [resp.data]});
+			haxe_Log.trace("resp error",{ fileName : "Index.hx", lineNumber : 297, className : "speech.renderer.Index", methodName : "onReceive", customParams : [resp.data]});
 			break;
 		}
 	}
 	,onError: function(e) {
-		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 265, className : "speech.renderer.Index", methodName : "onError", customParams : [e]});
+		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 303, className : "speech.renderer.Index", methodName : "onError", customParams : [e]});
+		this.setState(speech_renderer_State.SETUP);
 	}
 };
 var $_, $fid = 0;

@@ -1,5 +1,6 @@
 package speech.manager;
 
+import electron.DialogElement;
 import electron.WebViewElement;
 import haxe.Constraints.Function;
 import js.Browser;
@@ -57,6 +58,12 @@ class DomManager
 	* @param id Id of the element
 	*/
 	public function getSelect(id:String, ?sceneId:String):SelectElement return cast _get(id, sceneId, "select");
+	
+	/**
+	* Get a DialogTagElement by ID
+	* @param id Id of the element
+	*/
+	public function getDialog(id:String, ?sceneId:String):DialogElement return cast _idMap["dialog-" + id];
 	
 	/**
 	* Get a SceneElement by ID
