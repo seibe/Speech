@@ -7,6 +7,7 @@ import js.Browser;
 import js.html.ButtonElement;
 import js.html.Element;
 import js.html.InputElement;
+import js.html.LIElement;
 import js.html.SelectElement;
 import js.html.VideoElement;
 import electron.MediaStreamTrack;
@@ -140,15 +141,18 @@ class DomManager
 	* Add new webview for player
 	* @param src new webview element's src property
 	*/
-	public function addVideo(name:String, ?src:String, ?posterSrc:String):Void
+	public function addVideo(name:String, ?src:String, ?posterSrc:String):VideoElement
 	{
 		var id = _getId(name, "live", "video");
+		if (_idMap[id] != null) return cast _idMap[id];
 		
 		addMedia('<video class="player-video" id="' + id + '" autoplay></video>');
 		var video:VideoElement = cast Browser.document.getElementById(id);
 		if (src != null) video.src = src;
 		if (posterSrc != null) video.poster = posterSrc;
 		_idMap[id] = video;
+		
+		return cast _idMap[id];
 	}
 	
 	/* ------------------------------------------------------
@@ -177,7 +181,7 @@ class DomManager
 		_idMap.remove(_id);
 	}
 	
-	private function addMedia(innerHTML:String, forceActive:Bool = false):Void
+	private function addMedia(innerHTML:String, forceActive:Bool = false):LIElement
 	{
 		var player = get("player-main", "live");
 		var i = Std.string(player.childElementCount);
@@ -196,6 +200,7 @@ class DomManager
 		}
 		
 		player.appendChild(list);
+		return list;
 	}
 	
 	private function setOptions(selectId:String, optionHtml:Array<String>):Void

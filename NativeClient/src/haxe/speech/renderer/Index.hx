@@ -6,7 +6,11 @@ import haxe.Json;
 import haxe.Timer;
 import js.Browser;
 import js.html.Element;
+import js.html.LocalMediaStream;
+import js.html.rtc.IceCandidate;
+import js.html.rtc.SessionDescription;
 import js.html.WebSocket;
+import kurentoUtils.WebRtcPeer;
 import speech.manager.DomManager;
 import speech.manager.MediaManager;
 import speech.renderer.Index.State;
@@ -18,25 +22,28 @@ enum State {
 }
 
 enum Request {
-	CREATE(option:Dynamic);
-	BEGIN;
-	PAUSE;
-	END;
-	OPEN(slideUrl:String, option:Dynamic);
-	CHANGE(slideUrl:String);
+	JOIN_PRESENTER(option:Dynamic);
+	LEAVE_PRESENTER;
+	UPDATE_SLIDE(slideUrl:String);
+	
+	START_STREAM(offer:SessionDescription);
+	STOP_STREAM();
+	ICE_CANDIDATE(ice:IceCandidate);
 }
 
 class Index 
 {
-	private var WS_URL(default, null):String = "ws://localhost:8081/ws/presenjs";
-	private var MS_URL(default, null):String = "ws://localhost:8088/kurento";
+	private var WS_URL(default, null):String = "ws://localhost:8081/speech";
 	private var _ws:WebSocket;
 	private var _state:State;
 	
 	private var _prevUrl:String;
 	private var _reqCount:Int;
+	private var _title:String;
+	private var _slideUrl:String;
 	
 	private var _slideview:WebViewElement;
+	private var _webRtcPeer:WebRtcPeer;
 	
 	private var _dom:DomManager;
 	private var _media:MediaManager;
@@ -51,6 +58,8 @@ class Index
 		Browser.window.onload = function():Void {
 			_state = null;
 			_prevUrl = "";
+			_title = null;
+			_slideUrl = null;
 			_reqCount = 0;
 			_slideview = null;
 			
@@ -78,10 +87,10 @@ class Index
 		{
 			case State.SETUP:
 				// フォーム各値の取得
-				temp["title"] = _dom.getInput("title", "setup").value;
+				_title = _dom.getInput("title", "setup").value;
+				_slideUrl = _dom.getInput("slide-url", "setup").value;
 				temp["selectedVideo"] = _dom.getSelect("video", "setup").value;
 				temp["selectedAudio"] = _dom.getSelect("audio", "setup").value;
-				temp["slideUrl"] = _dom.getInput("slide-url", "setup").value;
 				
 				// イベントリスナー解除
 				_dom.getButton("submit").addEventListener("click", onClickButtonStart);
@@ -95,7 +104,12 @@ class Index
 				_dom.get("player-main", "live").innerHTML = "";
 				
 				// 配信の終了
-				send(Request.END);
+				if (_webRtcPeer != null) {
+					send(Request.STOP_STREAM);
+					_webRtcPeer.dispose();
+					_webRtcPeer = null;
+				}
+				send(Request.LEAVE_PRESENTER);
 				_ws.close();
 				_ws = null;
 				
@@ -140,22 +154,36 @@ class Index
 				
 				// WebSocketサーバーに接続する
 				_ws = new WebSocket(WS_URL);
-				_ws.addEventListener("open", onConnect);
-				_ws.addEventListener("close", onDisconnect);
-				_ws.addEventListener("message", onReceive);
-				_ws.addEventListener("error", onError);
+				_ws.addEventListener("open", onWsConnect);
+				_ws.addEventListener("close", onWsClose);
+				_ws.addEventListener("message", onWsMessage);
+				_ws.addEventListener("error", onWsError);
 				
 				// スライドビュー初期化
-				_slideview = _dom.initPlayer(temp["slideUrl"]);
-				_prevUrl = temp["slideUrl"];
+				_slideview = _dom.initPlayer(_slideUrl);
+				_prevUrl = _slideUrl;
 				
-				// リッチメディアの反映
-				_media.getUserMedia(temp["selectedVideo"], temp["selectedAudio"], function(lms):Void {
-					var src = untyped Browser.window.URL.createObjectURL(lms);
-					_dom.addVideo("webcam", src);
-				}, function(err):Void {
-					trace("error getusermedia");
-				});
+				// 映像配信の初期化
+				if (temp["selectedVideo"] != null && temp["selectedVideo"].length > 0) {
+					// WebCamの登録
+					trace("webcam: " + temp["selectedVideo"]);
+					var videoElem = _dom.addVideo("webcam");
+					_media.getUserVideo(temp["selectedVideo"], function(lms):Void {
+						//
+						trace("get!");
+						_webRtcPeer = WebRtcPeer.WebRtcPeerSendonly({
+							localVideo: videoElem,
+							videoStream: lms,
+							onicecandidate: onIcecandidate
+						}, function (err:Dynamic):Void {
+							if (err != null) setState(State.SETUP);
+							_webRtcPeer.generateOffer(onOffer);
+						});
+					}, function(err):Void {
+						trace("error getuservideo");
+					});
+					
+				}
 				
 			case State.LIVE:
 				// DOM表示切替
@@ -168,9 +196,6 @@ class Index
 				_slideview.addEventListener("wheel", onChangeSlide);
 				_slideview.addEventListener("mouseup", onChangeSlide);
 				_dom.getButton("finish").addEventListener("click", onClickButtonFinish);
-				
-				//send(Request.BEGIN);
-				send(Request.OPEN(_slideview.getUrl(), {}));
 		}
 		
 		_state = nextState;
@@ -184,7 +209,7 @@ class Index
 			// 前回とURLが異なっていればページ移動したと看做す
 			var url:String = _slideview.getUrl();
 			if (_prevUrl != url) {
-				send(Request.CHANGE(url));
+				send(Request.UPDATE_SLIDE(url));
 				_prevUrl = url;
 			}
 		}, 250);
@@ -218,33 +243,27 @@ class Index
 		var obj:Dynamic = {};
 		
 		switch(req) {
-			case Request.CREATE(option):
-				obj.type = "create";
-				obj.data = { "option": option };
+			case Request.JOIN_PRESENTER(option):
+				obj.type = "joinPresenter";
+				obj.data = option;
 				
-			case Request.BEGIN:
-				obj.type = "begin";
+			case Request.LEAVE_PRESENTER:
+				obj.type = "leavePresenter";
 				
-			case Request.PAUSE:
-				obj.type = "pause";
+			case Request.UPDATE_SLIDE(slideUrl):
+				obj.type = "updateSlide";
+				obj.data = slideUrl;
 				
-			case Request.END:
-				obj.type = "end";
+			case Request.START_STREAM(offerSdp):
+				obj.type = "startStream";
+				obj.data = offerSdp;
 				
-			case Request.OPEN(slideUrl, option):
-				obj.type = "open";
-				obj.data = {
-					"slideUrl": slideUrl,
-					"option": option
-				};
+			case Request.STOP_STREAM:
+				obj.type = "stopStream";
 				
-			case Request.CHANGE(slideUrl):
-				obj.type = "change";
-				obj.data = { "slideUrl": slideUrl };
-				
-			default:
-				throw "argument error";
-				return -1;
+			case Request.ICE_CANDIDATE(candidate):
+				obj.type = "iceCandidate";
+				obj.data = candidate;
 		}
 		
 		obj.timestamp = Date.now().getTime();
@@ -254,53 +273,59 @@ class Index
 		return _reqCount;
 	}
 	
-	private function onConnect(e:Dynamic):Void
+	private function onWsConnect(e:Dynamic):Void
 	{
 		// 部屋を作成する
-		send(Request.CREATE( {
-			title: "test room",
-			aspect: "4:3"
+		send(Request.JOIN_PRESENTER( {
+			title: _title,
+			slideUrl: _slideUrl
 		} ));
 	}
 	
-	private function onDisconnect(e:Dynamic):Void
+	private function onWsClose(e:Dynamic):Void
 	{
 		setState(State.SETUP);
 	}
 	
-	private function onReceive(e:Dynamic):Void
+	private function onWsMessage(e:Dynamic):Void
 	{
 		var resp:Dynamic = Json.parse(e.data);
 		
 		switch (resp.type)
 		{
-			case "onCreate":
+			case "accept":
 				_dom.getInput("url", "live").value = resp.data;
 				setState(State.LIVE);
 				
-			case "onBegin":
-				trace("onBegin");
+			case 'acceptStream':
+				_webRtcPeer.processAnswer(resp.data);
 				
-			case "onPause":
-				trace("onPause");
+			case "onStopStream":
+				_webRtcPeer.dispose();
+				_webRtcPeer = null;
 				
-			case "onEnd":
-				trace("onEnd");
+			case 'iceCandidate': //iceCandidate
+				_webRtcPeer.addIceCandidate(resp.data);
 				
-			case "onEnter":
-				trace("onEnter");
-				
-			case "onLeave":
-				trace("onLeave");
-				
-			case "onError":
-				trace("resp error", resp.data);
+			default:
+				trace("unknown ws", resp);
 		}
 	}
 	
-	private function onError(e:Dynamic):Void
+	private function onWsError(error:Dynamic):Void
 	{
-		trace("error", e);
+		trace("error", error);
 		setState(State.SETUP);
 	}
+	
+	private function onOffer(error:Dynamic, offerSdp:SessionDescription):Void
+	{
+		send(Request.START_STREAM(offerSdp));
+	}
+	
+	private function onIcecandidate(candidate:IceCandidate):Void
+	{
+		send(Request.ICE_CANDIDATE(candidate));
+	}
+	
 }

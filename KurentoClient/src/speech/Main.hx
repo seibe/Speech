@@ -2,40 +2,22 @@ package speech;
 
 import haxe.Json;
 import js.Error;
-import js.Node;
-import js.node.Crypto;
-import js.node.crypto.Hash;
-import js.node.Fs;
+import js.Promise;
+import kurento.core.MediaPipeline;
+import kurento.kurentoClient.KurentoClient;
+import speech.core.Room;
+import speech.core.Session;
 import ws.WsServer;
-
-typedef Room = {
-	title:String,
-	filename:String,
-	presenter:WsSocket,
-	audience:Array<WsSocket>,
-	slideUrl:String
-}
-
-enum Response {
-	ON_CREATE(roomUrl:String);
-	ON_ENTER(userId:String, totalNum:Int);
-	ON_LEAVE(userId:String);
-	ON_BEGIN;
-	ON_PAUSE;
-	ON_END;
-	ON_OPEN(slideUrl:String);
-	ON_CHANGE(slideUrl:String);
-	ON_COMMENT(name:String, text:String);
-	ON_ERROR(error:Dynamic);
-}
 
 class Main 
 {
+	private var WS_URI(default, never):Dynamic = { port: 8081, path: '/speech' };
+	private static inline var MS_URI:String = "ws://localhost:8888/kurento";
+	private static inline var MV_DIR:String = "file:///tmp";
+	
 	private var _server:WsServer;
-	private var _room:Array<Room>;
-	//private var _presenterSocket:WsSocket;
-	//private var _audienceSockets:Array<WsSocket>;
-	//private var _screen:String;
+	private var _roomList:Array<Room>;
+	private var _sessionList:Array<Session>;
 
 	static function main() 
 	{
@@ -45,181 +27,123 @@ class Main
 	public function new()
 	{
 		// 初期化
-		_room = new Array<Room>();
+		_roomList = new Array<Room>();
+		_sessionList = new Array<Session>();
 		
 		// サーバー立ち上げ
-		_server = new WsServer( { port: 8081, path: '/ws/presenjs' } );
-		_server.on("connection", onOpen);
+		_server = new WsServer(WS_URI);
+		_server.on("connection", function (ws:WsSocket):Void {
+			//
+			var session = new Session(ws);
+			_sessionList.push(session);
+			trace("Connection received with sessionId", session.id);
+			
+			//
+			ws.on("message", function(data:Dynamic, flags:WsSocketFlags):Void { onWsMessage(session, data, flags); } );
+			ws.on("close", function():Void { onWsClose(session); } );
+			ws.on("error", function(error:Dynamic):Void { onWsError(session, error); } );
+		});
 	}
 
 	/* ------------------------------------- */
-
-	private function onOpen(client:WsSocket):Void
+	
+	private function onWsMessage(session:Session, data:Dynamic, flags:WsSocketFlags):Void
 	{
-		//trace("open");
-		
-		// イベント登録
-		client.on(WsSocketEventType.MESSAGE, function (data:Dynamic, flags:WsSocketFlags):Void {
-			var d:Dynamic = Json.parse(data);
-			
-			trace(d.type);
-			
-			switch (d.type)
-			{
-				case "create":
-					var hash:Hash = Crypto.createHash("sha1");
-					hash.update( Std.string(Date.now().getTime()) + Std.string(Math.random()) );
-					var name:String = hash.digest("hex");
-					Fs.writeFile(Node.__dirname + "/file/" + name + ".txt", d.timestamp + ",create\r\n", function(e:Error):Void { if (e != null) trace(e); } );
-					var room:Room = {
-						title: d.data.option.title,
-						filename: name,
-						presenter: client,
-						audience: new Array<WsSocket>(),
-						slideUrl: null
-					};
-					_room.push(room);
-					send(room, Response.ON_CREATE(name), d.requestId);
-					
-				case "begin":
-					for (r in _room) {
-						if (r.presenter == client) {
-							write(r, d.timestamp, "begin");
-							send(r, Response.ON_BEGIN, d.requestId);
-							break;
-						}
-					}
-					
-				case "pause":
-					//
-					
-				case "end":
-					for (r in _room) {
-						if (r.presenter == client) {
-							write(r, d.timestamp, "end");
-							send(r, Response.ON_END, d.requestId);
-							client.close();
-							//_room.remove(r);
-							break;
-						}
-					}
-					
-				case "open":
-					for (r in _room) {
-						if (r.presenter == client) {
-							write(r, d.timestamp, "open," + d.data.slideUrl);
-							send(r, Response.ON_OPEN(d.data.slideUrl), d.requestId);
-							r.slideUrl = d.data.slideUrl;
-							break;
-						}
-					}
-					
-				case "change":
-					for (r in _room) {
-						if (r.presenter == client) {
-							write(r, d.timestamp, "change," + d.data.slideUrl);
-							send(r, Response.ON_CHANGE(d.data.slideUrl), d.requestId);
-							break;
-						}
-					}
-					
-				case "enter":
-					for (r in _room) {
-						if (r.filename == d.data.roomId) {
-							// 部屋が適合した
-							r.audience.push(client);
-							client.send(Json.stringify( {
-								type: "onEnter",
-								data: { title: r.title, slideUrl: r.slideUrl }
-							} ));
-							return;
-						}
-					}
-						
-					// そんな部屋は無い
-					client.send(Json.stringify( {
-						type: "onError",
-						data: "指定された部屋は存在しないか、中継が終了しています"
-					} ));
-					client.close();
-					
-				case "comment":
-					for (r in _room) {
-						if (r.filename == d.data.roomId) {
-							// 部屋が適合した
-							write(r, d.timestamp, Json.stringify({name: d.data.name, text: d.data.text, url: d.data.slideUrl}));
-							send(r, Response.ON_COMMENT(d.data.name, d.data.text), d.requestId);
-							return;
-						}
-					}
-						
-					// そんな部屋は無い
-					client.send(Json.stringify( {
-						type: "onError",
-						data: "指定された部屋は存在しないか、中継が終了しています"
-					} ));
-					client.close();
-					
-				default:
-					trace("request error: " + d.type);
+		var mes = Json.parse(data);
+		var d:Dynamic = mes.data;
+		switch (mes.type)
+		{
+			case "joinPresenter":
+				// 放送者が部屋を作り、配信を始める
+				var room = new Room(d.title, session, d.slideUrl);
+				_roomList.push(room);
 				
-				/*
-				case "presenter":
-					trace("join: presenter");
-					_presenterSocket = client;
-					
-				case "audience":
-					trace("join: audience");
-					_audienceSockets.push(client);
-					if (_screen != null) client.send(Json.stringify( { type:"updateScreen", data: _screen } ));
-					
-				case "updateScreen": 
-					if (client == _presenterSocket) {
-						trace("update screen");
-						_screen = d.data;
-						for (s in _audienceSockets) s.send(data);
+				session.ws.send(Json.stringify( {
+					type: "accept",
+					data: room.id
+				} ));
+				
+			case "leavePresenter":
+				// 放送者が配信を終え、部屋を閉じる
+				session.destroy();
+				_roomList.remove(session.room);
+				
+			case "updateSlide":
+				// 放送者がスライドを切り替える
+				session.room.broadcast(Response.UPDATE_SLIDE(d));
+				
+			case "startStream":
+				// 放送者が映像配信を始める
+				session.startStream(MS_URI, MV_DIR, d);
+				
+			case "stopStream":
+				// 放送者が映像配信を終える
+				session.stopStream();
+				
+			case "appendMedia":
+				// 放送者がメディアを追加する
+				
+			case "removeMedia":
+				// 放送者がメディアを削除する
+				
+			case "joinViewer":
+				// 視聴者が部屋に入る
+				for (room in _roomList) {
+					if (room.id == d.roomId) {
+						// 部屋があった
+						room.viewerList.push(session);
+						session.room = room;
+						session.ws.send(Json.stringify( {
+							type: "accept",
+							data: { title: room.title, slideUrl: room.slideUrl }
+						} ));
+						// 配信映像を受信できるならする
+						if (d.sdpOffer != null && room.presenter.endpoint != null) {
+							session.connectStream(d.sdpOffer);
+						}
+						return;
 					}
+				}
 					
-				default:
-					trace("unknown message");
-				*/
-			}
-		});
-		client.on(WsSocketEventType.CLOSE, function (code:Dynamic, msg:Dynamic):Void {
-			
-			for (r in _room) {
-				if (r.presenter == client) {
-					// プレゼンターが突然の終了
-					trace("close presenter");
-					_room.remove(r);
-					break;
-				}
-				for (a in r.audience) {
-					if (a == client) {
-						// 視聴者が離脱
-						trace("close audience");
-						r.audience.remove(client);
-						break;
-					}
-				}
-			}
-			
-			/*
-			if (_presenterSocket == client) {
-				trace("close presenter");
-				_presenterSocket = null;
-				_screen = null;
-			}
-			else if (_audienceSockets.remove(client)) trace("close audience");
-			else trace("close ?");
-			*/
-		});
-		client.on(WsSocketEventType.ERROR, function (error:Dynamic):Void {
-			//onError(client, error);
-			throw error;
-		});
+				// そんな部屋は無い
+				session.ws.send(Json.stringify( {
+					type: "onError",
+					data: "指定された部屋は存在しないか、中継が終了しています"
+				} ));
+				session.destroy();
+				
+			case "leaveViewer":
+				// 視聴者が部屋を去る
+				session.destroy();
+				
+			case "comment":
+				// コメントする
+				session.room.broadcast(Response.COMMENT(d.name, d.text, d.slideUrl));
+				
+			case "iceCandidate":
+				// 経路情報を交換する
+				session.addIceCandidate(d);
+				
+			default:
+				trace("ws throw", mes.type);
+		}
 	}
 	
+	private function onWsClose(session:Session):Void
+	{
+		trace("close ws id: " + session.id);
+		session.destroy();
+		_sessionList.remove(session);
+	}
+	
+	private function onWsError(session:Session, error:Dynamic):Void
+	{
+		trace("ws error", error);
+	}
+	
+	/* ------------------------------------- */
+	
+	/*
 	private function send(room:Room, resp:Response, ?requestId = -1)
 	{
 		var obj:Dynamic = {};
@@ -262,17 +186,175 @@ class Main
 		obj.reqestId = requestId;
 		
 		var data:String = Json.stringify(obj);
-		room.presenter.send(data);
-		for (a in room.audience) a.send(data);
-	}
+		room.presenter.ws.send(data);
+		for (viewer in room.viewerMap) viewer.ws.send(data);
+	}*/
 	
-	private function write(room:Room, timestamp:String, data:String):Void
+	/*
+	private function onWsMessage(client:SessionData, data:Dynamic, flags:WsSocketFlags):Void
 	{
-		Fs.appendFile(
-			Node.__dirname + "/file/" + room.filename + ".txt",
-			timestamp + "," + data + "\r\n",
-			function(e:Error):Void { if (e != null) trace(e); }
-		);
-	}
+		var d:Dynamic = Json.parse(data);
+		
+		trace(d.type);
+		
+		switch (d.type)
+		{
+			case "create":
+				var name:String = getUniqueKey();
+				Fs.writeFile(Node.__dirname + "/file/" + name + ".txt",
+					d.timestamp + ",create\r\n",
+					function(e:Error):Void { if (e != null) trace(e); }
+				);
+				var room:Room = {
+					title: d.data.option.title,
+					filename: name,
+					presenter: client,
+					viewerMap: new Map<String, SessionData>(),
+					slideUrl: null
+				};
+				_room.push(room);
+				broadcast(room, Response.ON_CREATE(name), d.requestId);
+				
+			case "begin":
+				for (r in _room) {
+					if (r.presenter == client) {
+						write(r, d.timestamp, "begin");
+						broadcast(r, Response.ON_BEGIN, d.requestId);
+						break;
+					}
+				}
+				
+			case "pause":
+				//
+				
+			case "end":
+				for (r in _room) {
+					if (r.presenter == client) {
+						write(r, d.timestamp, "end");
+						broadcast(r, Response.ON_END, d.requestId);
+						r.presenter.ws.close();
+						for (v in r.viewerMap) v.ws.close();
+						//closeRoom(r);
+						_room.remove(r);
+						break;
+					}
+				}
+				
+			case "open":
+				for (r in _room) {
+					if (r.presenter == client) {
+						write(r, d.timestamp, "open," + d.data.slideUrl);
+						broadcast(r, Response.ON_OPEN(d.data.slideUrl), d.requestId);
+						r.slideUrl = d.data.slideUrl;
+						break;
+					}
+				}
+				
+			case "change":
+				for (r in _room) {
+					if (r.presenter == client) {
+						write(r, d.timestamp, "change," + d.data.slideUrl);
+						broadcast(r, Response.ON_CHANGE(d.data.slideUrl), d.requestId);
+						break;
+					}
+				}
+				
+			case "enter":
+				for (r in _room) {
+					if (r.filename == d.data.roomId) {
+						// 部屋が適合した
+						r.viewerMap[client.id] = client;
+						client.ws.send(Json.stringify( {
+							type: "onEnter",
+							data: { title: r.title, slideUrl: r.slideUrl }
+						} ));
+						return;
+					}
+				}
+					
+				// そんな部屋は無い
+				client.ws.send(Json.stringify( {
+					type: "onError",
+					data: "指定された部屋は存在しないか、中継が終了しています"
+				} ));
+				client.ws.close();
+				
+			case "comment":
+				for (r in _room) {
+					if (r.filename == d.data.roomId) {
+						// 部屋が適合した
+						write(r, d.timestamp, Json.stringify({name: d.data.name, text: d.data.text, url: d.data.slideUrl}));
+						broadcast(r, Response.ON_COMMENT(d.data.name, d.data.text), d.requestId);
+						return;
+					}
+				}
+					
+				// そんな部屋は無い
+				client.ws.send(Json.stringify( {
+					type: "onError",
+					data: "指定された部屋は存在しないか、中継が終了しています"
+				} ));
+				client.ws.close();
+				
+			case "offerPresenter":
+				var promise = startPresenter(client, d.data);
+				promise.then(function(sdpAnswer:String):Void {
+					ws.send(Json.stringify({
+						id: "presenterResponse",
+						response: "accepted",
+						sdpAnswer: sdpAnswer
+					}));
+				}).catchError(function(error:Error):Void {
+					ws.send(Json.stringify({
+						id: "presenterResponse",
+						response: "rejected",
+						message: error
+					}));
+				});
+				
+			case "offerViewer":
+				var promise = startViewer(client, d.data);
+				promise.then(function(sdpAnswer:String):Void {
+					ws.send(Json.stringify({
+						id: "viewerResponse",
+						response: "accepted",
+						sdpAnswer: sdpAnswer
+					}));
+				}).catchError(function(error:Error):Void {
+					ws.send(Json.stringify({
+						id: "viewerResponse",
+						response: "rejected",
+						message: error
+					}));
+				});
+				
+			case "onIceCandidate":
+				onIceCandidate(client.id, d.data);
+				
+			default:
+				trace("request error: " + d.type);
+			
+			/*
+			case "presenter":
+				trace("join: presenter");
+				_presenterSocket = client;
+				
+			case "audience":
+				trace("join: audience");
+				_audienceSockets.push(client);
+				if (_screen != null) client.send(Json.stringify( { type:"updateScreen", data: _screen } ));
+				
+			case "updateScreen": 
+				if (client == _presenterSocket) {
+					trace("update screen");
+					_screen = d.data;
+					for (s in _audienceSockets) s.send(data);
+				}
+				
+			default:
+				trace("unknown message");
+			
+		}
+	}*/
 	
 }

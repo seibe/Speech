@@ -11,7 +11,7 @@ import js.html.WebSocket;
 
 class Main
 {
-	private var WS_URL(default, null):String = "ws://localhost:8081/ws/presenjs";
+	private var WS_URL(default, null):String = "ws://localhost:8081/speech";
 	private var _ws:WebSocket;
 	private var _isConnect:Bool;
 	private var _frame:IFrameElement;
@@ -95,7 +95,7 @@ class Main
 		trace("open websocket");
 		
 		_ws.send(Json.stringify( {
-			type: "enter",
+			type: "joinViewer",
 			data: { roomId: _roomId },
 			requestId: 0,
 			timestamp: Date.now().getTime()
@@ -106,6 +106,7 @@ class Main
 	{
 		trace("close websocket");
 		_isConnect = false;
+		_frame.src = "wait.jpg";
 	}
 	
 	private function onMessage(e:Dynamic):Void
@@ -114,12 +115,26 @@ class Main
 		
 		switch (m.type)
 		{
-			case "onEnter":
+			case "onUpdateSlide":
+				_board.innerHTML = "<li class='system'><a href='" + m.data + "'>ページ</a>が変わりました</li>" + _board.innerHTML;
+				_frame.src = m.data;
+				
+			case "onComment":
+				_board.innerHTML = "<li>" + StringTools.htmlEscape(m.data.text) + "<br/><small>(" + StringTools.htmlEscape(m.data.name) + ")</small></li>" + _board.innerHTML;
+				
+			case "canStartStream":
+				trace("Event: canStartStream");
+				
+			case "onStopStream":
+				trace("Event: onStopStream");
+				
+			case "accept":
 				_isConnect = true;
 				_title.innerText = m.data.title;
 				_board.innerHTML = "<li class='system'>入室しました</li>" + _board.innerHTML;
 				if (m.data.slideUrl && m.data.slideUrl.length > 0) _frame.src = m.data.slideUrl;
 				
+			/*
 			case "onLeave":
 				_isConnect = false;
 				_frame.src = "wait.jpg";
@@ -138,18 +153,12 @@ class Main
 				_board.innerHTML = "<li class='system'><a href='" + m.data.slideUrl + "'>スライド資料</a>が開かれました</li>" + _board.innerHTML;
 				_frame.src = m.data.slideUrl;
 				
-			case "onChange":
-				_board.innerHTML = "<li class='system'><a href='" + m.data.slideUrl + "'>ページ</a>が変わりました</li>" + _board.innerHTML;
-				_frame.src = m.data.slideUrl;
-				
-			case "onComment":
-				_board.innerHTML = "<li>" + StringTools.htmlEscape(m.data.text) + "<br/><small>(" + StringTools.htmlEscape(m.data.name) + ")</small></li>" + _board.innerHTML;
-				
 			case "onError":
 				_board.innerHTML = "<li class='system'>エラー: " + StringTools.htmlEscape(m.data) + "</li>" + _board.innerHTML;
+			*/
 				
 			default:
-				trace("unknown message");
+				trace("unknown message", m);
 		}
 	}
 }

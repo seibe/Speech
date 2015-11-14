@@ -47,4 +47,12 @@ class MediaManager
 			}, success, error);
 		}
 	}
+	
+	public function getUserVideo(videoId:String, success:LocalMediaStream->Void, error:Error->Void):Void
+	{
+		untyped Browser.navigator.webkitGetUserMedia( {
+			video: { optional: [ { sourceId: videoId } ] },
+			audio: true
+		}, success, error);
+	}
 }
