@@ -22,8 +22,32 @@ StringTools.htmlEscape = function(s,quotes) {
 	s = s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
 	if(quotes) return s.split("\"").join("&quot;").split("'").join("&#039;"); else return s;
 };
+var haxe_Log = function() { };
+haxe_Log.__name__ = true;
+haxe_Log.trace = function(v,infos) {
+	js_Boot.__trace(v,infos);
+};
 var js_Boot = function() { };
 js_Boot.__name__ = true;
+js_Boot.__unhtml = function(s) {
+	return s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
+};
+js_Boot.__trace = function(v,i) {
+	var msg;
+	if(i != null) msg = i.fileName + ":" + i.lineNumber + ": "; else msg = "";
+	msg += js_Boot.__string_rec(v,"");
+	if(i != null && i.customParams != null) {
+		var _g = 0;
+		var _g1 = i.customParams;
+		while(_g < _g1.length) {
+			var v1 = _g1[_g];
+			++_g;
+			msg += "," + js_Boot.__string_rec(v1,"");
+		}
+	}
+	var d;
+	if(typeof(document) != "undefined" && (d = document.getElementById("haxe:trace")) != null) d.innerHTML += js_Boot.__unhtml(msg) + "<br/>"; else if(typeof console != "undefined" && console.log != null) console.log(msg);
+};
 js_Boot.__string_rec = function(o,s) {
 	if(o == null) return "null";
 	if(s.length >= 5) return "<...>";
@@ -92,7 +116,7 @@ js_Boot.__string_rec = function(o,s) {
 	}
 };
 var speech_Main = function() {
-	this.WS_URL = "ws://localhost:8081/ws/presenjs";
+	this.WS_URL = "ws://localhost:8081/speech";
 	window.onload = $bind(this,this.init);
 };
 speech_Main.__name__ = true;
@@ -137,53 +161,39 @@ speech_Main.prototype = {
 		this._inputSubmit.addEventListener("click",doComment);
 	}
 	,onConnect: function(e) {
-		console.log("open websocket");
-		this._ws.send(JSON.stringify({ type : "enter", data : { roomId : this._roomId}, requestId : 0, timestamp : new Date().getTime()}));
+		haxe_Log.trace("open websocket",{ fileName : "Main.hx", lineNumber : 95, className : "speech.Main", methodName : "onConnect"});
+		this._ws.send(JSON.stringify({ type : "joinViewer", data : { roomId : this._roomId}, requestId : 0, timestamp : new Date().getTime()}));
 	}
 	,onDisconnect: function(e) {
-		console.log("close websocket");
+		haxe_Log.trace("close websocket",{ fileName : "Main.hx", lineNumber : 107, className : "speech.Main", methodName : "onDisconnect"});
 		this._isConnect = false;
+		this._frame.src = "wait.jpg";
 	}
 	,onMessage: function(e) {
 		var m = JSON.parse(e.data);
 		var _g = m.type;
 		switch(_g) {
-		case "onEnter":
+		case "onUpdateSlide":
+			this._board.innerHTML = "<li class='system'><a href='" + Std.string(m.data) + "'>ページ</a>が変わりました</li>" + this._board.innerHTML;
+			this._frame.src = m.data;
+			break;
+		case "onComment":
+			this._board.innerHTML = "<li>" + StringTools.htmlEscape(m.data.text) + "<br/><small>(" + StringTools.htmlEscape(m.data.name) + ")</small></li>" + this._board.innerHTML;
+			break;
+		case "canStartStream":
+			haxe_Log.trace("Event: canStartStream",{ fileName : "Main.hx", lineNumber : 126, className : "speech.Main", methodName : "onMessage"});
+			break;
+		case "onStopStream":
+			haxe_Log.trace("Event: onStopStream",{ fileName : "Main.hx", lineNumber : 129, className : "speech.Main", methodName : "onMessage"});
+			break;
+		case "accept":
 			this._isConnect = true;
 			this._title.innerText = m.data.title;
 			this._board.innerHTML = "<li class='system'>入室しました</li>" + this._board.innerHTML;
 			if(m.data.slideUrl && m.data.slideUrl.length > 0) this._frame.src = m.data.slideUrl;
 			break;
-		case "onLeave":
-			this._isConnect = false;
-			this._frame.src = "wait.jpg";
-			break;
-		case "onBegin":
-			this._board.innerHTML = "<li class='system'>発表が始まりました</li>" + this._board.innerHTML;
-			break;
-		case "onPause":
-			this._board.innerHTML = "<li class='system'>発表が中断しました</li>" + this._board.innerHTML;
-			break;
-		case "onEnd":
-			this._board.innerHTML = "<li class='system'>発表が終了しました</li>" + this._board.innerHTML;
-			this._ws.close();
-			break;
-		case "onOpen":
-			this._board.innerHTML = "<li class='system'><a href='" + Std.string(m.data.slideUrl) + "'>スライド資料</a>が開かれました</li>" + this._board.innerHTML;
-			this._frame.src = m.data.slideUrl;
-			break;
-		case "onChange":
-			this._board.innerHTML = "<li class='system'><a href='" + Std.string(m.data.slideUrl) + "'>ページ</a>が変わりました</li>" + this._board.innerHTML;
-			this._frame.src = m.data.slideUrl;
-			break;
-		case "onComment":
-			this._board.innerHTML = "<li>" + StringTools.htmlEscape(m.data.text) + "<br/><small>(" + StringTools.htmlEscape(m.data.name) + ")</small></li>" + this._board.innerHTML;
-			break;
-		case "onError":
-			this._board.innerHTML = "<li class='system'>エラー: " + StringTools.htmlEscape(m.data) + "</li>" + this._board.innerHTML;
-			break;
 		default:
-			console.log("unknown message");
+			haxe_Log.trace("unknown message",{ fileName : "Main.hx", lineNumber : 161, className : "speech.Main", methodName : "onMessage", customParams : [m]});
 		}
 	}
 };

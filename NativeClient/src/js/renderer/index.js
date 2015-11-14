@@ -205,18 +205,22 @@ speech_manager_DomManager.prototype = {
 	,getSelect: function(id,sceneId) {
 		return this._get(id,sceneId,"select");
 	}
+	,getDialog: function(id,sceneId) {
+		return this._idMap.get("dialog-" + id);
+	}
 	,getScene: function(id) {
 		return this._idMap.get("scene-" + id);
 	}
-	,changeScene: function(id) {
+	,changeScene: function(id,callback) {
 		if(this._sceneMap.get(id) == null) return;
 		this._nowScene = id;
 		var $it0 = this._sceneMap.keys();
 		while( $it0.hasNext() ) {
 			var key = $it0.next();
-			haxe_Log.trace(key,{ fileName : "DomManager.hx", lineNumber : 85, className : "speech.manager.DomManager", methodName : "changeScene"});
+			haxe_Log.trace(key,{ fileName : "DomManager.hx", lineNumber : 94, className : "speech.manager.DomManager", methodName : "changeScene"});
 			if(key == id) this._sceneMap.get(key).classList.remove("hide"); else this._sceneMap.get(key).classList.add("hide");
 		}
+		if(callback != null) callback();
 	}
 	,setMediaSource: function(id,trackList) {
 		var optionHtml = [];
@@ -229,8 +233,9 @@ speech_manager_DomManager.prototype = {
 		}
 		this.setOptions(id,optionHtml);
 	}
-	,initSlideView: function(src) {
-		this.addMedia("<webview class=\"player-webview\" id=\"live-slideview\" src=\"" + src + "\" autosize=\"on\" disablewebsecurity></webview>");
+	,initPlayer: function(src) {
+		this.get("player-main","live").innerHTML = "";
+		this.addMedia("<webview class=\"player-webview\" id=\"live-slideview\" src=\"" + src + "\" autosize=\"on\" disablewebsecurity></webview>",true);
 		var v = window.document.getElementById("live-slideview");
 		this._idMap.set("live-slideview",v);
 		v;
@@ -238,6 +243,7 @@ speech_manager_DomManager.prototype = {
 	}
 	,addVideo: function(name,src,posterSrc) {
 		var id = this._getId(name,"live","video");
+		if(this._idMap.get(id) != null) return this._idMap.get(id);
 		this.addMedia("<video class=\"player-video\" id=\"" + id + "\" autoplay></video>");
 		var video = window.document.getElementById(id);
 		if(src != null) video.src = src;
@@ -246,6 +252,7 @@ speech_manager_DomManager.prototype = {
 			this._idMap.set(id,video);
 			video;
 		}
+		return this._idMap.get(id);
 	}
 	,_getId: function(id,sceneId,prefix) {
 		var array = [];
@@ -258,7 +265,8 @@ speech_manager_DomManager.prototype = {
 		var key = this._getId(id,sceneId,prefix);
 		return this._idMap.get(key);
 	}
-	,addMedia: function(innerHTML) {
+	,addMedia: function(innerHTML,forceActive) {
+		if(forceActive == null) forceActive = false;
 		var player = this.get("player-main","live");
 		var i;
 		if(player.childElementCount == null) i = "null"; else i = "" + player.childElementCount;
@@ -269,8 +277,18 @@ speech_manager_DomManager.prototype = {
 		list.innerHTML = "<input type=\"checkbox\" id=\"player-main-item-" + i + "\" /><div><button>×</button><label for=\"player-main-item-" + i + "\">-</label></div>";
 		var div = list.getElementsByTagName("div")[0];
 		div.insertAdjacentHTML("afterbegin",innerHTML);
+		if(player.childElementCount == 0 || forceActive) {
+			var others = window.document.getElementsByClassName("player-main-item");
+			var _g = 0;
+			while(_g < others.length) {
+				var elem = others[_g];
+				++_g;
+				elem.classList.remove("active");
+			}
+			list.classList.add("active");
+		}
 		player.appendChild(list);
-		if(player.childElementCount == 1) list.classList.add("active");
+		return list;
 	}
 	,setOptions: function(selectId,optionHtml) {
 		var select = this.getSelect(selectId);
@@ -282,7 +300,7 @@ speech_manager_DomManager.prototype = {
 				this._idMap.set(elem.id,elem);
 				elem;
 			}
-			haxe_Log.trace(elem.id,{ fileName : "DomManager.hx", lineNumber : 197, className : "speech.manager.DomManager", methodName : "setElementList"});
+			haxe_Log.trace(elem.id,{ fileName : "DomManager.hx", lineNumber : 216, className : "speech.manager.DomManager", methodName : "setElementList"});
 		}
 		var child = elem.firstElementChild;
 		while(child != null) {
@@ -303,156 +321,205 @@ speech_manager_MediaManager.prototype = {
 			callback(data);
 		});
 	}
-	,getUserMedia: function(videoId,audioId,success,error) {
-		var reqVideo = videoId != null && videoId.length > 0;
-		var reqAudio = audioId != null && audioId.length > 0;
-		if(reqVideo && reqAudio) window.navigator.webkitGetUserMedia({ video : { optional : [{ sourceId : videoId}]}, audio : { optional : [{ sourceId : audioId}]}},success,error); else if(reqVideo) window.navigator.webkitGetUserMedia({ video : { optional : [{ sourceId : videoId}]}},success,error); else if(reqAudio) window.navigator.webkitGetUserMedia({ video : false, audio : { optional : [{ sourceId : audioId}]}},success,error);
+	,getUserVideo: function(videoId,success,error) {
+		window.navigator.webkitGetUserMedia({ video : { optional : [{ sourceId : videoId}]}, audio : true},success,error);
 	}
 };
-var speech_renderer_Request = { __ename__ : true, __constructs__ : ["CREATE","BEGIN","PAUSE","END","OPEN","CHANGE"] };
-speech_renderer_Request.CREATE = function(option) { var $x = ["CREATE",0,option]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
-speech_renderer_Request.BEGIN = ["BEGIN",1];
-speech_renderer_Request.BEGIN.toString = $estr;
-speech_renderer_Request.BEGIN.__enum__ = speech_renderer_Request;
-speech_renderer_Request.PAUSE = ["PAUSE",2];
-speech_renderer_Request.PAUSE.toString = $estr;
-speech_renderer_Request.PAUSE.__enum__ = speech_renderer_Request;
-speech_renderer_Request.END = ["END",3];
-speech_renderer_Request.END.toString = $estr;
-speech_renderer_Request.END.__enum__ = speech_renderer_Request;
-speech_renderer_Request.OPEN = function(slideUrl,option) { var $x = ["OPEN",4,slideUrl,option]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
-speech_renderer_Request.CHANGE = function(slideUrl) { var $x = ["CHANGE",5,slideUrl]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
+var speech_renderer_State = { __ename__ : true, __constructs__ : ["SETUP","LIVE_STARTING","LIVE"] };
+speech_renderer_State.SETUP = ["SETUP",0];
+speech_renderer_State.SETUP.toString = $estr;
+speech_renderer_State.SETUP.__enum__ = speech_renderer_State;
+speech_renderer_State.LIVE_STARTING = ["LIVE_STARTING",1];
+speech_renderer_State.LIVE_STARTING.toString = $estr;
+speech_renderer_State.LIVE_STARTING.__enum__ = speech_renderer_State;
+speech_renderer_State.LIVE = ["LIVE",2];
+speech_renderer_State.LIVE.toString = $estr;
+speech_renderer_State.LIVE.__enum__ = speech_renderer_State;
+var speech_renderer_Request = { __ename__ : true, __constructs__ : ["JOIN_PRESENTER","LEAVE_PRESENTER","UPDATE_SLIDE","START_STREAM","STOP_STREAM","ICE_CANDIDATE"] };
+speech_renderer_Request.JOIN_PRESENTER = function(option) { var $x = ["JOIN_PRESENTER",0,option]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
+speech_renderer_Request.LEAVE_PRESENTER = ["LEAVE_PRESENTER",1];
+speech_renderer_Request.LEAVE_PRESENTER.toString = $estr;
+speech_renderer_Request.LEAVE_PRESENTER.__enum__ = speech_renderer_Request;
+speech_renderer_Request.UPDATE_SLIDE = function(slideUrl) { var $x = ["UPDATE_SLIDE",2,slideUrl]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
+speech_renderer_Request.START_STREAM = function(offer) { var $x = ["START_STREAM",3,offer]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
+speech_renderer_Request.STOP_STREAM = ["STOP_STREAM",4];
+speech_renderer_Request.STOP_STREAM.toString = $estr;
+speech_renderer_Request.STOP_STREAM.__enum__ = speech_renderer_Request;
+speech_renderer_Request.ICE_CANDIDATE = function(ice) { var $x = ["ICE_CANDIDATE",5,ice]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
 var speech_renderer_Index = function() {
-	this.WS_URL = "ws://localhost:8081/ws/presenjs";
-	window.onload = $bind(this,this.init);
+	this.WS_URL = "ws://localhost:8081/speech";
+	var _g = this;
+	window.onload = function() {
+		_g._state = null;
+		_g._prevUrl = "";
+		_g._title = null;
+		_g._slideUrl = null;
+		_g._reqCount = 0;
+		_g._slideview = null;
+		_g._dom = new speech_manager_DomManager();
+		_g._media = new speech_manager_MediaManager();
+		_g.setState(speech_renderer_State.SETUP);
+	};
+	window.onunload = function() {
+		if(_g._ws != null) _g._ws.close();
+	};
 };
 speech_renderer_Index.__name__ = true;
 speech_renderer_Index.main = function() {
 	new speech_renderer_Index();
 };
 speech_renderer_Index.prototype = {
-	init: function() {
-		this._isBegin = this._isCreate = this._isConnect = false;
-		this._prevUrl = "";
-		this._reqCount = 0;
-		this._slideview = null;
-		this._dom = new speech_manager_DomManager();
-		this._media = new speech_manager_MediaManager();
-		this.initSetup();
-		this._ws = new WebSocket(this.WS_URL);
-		this._ws.addEventListener("open",$bind(this,this.onConnect));
-		this._ws.addEventListener("close",$bind(this,this.onDisconnect));
-		this._ws.addEventListener("message",$bind(this,this.onReceive));
-		this._ws.addEventListener("error",$bind(this,this.onError));
-	}
-	,initSetup: function() {
+	setState: function(nextState) {
 		var _g = this;
-		this._dom.changeScene("setup");
-		var videoList = [];
-		var audioList = [];
-		this._media.getTrackList(function(data) {
-			var _g1 = 0;
-			while(_g1 < data.length) {
-				var track = data[_g1];
-				++_g1;
-				var _g11 = track.kind;
-				switch(_g11) {
-				case "video":
-					videoList.push(track);
-					break;
-				case "audio":
-					audioList.push(track);
-					break;
-				default:
-					haxe_Log.trace(track,{ fileName : "Index.hx", lineNumber : 94, className : "speech.renderer.Index", methodName : "initSetup"});
-				}
+		if(this._state == nextState) return;
+		var temp = new haxe_ds_StringMap();
+		var _g1 = this._state;
+		if(_g1 == null) {
+		} else switch(_g1[1]) {
+		case 0:
+			this._title = this._dom.getInput("title","setup").value;
+			this._slideUrl = this._dom.getInput("slide-url","setup").value;
+			var v = this._dom.getSelect("video","setup").value;
+			if(__map_reserved.selectedVideo != null) temp.setReserved("selectedVideo",v); else temp.h["selectedVideo"] = v;
+			v;
+			var v1 = this._dom.getSelect("audio","setup").value;
+			if(__map_reserved.selectedAudio != null) temp.setReserved("selectedAudio",v1); else temp.h["selectedAudio"] = v1;
+			v1;
+			this._dom.getButton("submit").addEventListener("click",$bind(this,this.onClickButtonStart));
+			break;
+		case 1:
+			this._dom.getDialog("loading").close();
+			break;
+		case 2:
+			this._dom.get("player-main","live").innerHTML = "";
+			if(this._webRtcPeer != null) {
+				this.send(speech_renderer_Request.STOP_STREAM);
+				this._webRtcPeer.dispose();
+				this._webRtcPeer = null;
 			}
-			_g._dom.setMediaSource("video",videoList);
-			_g._dom.setMediaSource("audio",audioList);
-		});
-		this._dom.getButton("cancel").addEventListener("click",function() {
-			_g._dom.getInput("slide-url").value = "";
-			_g._dom.getInput("title").value = "";
-		});
-		this._dom.getButton("submit").addEventListener("click",function() {
-			var slideUrl = _g._dom.getInput("slide-url").value;
-			var title = _g._dom.getInput("title").value;
-			var urlCheck = new EReg("https?://.+","");
-			if(slideUrl.length > 0 && title.length > 0) {
-				if(!urlCheck.match(slideUrl)) {
-					_g._dom.getInput("slide-url").focus();
-					return;
+			this.send(speech_renderer_Request.LEAVE_PRESENTER);
+			this._ws.close();
+			this._ws = null;
+			window.removeEventListener("resize",$bind(this,this.onResize));
+			this._slideview.removeEventListener("keydown",$bind(this,this.onChangeSlide));
+			this._slideview.removeEventListener("wheel",$bind(this,this.onChangeSlide));
+			this._slideview.removeEventListener("mouseup",$bind(this,this.onChangeSlide));
+			break;
+		}
+		switch(nextState[1]) {
+		case 0:
+			this._dom.changeScene("setup");
+			var videoList = [];
+			var audioList = [];
+			this._media.getTrackList(function(data) {
+				var _g2 = 0;
+				while(_g2 < data.length) {
+					var track = data[_g2];
+					++_g2;
+					var _g11 = track.kind;
+					switch(_g11) {
+					case "video":
+						videoList.push(track);
+						break;
+					case "audio":
+						audioList.push(track);
+						break;
+					default:
+						haxe_Log.trace(track,{ fileName : "Index.hx", lineNumber : 141, className : "speech.renderer.Index", methodName : "setState"});
+					}
 				}
-				_g.initLive();
+				_g._dom.setMediaSource("video",videoList);
+				_g._dom.setMediaSource("audio",audioList);
+			});
+			this._dom.getButton("submit").addEventListener("click",$bind(this,this.onClickButtonStart));
+			break;
+		case 1:
+			this._dom.getDialog("loading").showModal();
+			this._ws = new WebSocket(this.WS_URL);
+			this._ws.addEventListener("open",$bind(this,this.onWsConnect));
+			this._ws.addEventListener("close",$bind(this,this.onWsClose));
+			this._ws.addEventListener("message",$bind(this,this.onWsMessage));
+			this._ws.addEventListener("error",$bind(this,this.onWsError));
+			this._slideview = this._dom.initPlayer(this._slideUrl);
+			this._prevUrl = this._slideUrl;
+			if((__map_reserved.selectedVideo != null?temp.getReserved("selectedVideo"):temp.h["selectedVideo"]) != null && (__map_reserved.selectedVideo != null?temp.getReserved("selectedVideo"):temp.h["selectedVideo"]).length > 0) {
+				haxe_Log.trace("webcam: " + (__map_reserved.selectedVideo != null?temp.getReserved("selectedVideo"):temp.h["selectedVideo"]),{ fileName : "Index.hx", lineNumber : 169, className : "speech.renderer.Index", methodName : "setState"});
+				var videoElem = this._dom.addVideo("webcam");
+				this._media.getUserVideo(__map_reserved.selectedVideo != null?temp.getReserved("selectedVideo"):temp.h["selectedVideo"],function(lms) {
+					haxe_Log.trace("get!",{ fileName : "Index.hx", lineNumber : 173, className : "speech.renderer.Index", methodName : "setState"});
+					_g._webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendonly({ localVideo : videoElem, videoStream : lms, onicecandidate : $bind(_g,_g.onIcecandidate)},function(err) {
+						if(err != null) _g.setState(speech_renderer_State.SETUP);
+						_g._webRtcPeer.generateOffer($bind(_g,_g.onOffer));
+					});
+				},function(err1) {
+					haxe_Log.trace("error getuservideo",{ fileName : "Index.hx", lineNumber : 183, className : "speech.renderer.Index", methodName : "setState"});
+				});
 			}
-		});
+			break;
+		case 2:
+			this._dom.changeScene("live");
+			window.addEventListener("resize",$bind(this,this.onResize));
+			this.onResize();
+			this._slideview.addEventListener("keydown",$bind(this,this.onChangeSlide));
+			this._slideview.addEventListener("wheel",$bind(this,this.onChangeSlide));
+			this._slideview.addEventListener("mouseup",$bind(this,this.onChangeSlide));
+			this._dom.getButton("finish").addEventListener("click",$bind(this,this.onClickButtonFinish));
+			break;
+		}
+		this._state = nextState;
 	}
-	,initLive: function() {
+	,onChangeSlide: function() {
 		var _g = this;
-		this._dom.changeScene("live");
-		var title = this._dom.getInput("title","setup").value;
-		this._dom.get("title").innerText = title;
-		var slideUrl = this._dom.getInput("slide-url","setup").value;
-		this._slideview = this._dom.initSlideView(slideUrl);
-		this._prevUrl = slideUrl;
-		window.addEventListener("resize",$bind(this,this.onResize));
-		this.onResize();
-		this._slideview.addEventListener("keydown",$bind(this,this.changeSlide));
-		this._slideview.addEventListener("wheel",$bind(this,this.changeSlide));
-		this._slideview.addEventListener("mouseup",$bind(this,this.changeSlide));
-		var selectVideo = this._dom.getSelect("video","setup");
-		var selectAudio = this._dom.getSelect("audio","setup");
-		this._media.getUserMedia(selectVideo.value,selectAudio.value,function(lms) {
-			var src = window.URL.createObjectURL(lms);
-			_g._dom.addVideo("webcam",src);
-		},function(err) {
-			haxe_Log.trace("error getusermedia",{ fileName : "Index.hx", lineNumber : 148, className : "speech.renderer.Index", methodName : "initLive"});
-		});
-		this.send(speech_renderer_Request.BEGIN);
-		this.send(speech_renderer_Request.OPEN(slideUrl,{ }));
-	}
-	,changeSlide: function() {
-		var _g = this;
-		if(!this._isBegin) return;
+		if(this._state != speech_renderer_State.LIVE) return;
 		haxe_Timer.delay(function() {
 			var url = _g._slideview.getUrl();
 			if(_g._prevUrl != url) {
-				_g.send(speech_renderer_Request.CHANGE(url));
+				_g.send(speech_renderer_Request.UPDATE_SLIDE(url));
 				_g._prevUrl = url;
 			}
 		},250);
 	}
 	,onResize: function() {
-		var playerHeight = this._dom.get("player-main").offsetHeight;
+		var playerHeight = this._dom.get("player-main","live").offsetHeight;
 		this._slideview.style.height = (playerHeight == null?"null":"" + playerHeight) + "px";
+	}
+	,onClickButtonStart: function() {
+		var slideUrl = this._dom.getInput("slide-url").value;
+		var title = this._dom.getInput("title").value;
+		var urlChecker = new EReg("https?://.+","");
+		if(slideUrl.length == 0 || title.length == 0 || !urlChecker.match(slideUrl)) this._dom.getInput("slide-url").focus(); else this.setState(speech_renderer_State.LIVE_STARTING);
+	}
+	,onClickButtonFinish: function() {
+		this.setState(speech_renderer_State.SETUP);
 	}
 	,send: function(req) {
 		var obj = { };
 		switch(req[1]) {
 		case 0:
 			var option = req[2];
-			obj.type = "create";
-			obj.data = { 'option' : option};
+			obj.type = "joinPresenter";
+			obj.data = option;
 			break;
 		case 1:
-			obj.type = "begin";
+			obj.type = "leavePresenter";
 			break;
 		case 2:
-			obj.type = "pause";
+			var slideUrl = req[2];
+			obj.type = "updateSlide";
+			obj.data = slideUrl;
 			break;
 		case 3:
-			obj.type = "end";
+			var offerSdp = req[2];
+			obj.type = "startStream";
+			obj.data = offerSdp;
 			break;
 		case 4:
-			var option1 = req[3];
-			var slideUrl = req[2];
-			obj.type = "open";
-			obj.data = { 'slideUrl' : slideUrl, 'option' : option1};
+			obj.type = "stopStream";
 			break;
 		case 5:
-			var slideUrl1 = req[2];
-			obj.type = "change";
-			obj.data = { 'slideUrl' : slideUrl1};
+			var candidate = req[2];
+			obj.type = "iceCandidate";
+			obj.data = candidate;
 			break;
 		}
 		obj.timestamp = new Date().getTime();
@@ -460,40 +527,43 @@ speech_renderer_Index.prototype = {
 		this._ws.send(JSON.stringify(obj));
 		return this._reqCount;
 	}
-	,onConnect: function(e) {
-		haxe_Log.trace("connect",{ fileName : "Index.hx", lineNumber : 218, className : "speech.renderer.Index", methodName : "onConnect"});
-		this._isConnect = true;
-		if(!this._isCreate) this.send(speech_renderer_Request.CREATE({ title : "test room", aspect : "4:3"}));
+	,onWsConnect: function(e) {
+		this.send(speech_renderer_Request.JOIN_PRESENTER({ title : this._title, slideUrl : this._slideUrl}));
 	}
-	,onDisconnect: function(e) {
-		this._isConnect = false;
+	,onWsClose: function(e) {
+		this.setState(speech_renderer_State.SETUP);
 	}
-	,onReceive: function(e) {
+	,onWsMessage: function(e) {
 		var resp = JSON.parse(e.data);
 		var _g = resp.type;
 		switch(_g) {
-		case "onCreate":
+		case "accept":
 			this._dom.getInput("url","live").value = resp.data;
-			this._isCreate = true;
+			this.setState(speech_renderer_State.LIVE);
 			break;
-		case "onBegin":
-			this._isBegin = true;
+		case "acceptStream":
+			this._webRtcPeer.processAnswer(resp.data);
 			break;
-		case "onPause":
+		case "onStopStream":
+			this._webRtcPeer.dispose();
+			this._webRtcPeer = null;
 			break;
-		case "onEnd":
+		case "iceCandidate":
+			this._webRtcPeer.addIceCandidate(resp.data);
 			break;
-		case "onEnter":
-			break;
-		case "onLeave":
-			break;
-		case "onError":
-			haxe_Log.trace("resp error",{ fileName : "Index.hx", lineNumber : 261, className : "speech.renderer.Index", methodName : "onReceive", customParams : [resp.data]});
-			break;
+		default:
+			haxe_Log.trace("unknown ws",{ fileName : "Index.hx", lineNumber : 311, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [resp]});
 		}
 	}
-	,onError: function(e) {
-		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 267, className : "speech.renderer.Index", methodName : "onError", customParams : [e]});
+	,onWsError: function(error) {
+		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 317, className : "speech.renderer.Index", methodName : "onWsError", customParams : [error]});
+		this.setState(speech_renderer_State.SETUP);
+	}
+	,onOffer: function(error,offerSdp) {
+		this.send(speech_renderer_Request.START_STREAM(offerSdp));
+	}
+	,onIcecandidate: function(candidate) {
+		this.send(speech_renderer_Request.ICE_CANDIDATE(candidate));
 	}
 };
 var $_, $fid = 0;

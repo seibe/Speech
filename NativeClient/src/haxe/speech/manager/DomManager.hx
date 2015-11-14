@@ -1,10 +1,13 @@
 package speech.manager;
 
+import electron.DialogElement;
 import electron.WebViewElement;
+import haxe.Constraints.Function;
 import js.Browser;
 import js.html.ButtonElement;
 import js.html.Element;
 import js.html.InputElement;
+import js.html.LIElement;
 import js.html.SelectElement;
 import js.html.VideoElement;
 import electron.MediaStreamTrack;
@@ -58,6 +61,12 @@ class DomManager
 	public function getSelect(id:String, ?sceneId:String):SelectElement return cast _get(id, sceneId, "select");
 	
 	/**
+	* Get a DialogTagElement by ID
+	* @param id Id of the element
+	*/
+	public function getDialog(id:String, ?sceneId:String):DialogElement return cast _idMap["dialog-" + id];
+	
+	/**
 	* Get a SceneElement by ID
 	* @param id Id of the element
 	*/
@@ -76,7 +85,7 @@ class DomManager
 	* Scene change function
 	* @param scene the scene name
 	*/
-	public function changeScene(id:String):Void
+	public function changeScene(id:String, ?callback:Function):Void
 	{
 		if (_sceneMap[id] == null) return;
 		_nowScene = id;
@@ -86,6 +95,8 @@ class DomManager
 			if (key == id) _sceneMap[key].classList.remove("hide");
 			else _sceneMap[key].classList.add("hide");
 		}
+		
+		if (callback != null) callback();
 	}
 	
 	/**
@@ -107,9 +118,11 @@ class DomManager
 	* @param src slide url
 	* @return webview
 	*/
-	public function initSlideView(src:String):WebViewElement
+	public function initPlayer(src:String):WebViewElement
 	{
-		addMedia('<webview class="player-webview" id="live-slideview" src="' + src + '" autosize="on" disablewebsecurity></webview>');
+		get("player-main", "live").innerHTML = "";
+		
+		addMedia('<webview class="player-webview" id="live-slideview" src="' + src + '" autosize="on" disablewebsecurity></webview>', true);
 		_idMap["live-slideview"] = Browser.document.getElementById("live-slideview");
 		
 		return cast _idMap["live-slideview"];
@@ -128,15 +141,18 @@ class DomManager
 	* Add new webview for player
 	* @param src new webview element's src property
 	*/
-	public function addVideo(name:String, ?src:String, ?posterSrc:String):Void
+	public function addVideo(name:String, ?src:String, ?posterSrc:String):VideoElement
 	{
 		var id = _getId(name, "live", "video");
+		if (_idMap[id] != null) return cast _idMap[id];
 		
 		addMedia('<video class="player-video" id="' + id + '" autoplay></video>');
 		var video:VideoElement = cast Browser.document.getElementById(id);
 		if (src != null) video.src = src;
 		if (posterSrc != null) video.poster = posterSrc;
 		_idMap[id] = video;
+		
+		return cast _idMap[id];
 	}
 	
 	/* ------------------------------------------------------
@@ -165,7 +181,7 @@ class DomManager
 		_idMap.remove(_id);
 	}
 	
-	private function addMedia(innerHTML:String):Void
+	private function addMedia(innerHTML:String, forceActive:Bool = false):LIElement
 	{
 		var player = get("player-main", "live");
 		var i = Std.string(player.childElementCount);
@@ -177,11 +193,14 @@ class DomManager
 		var div = list.getElementsByTagName("div")[0];
 		div.insertAdjacentHTML("afterbegin", innerHTML);
 		
-		player.appendChild(list);
-		
-		if (player.childElementCount == 1) {
+		if (player.childElementCount == 0 || forceActive) {
+			var others = Browser.document.getElementsByClassName("player-main-item");
+			for (elem in others) elem.classList.remove("active");
 			list.classList.add("active");
 		}
+		
+		player.appendChild(list);
+		return list;
 	}
 	
 	private function setOptions(selectId:String, optionHtml:Array<String>):Void
