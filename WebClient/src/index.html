@@ -2,11 +2,33 @@
 <html lang="ja">
 <head>
 	<meta charset="utf-8">
-	<title>Presenjs Viewer</title>
-	<link rel="stylesheet" href="style.css"/>
+	<title>中継視聴・コメントページ</title>
+	<link rel="stylesheet" href="css/style.css" />
 	<script defer src="script.js"></script>
 </head>
 <body>
-	<img id="view" src=""/>
+	<div class="box">
+		<h1 id="title" class="box-title">発表タイトル</h1>
+		
+		<div class="box-left">
+			<ul class="tab">
+				<li class="tab-item active"><button>スライド</button></li>
+				<li class="tab-item"><button disabled>ビデオカメラ</button></li>
+				<li class="tab-item"><button disabled>添付資料</button></li>
+			</ul>
+			
+			<iframe id="slide-frame" src="img/wait.jpg" width="636" height="477"></iframe>
+			
+			<div class="comment-form">
+				<input type="text" id="comment-form-name" placeholder="お名前(任意)" />
+				<input type="text" id="comment-form-text" placeholder="コメント" />
+				<button id="comment-form-submit">コメント</button>
+			</div>
+		</div>
+		
+		<div class="box-right">
+			<ul id="comment-list" class="comment-list"></ul>
+		</div>
+	</div>
 </body>
 </html>
