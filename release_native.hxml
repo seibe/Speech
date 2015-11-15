@@ -1,0 +1,13 @@
+-cp NativeClient/src/haxe
+-dce full
+-lib hxnodejs
+
+--each
+
+-main speech.Main
+-js NativeClient/dist/src/main.js
+
+--next
+
+-main speech.renderer.Index
+-js NativeClient/dist/src/index.js

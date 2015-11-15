@@ -1,0 +1,5 @@
+-cp KurentoClient/src
+-main speech.Main
+-debug
+-lib hxnodejs
+-js KurentoClient/bin/app.js

@@ -204,3 +204,5 @@ Array.__name__ = true;
 Date.__name__ = ["Date"];
 speech_Main.main();
 })(typeof console != "undefined" ? console : {log:function(){}});
+
+//# sourceMappingURL=script.js.map

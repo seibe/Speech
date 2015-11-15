@@ -29,7 +29,7 @@ class Main
 		});
 		
 		win.loadUrl('file://' + Node.__dirname + '/index.html');
-		win.openDevTools();
+		//win.openDevTools();
 		
 		win.on(ElectronBrowserWindowEventType.CLOSED, function():Void {
 			win = null;

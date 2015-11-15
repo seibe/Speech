@@ -4,7 +4,7 @@
   <output>
     <movie outputType="CustomBuild" />
     <movie input="" />
-    <movie path="" />
+    <movie path="build_kurento.hxml" />
     <movie fps="0" />
     <movie width="0" />
     <movie height="0" />
@@ -15,14 +15,14 @@
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
-    <class path="src\haxe" />
+    <class path="KurentoClient\src" />
   </classpaths>
   <!-- Build options -->
   <build>
     <option directives="" />
     <option flashStrict="False" />
     <option noInlineOnDebug="False" />
-    <option mainClass="src.haxe.speech.Main" />
+    <option mainClass="speech.Main" />
     <option enabledebug="False" />
     <option additional="" />
   </build>
@@ -32,22 +32,21 @@
   </haxelib>
   <!-- Class files to compile (other referenced classes will automatically be included) -->
   <compileTargets>
-    <compile path="haxe\speech\Main.hx" />
-    <compile path="src\haxe\speech\Main.hx" />
+    <compile path="KurentoClient\src\speech\Main.hx" />
   </compileTargets>
   <!-- Paths to exclude from the Project Explorer tree -->
   <hiddenPaths>
     <hidden path="obj" />
   </hiddenPaths>
   <!-- Executed before build -->
-  <preBuildCommand>$(CompilerPath)\haxe.exe $(ProjectDir)\build.hxml</preBuildCommand>
+  <preBuildCommand>$(CompilerPath)\haxe.exe $(ProjectDir)\build_kurento.hxml</preBuildCommand>
   <!-- Executed after build -->
   <postBuildCommand alwaysRun="False" />
   <!-- Other project options -->
   <options>
     <option showHiddenPaths="False" />
-    <option testMovie="Custom" />
-    <option testMovieCommand="electron $(ProjectDir)\src" />
+    <option testMovie="Unknown" />
+    <option testMovieCommand="" />
   </options>
   <!-- Plugin storage -->
   <storage />

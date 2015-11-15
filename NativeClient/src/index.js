@@ -23,6 +23,86 @@ HxOverrides.iter = function(a) {
 	}};
 };
 Math.__name__ = true;
+var electron_Electron = function() { };
+electron_Electron.__name__ = true;
+electron_Electron.get_app = function() {
+	return electron_Electron.require("app");
+};
+electron_Electron.get_autoUpdater = function() {
+	return electron_Electron.require("auto-updater");
+};
+electron_Electron.get_contentTracing = function() {
+	return electron_Electron.require("content-tracing");
+};
+electron_Electron.get_dialog = function() {
+	return electron_Electron.require("dialog");
+};
+electron_Electron.get_globalShortcut = function() {
+	return electron_Electron.require("global-shortcut");
+};
+electron_Electron.get_ipc = function() {
+	return electron_Electron.require("ipc");
+};
+electron_Electron.get_powerMonitor = function() {
+	return electron_Electron.require("power-monitor");
+};
+electron_Electron.get_protocol = function() {
+	return electron_Electron.require("protocol");
+};
+electron_Electron.get_remote = function() {
+	return electron_Electron.require("remote");
+};
+electron_Electron.get_remoteApp = function() {
+	return electron_Electron.remoteRequire("app");
+};
+electron_Electron.get_remoteAutoUpdater = function() {
+	return electron_Electron.remoteRequire("auto-updater");
+};
+electron_Electron.get_remoteContentTracing = function() {
+	return electron_Electron.remoteRequire("content-tracing");
+};
+electron_Electron.get_remoteDialog = function() {
+	return electron_Electron.remoteRequire("dialog");
+};
+electron_Electron.get_remoteGlobalShortcut = function() {
+	return electron_Electron.remoteRequire("global-shortcut");
+};
+electron_Electron.get_remoteIpc = function() {
+	return electron_Electron.remoteRequire("ipc");
+};
+electron_Electron.get_remotePowerMonitor = function() {
+	return electron_Electron.remoteRequire("power-monitor");
+};
+electron_Electron.get_remoteProtocol = function() {
+	return electron_Electron.remoteRequire("protocol");
+};
+electron_Electron.get_remoteClipboard = function() {
+	return electron_Electron.remoteRequire("clipboard");
+};
+electron_Electron.get_remoteCrashReporter = function() {
+	return electron_Electron.remoteRequire("crash-reporter");
+};
+electron_Electron.get_remoteScreen = function() {
+	return electron_Electron.remoteRequire("screen");
+};
+electron_Electron.get_remoteShell = function() {
+	return electron_Electron.remoteRequire("shell");
+};
+electron_Electron.get_webFrame = function() {
+	return electron_Electron.require("web-frame");
+};
+electron_Electron.get_clipboard = function() {
+	return electron_Electron.require("clipboard");
+};
+electron_Electron.get_crashReporter = function() {
+	return electron_Electron.require("crash-reporter");
+};
+electron_Electron.get_screen = function() {
+	return electron_Electron.require("screen");
+};
+electron_Electron.get_shell = function() {
+	return electron_Electron.require("shell");
+};
 var haxe_IMap = function() { };
 haxe_IMap.__name__ = true;
 var haxe_Log = function() { };
@@ -73,6 +153,18 @@ haxe_ds_StringMap.prototype = {
 	}
 	,getReserved: function(key) {
 		if(this.rh == null) return null; else return this.rh["$" + key];
+	}
+	,remove: function(key) {
+		if(__map_reserved[key] != null) {
+			key = "$" + key;
+			if(this.rh == null || !this.rh.hasOwnProperty(key)) return false;
+			delete(this.rh[key]);
+			return true;
+		} else {
+			if(!this.h.hasOwnProperty(key)) return false;
+			delete(this.h[key]);
+			return true;
+		}
 	}
 	,keys: function() {
 		var _this = this.arrayKeys();
@@ -211,6 +303,9 @@ speech_manager_DomManager.prototype = {
 	,getScene: function(id) {
 		return this._idMap.get("scene-" + id);
 	}
+	,query: function(selectors) {
+		return window.document.querySelector(selectors);
+	}
 	,changeScene: function(id,callback) {
 		if(this._sceneMap.get(id) == null) return;
 		this._nowScene = id;
@@ -241,6 +336,9 @@ speech_manager_DomManager.prototype = {
 		v;
 		return this._idMap.get("live-slideview");
 	}
+	,addWebView: function(src) {
+		this.addMedia("<webview class=\"player-webview\" src=\"" + src + "\" autosize=\"on\" disablewebsecurity></webview>");
+	}
 	,addVideo: function(name,src,posterSrc) {
 		var id = this._getId(name,"live","video");
 		if(this._idMap.get(id) != null) return this._idMap.get(id);
@@ -264,6 +362,12 @@ speech_manager_DomManager.prototype = {
 	,_get: function(id,sceneId,prefix) {
 		var key = this._getId(id,sceneId,prefix);
 		return this._idMap.get(key);
+	}
+	,_remove: function(id,sceneId,prefix) {
+		var _id = this._getId(id,sceneId,prefix);
+		var elem = this._idMap.get(_id);
+		elem.remove();
+		this._idMap.remove(_id);
 	}
 	,addMedia: function(innerHTML,forceActive) {
 		if(forceActive == null) forceActive = false;
@@ -320,6 +424,11 @@ speech_manager_MediaManager.prototype = {
 			_g._trackList = data.slice();
 			callback(data);
 		});
+	}
+	,getUserMedia: function(videoId,audioId,success,error) {
+		var reqVideo = videoId != null && videoId.length > 0;
+		var reqAudio = audioId != null && audioId.length > 0;
+		if(reqVideo && reqAudio) window.navigator.webkitGetUserMedia({ video : { optional : [{ sourceId : videoId}]}, audio : { optional : [{ sourceId : audioId}]}},success,error); else if(reqVideo) window.navigator.webkitGetUserMedia({ video : { optional : [{ sourceId : videoId}]}},success,error); else if(reqAudio) window.navigator.webkitGetUserMedia({ video : false, audio : { optional : [{ sourceId : audioId}]}},success,error);
 	}
 	,getUserVideo: function(videoId,success,error) {
 		window.navigator.webkitGetUserMedia({ video : { optional : [{ sourceId : videoId}]}, audio : true},success,error);
@@ -572,5 +681,9 @@ String.__name__ = true;
 Array.__name__ = true;
 Date.__name__ = ["Date"];
 var __map_reserved = {}
+electron_Electron.require = require;
+electron_Electron.remoteRequire = require("remote").require;
 speech_renderer_Index.main();
 })(typeof console != "undefined" ? console : {log:function(){}});
+
+//# sourceMappingURL=index.js.map
