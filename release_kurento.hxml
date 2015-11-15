@@ -1,0 +1,5 @@
+-cp KurentoClient/src
+-main speech.Main
+-dce full
+-lib hxnodejs
+-js KurentoClient/dist/app.js

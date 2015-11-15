@@ -1,0 +1,4 @@
+-cp WebClient/src/haxe
+-main speech.Main
+-debug
+-js WebClient/src/js/script.js

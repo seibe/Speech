@@ -1,0 +1,59 @@
+{
+  "name": "speech",
+  "version": "1.0.0",
+  "description": "a presentation broadcasting system.",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run watch",
+    "app": "electron --debug=5858 NativeClient/src/",
+    "build:haxe:kurento": "haxe ./build_kurento.hxml",
+    "build:haxe:native": "haxe ./build_native.hxml",
+    "build:haxe:web": "haxe ./build_web.hxml",
+    "build:haxe": "concurrent \"npm run build:haxe:kurento\" \"npm run build:haxe:native\" \"npm run build:haxe:web\"",
+    "build:css:native": "postcss -u autoprefixer --autoprefixer.browsers \"Chrome 45\" -o NativeClient/src/style.css NativeClient/src/origin.css",
+    "watch:haxe:kurento": "watch \"npm run build:haxe:kurento\" ./KurentoClient/src/",
+    "watch:haxe:native": "watch \"npm run build:haxe:native\" ./NativeClient/src/haxe/",
+    "watch:haxe:web": "watch \"npm run build:haxe:web\" ./WebClient/src/haxe/",
+    "watch:css:native": "postcss --watch -u autoprefixer --autoprefixer.browsers \"Chrome 45\" -o NativeClient/src/style.css NativeClient/src/origin.css",
+    "watch:server": "node-inspector",
+    "watch": "concurrent \"npm run watch:haxe:kurento\" \"npm run watch:haxe:native\" \"npm run watch:haxe:web\" \"npm run watch:server\"",
+    "release:clean:native": "trash ./NativeClient/dist/src",
+    "release:clean": "npm run release:clean",
+    "release:copy:native": "cpx \"./NativeClient/src/**/{*.html,*.jpg,*.png,*.eot,*.svg,*.ttf,*.woff,package.json,js/*.js,css/*.css}\" ./NativeClient/dist/src",
+    "release:copy": "npm run release:copy:native",
+    "release:haxe:kurento": "haxe ./release_kurento.hxml",
+    "release:haxe:native": "haxe ./release_native.hxml",
+    "release:haxe:web": "haxe ./release_web.hxml",
+    "release:haxe": "concurrent \"npm run release:haxe:kurento\" \"npm run release:haxe:native\" \"npm run release:haxe:web\"",
+    "release:css:native": "npm run build:css:native && cleancss -o NativeClient/dist/src/style.css NativeClient/src/style.css",
+    "release:build:native": "npm run release:clean:native && npm run release:copy:native && npm run release:haxe:native && npm run release:css:native",
+    "release:build": "npm run release:build:native",
+    "release:pack-win": "electron-packager ./NativeClient/dist/src Speech --out=NativeClient/dist/bin --cache=NativeClient/dist/cache --platform=win32 --arch=x64 --version=0.34.2 --overwrite --asar --icon=NativeClient/res/app.ico --version-string.CompanyName=\"SeibeTakahashi\" --version-string.LegalCopyright=\"Copylight (C) Seibe, All right reserved.\" --version-string.FileDescription=\"Speech native application\" --version-string.OriginalFilename=\"Speech.exe\" --version-string.FileVersion=\"1.0.0\" --version-string.ProductVersion=\"1.0.0\" --version-string.ProductName=\"Speech\" --version-string.InternalName=\"Speech\"",
+    "release:win": "npm run release:build && npm run release:pack-win",
+    "release": "npm run release:win"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seibe/Speech.git"
+  },
+  "author": "seibe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/seibe/Speech/issues"
+  },
+  "homepage": "https://github.com/seibe/Speech#readme",
+  "devDependencies": {
+    "autoprefixer": "^6.1.0",
+    "browser-sync": "^2.10.0",
+    "clean-css": "^3.4.8",
+    "concat-cli": "^1.0.1",
+    "concurrently": "^0.1.1",
+    "cpx": "^1.2.1",
+    "electron-packager": "^5.1.1",
+    "node-inspector": "^0.12.3",
+    "npm-run-all": "^1.2.13",
+    "postcss-cli": "^2.3.2",
+    "trash-cli": "^1.2.0",
+    "watch": "^0.16.0"
+  }
+}
