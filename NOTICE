@@ -1,11 +1,10 @@
 Speech is built using open source software:
 
  * PhotonKit (MIT License)
+ * examples-electron (MIT License)
 
 ---
 The MIT License (MIT)
-
-Copyright (c) 2015 Smart Device Programming (Keio Univ.)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
