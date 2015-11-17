@@ -2,14 +2,190 @@
 <html lang="ja">
 <head>
 	<meta charset="utf-8">
-	<title>中継視聴・コメントページ</title>
-	<link rel="stylesheet" href="css/style.css" />
+	<title>Speech Web Client</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+	<link rel="stylesheet" href="css/sanitize.min.css" />
+	<link rel="stylesheet" href="style.css" />
 	<script defer src="script.js"></script>
+    <script src="https://use.typekit.net/itl7jwg.js"></script>
+    <script>try{Typekit.load({ async: true });}catch(e){}</script>
 </head>
 <body>
-	<div class="box">
-		<h1 id="title" class="box-title">発表タイトル</h1>
-		
+    <header class="header">
+        <div class="header-content">
+            <h1 class="header-content-h1" id="title">Speech</h1>
+            <p class="header-content-p">Let's broadcast your presentation now!</p>
+            <div class="header-content-action">
+                <div class="header-content-action-item"><a href="#">はじめての方へ</a></div>
+                <div class="header-content-action-item button"><a href="#">ログイン</a></div>
+            </div>
+        </div>
+    </header>
+	<main class="main">
+        <div class="main-visual">
+            
+            <section class="player">
+                <iframe class="player-main" id="slide" src="https://docs.google.com/presentation/d/1skXg3-4AngJ0DbVzuJzdadlLwHIY6dEYT_Qu0fxwZGQ/embed"></iframe>
+                
+                <video class="player-webcam show" src="#"></video>
+                
+                <div class="player-aside">
+                    <div class="player-aside-info">
+                        <h1 class="player-aside-info-h1">Presentation title</h1>
+                        <p class="player-aside-info-p">Just a few months after The International, Valve brings you more incredible Dota 2 action with the game's first official Major tournament.</p>
+                    </div>
+                    
+                    <div class="player-aside-input">
+                        <input type="text" class="player-aside-input-text" maxlength="140" />
+                        <button class="player-aside-input-submit">Tweet</button>
+                    </div>
+                    
+                    <ul class="player-aside-discuss">
+                        <li class="comment new">
+                            <img class="comment-image" src="img/avatar.jpg" width="32" height="32">
+                            <div class="comment-body">
+                                <strong>Seibe TAKAHASHI</strong>
+                                <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
+                            </div>
+                        </li>
+                        <li class="comment">
+                            <img class="comment-image" src="img/avatar.jpg" width="32" height="32">
+                            <div class="comment-body">
+                                <strong>Seibe TAKAHASHI</strong>
+                                <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
+                            </div>
+                        </li>
+                        <li class="comment">
+                            <img class="comment-image" src="img/avatar.jpg" width="32" height="32">
+                            <div class="comment-body">
+                                <strong>Seibe TAKAHASHI</strong>
+                                <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
+                            </div>
+                        </li>
+                        <li class="comment">
+                            <img class="comment-image" src="img/avatar.jpg" width="32" height="32">
+                            <div class="comment-body">
+                                <strong>Seibe TAKAHASHI</strong>
+                                <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
+                            </div>
+                        </li>
+                        <li class="comment">
+                            <img class="comment-image" src="img/avatar.jpg" width="32" height="32">
+                            <div class="comment-body">
+                                <strong>Seibe TAKAHASHI</strong>
+                                <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
+                            </div>
+                        </li>
+                        <li class="comment">
+                            <img class="comment-image" src="img/avatar.jpg" width="32" height="32">
+                            <div class="comment-body">
+                                <strong>Seibe TAKAHASHI</strong>
+                                <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
+                            </div>
+                        </li>
+                        <li class="comment">
+                            <img class="comment-image" src="img/avatar.jpg" width="32" height="32">
+                            <div class="comment-body">
+                                <strong>Seibe TAKAHASHI</strong>
+                                <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
+                            </div>
+                        </li>
+                        <li class="comment">
+                            <img class="comment-image" src="img/avatar.jpg" width="32" height="32">
+                            <div class="comment-body">
+                                <strong>Seibe TAKAHASHI</strong>
+                                <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+            
+        </div>
+        <div class="main-content">
+            
+            <section class="main-content-section">
+                <h1 class="main-content-section-h1">最近のプレゼンテーション</h1>
+                
+                <ul class="grid">
+                    <li class="grid-cell">
+                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
+                        <div class="grid-cell-body">
+                            <strong>Presentation Title</strong>
+                            <p>1992.12.10</p>
+                        </div>
+                    </li>
+                    <li class="grid-cell">
+                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
+                        <div class="grid-cell-body">
+                            <strong>Presentation Title</strong>
+                            <p>1992.12.10</p>
+                        </div>
+                    </li>
+                    <li class="grid-cell">
+                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
+                        <div class="grid-cell-body">
+                            <strong>Presentation Title</strong>
+                            <p>1992.12.10</p>
+                        </div>
+                    </li>
+                    <li class="grid-cell">
+                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
+                        <div class="grid-cell-body">
+                            <strong>Presentation Title</strong>
+                            <p>1992.12.10</p>
+                        </div>
+                    </li>
+                    <li class="grid-cell">
+                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
+                        <div class="grid-cell-body">
+                            <strong>Presentation Title</strong>
+                            <p>1992.12.10</p>
+                        </div>
+                    </li>
+                    <li class="grid-cell">
+                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
+                        <div class="grid-cell-body">
+                            <strong>Presentation Title</strong>
+                            <p>1992.12.10</p>
+                        </div>
+                    </li>
+                    <li class="grid-cell">
+                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
+                        <div class="grid-cell-body">
+                            <strong>Presentation Title</strong>
+                            <p>1992.12.10</p>
+                        </div>
+                    </li>
+                    <li class="grid-cell">
+                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
+                        <div class="grid-cell-body">
+                            <strong>Presentation Title</strong>
+                            <p>1992.12.10</p>
+                        </div>
+                    </li>
+                    <li class="grid-cell">
+                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
+                        <div class="grid-cell-body">
+                            <strong>Presentation Title</strong>
+                            <p>1992.12.10</p>
+                        </div>
+                    </li>
+                </ul>
+                <p class="button more"><a href="#">過去のプレゼンテーションの一覧</a></p>
+            </section>
+            
+            <section class="main-content-section">
+                <h1 class="main-content-section-h1">プレゼンを配信するには</h1>
+                <p>専用のアプリをお使いください。Windows および OS X、Linux に対応しています。</p>
+                <div class="button download">
+                    <li class="button"><a href="#">ダウンロード (Windows)</a></li>
+                    <li class="button"><a href="#">ダウンロード (OS X)</a></li>
+                    <li class="button"><a href="#">ダウンロード (Linux)</a></li>
+            </section>
+            
+        </div>
+        <!--
 		<div class="box-left">
 			<ul class="tab">
 				<li class="tab-item active"><button>スライド</button></li>
@@ -29,6 +205,10 @@
 		<div class="box-right">
 			<ul id="comment-list" class="comment-list"></ul>
 		</div>
-	</div>
+        -->
+	</main>
+    <footer class="footer">
+        (C)2015 Seibe TAKAHASHI.
+    </footer>
 </body>
 </html>
