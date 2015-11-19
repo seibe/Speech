@@ -47,7 +47,7 @@ class Session
 	
 	public function isPresenter():Bool
 	{
-		return room.presenter != null && room.presenter == this;
+		return room != null && room.presenter != null && room.presenter == this;
 	}
 	
 	public function startStream(kurentoUrl:String, recordDir:String, sdpOffer:String):Void
@@ -67,13 +67,13 @@ class Session
 				// rejected 1
 				trace(error);
 				ws.send(Json.stringify({
-					id: "onStopStream",
+					type: "onStopStream",
 					data: error
 				}));
 				return null;
 			})
-			.then(function(pipeline:MediaPipeline):Promise<Dynamic> {
-				this.pipeline = pipeline;
+			.then(function(pipe:MediaPipeline):Promise<Dynamic> {
+				pipeline = pipe;
 				// 3. create endpoints
 				var p1 = pipeline.create("WebRtcEndpoint");
 				// 4. create recoder
@@ -99,7 +99,7 @@ class Session
 				var sdpAnswer:String = results[0];
 				// finish!
 				ws.send(Json.stringify({
-					id: "acceptStream",
+					type: "acceptStream",
 					data: sdpAnswer
 				}));
 				room.broadcast(Response.CAN_START_STREAM);
@@ -115,7 +115,9 @@ class Session
 	
 	public function connectStream(sdpOffer:String):Void
 	{
+		trace("connctStream", 1);
 		if (room == null || room.presenter == null || room.presenter.pipeline == null) return;
+		trace("connctStream", 2);
 		pipeline = room.presenter.pipeline;
 		var sdpAnswer = null;
 		
@@ -123,29 +125,34 @@ class Session
 		// 1. create endpoint
 		pipeline.create("WebRtcEndpoint")
 			.then(function(endpoint:WebRtcEndpoint):Promise<String> {
+				trace("connctStream", 3);
 				this.endpoint = endpoint;
 				exchangeCandidates();
 				// 2. offer
 				return endpoint.processOffer(sdpOffer);
 			})
 			.then(function(answer:String):Promise<Dynamic> {
+				trace("connctStream", 4);
 				sdpAnswer = answer;
 				// 3. connect endpoint
 				return room.presenter.endpoint.connect(endpoint);
 			})
 			.then(function(dummy:Dynamic):Promise<Dynamic> {
+				trace("connctStream", 5);
 				// 4. and more
 				return endpoint.gatherCandidates();
 			})
 			.then(function(dummy:Dynamic):Promise<Dynamic> {
 				// finish!
+				trace("startStream");
 				ws.send(Json.stringify({
-					id: "startStream",
+					type: "startStream",
 					data: sdpAnswer
 				}));
 				return null;
 			})
 			.catchError(function(error:Error):Void {
+				trace("connctStream", -1);
 				// rejected 2~4
 				trace(error);
 				stopStream();
@@ -163,11 +170,11 @@ class Session
 				recorder = null;
 				trace("stop recording");
 			}
-			pipeline.release();
+			if (pipeline != null) pipeline.release();
 		}
 		pipeline = null;
 		
-		endpoint.release();
+		if (endpoint != null) endpoint.release();
 		endpoint = null;
 		
 		clearCandidatesQueue();
@@ -196,7 +203,7 @@ class Session
 		endpoint.on("OnIceCandidate", function(ic:IceCandidate):Void {
 			var candidate = untyped kurento.register.complexTypes.IceCandidate(ic.candidate);
 			ws.send(Json.stringify({
-				id: "iceCandidate",
+				type: "iceCandidate",
 				candidate: candidate
 			}));
 		});

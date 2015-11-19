@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
 	<link rel="stylesheet" href="css/sanitize.min.css" />
 	<link rel="stylesheet" href="style.css" />
-	<script defer src="script.js"></script>
+	<script src="js/kurento-utils.js"></script>
+	<script src="script.js"></script>
     <script src="https://use.typekit.net/itl7jwg.js"></script>
     <script>try{Typekit.load({ async: true });}catch(e){}</script>
 </head>
@@ -26,13 +27,14 @@
             
             <section class="player">
                 <iframe class="player-main" id="slide" src="https://docs.google.com/presentation/d/1skXg3-4AngJ0DbVzuJzdadlLwHIY6dEYT_Qu0fxwZGQ/embed"></iframe>
+				<div class="player-dummy"><p>現在、配信中のプレゼンはありません。</p></div>
                 
-                <video class="player-webcam show" src="#"></video>
+                <video class="player-video" id="video" autoplay></video>
                 
                 <div class="player-aside">
                     <div class="player-aside-info">
-                        <h1 class="player-aside-info-h1">Presentation title</h1>
-                        <p class="player-aside-info-p">Just a few months after The International, Valve brings you more incredible Dota 2 action with the game's first official Major tournament.</p>
+                        <h1 class="player-aside-info-h1" id="slide-title">Presentation title</h1>
+                        <p class="player-aside-info-p" id="slide-desc">Just a few months after The International, Valve brings you more incredible Dota 2 action with the game's first official Major tournament.</p>
                     </div>
                     
                     <div class="player-aside-input">

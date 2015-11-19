@@ -312,7 +312,6 @@ speech_manager_DomManager.prototype = {
 		var $it0 = this._sceneMap.keys();
 		while( $it0.hasNext() ) {
 			var key = $it0.next();
-			haxe_Log.trace(key,{ fileName : "DomManager.hx", lineNumber : 94, className : "speech.manager.DomManager", methodName : "changeScene"});
 			if(key == id) this._sceneMap.get(key).classList.remove("hide"); else this._sceneMap.get(key).classList.add("hide");
 		}
 		if(callback != null) callback();
@@ -400,11 +399,8 @@ speech_manager_DomManager.prototype = {
 	}
 	,setElementList: function(elem) {
 		if(elem.id != null && elem.id.length > 0) {
-			{
-				this._idMap.set(elem.id,elem);
-				elem;
-			}
-			haxe_Log.trace(elem.id,{ fileName : "DomManager.hx", lineNumber : 216, className : "speech.manager.DomManager", methodName : "setElementList"});
+			this._idMap.set(elem.id,elem);
+			elem;
 		}
 		var child = elem.firstElementChild;
 		while(child != null) {
@@ -462,7 +458,9 @@ var speech_renderer_Index = function() {
 		_g._state = null;
 		_g._prevUrl = "";
 		_g._title = null;
+		_g._description = null;
 		_g._slideUrl = null;
+		_g._videoSourceId = null;
 		_g._reqCount = 0;
 		_g._slideview = null;
 		_g._dom = new speech_manager_DomManager();
@@ -487,13 +485,9 @@ speech_renderer_Index.prototype = {
 		} else switch(_g1[1]) {
 		case 0:
 			this._title = this._dom.getInput("title","setup").value;
+			this._description = this._dom.getInput("description","setup").value;
 			this._slideUrl = this._dom.getInput("slide-url","setup").value;
-			var v = this._dom.getSelect("video","setup").value;
-			if(__map_reserved.selectedVideo != null) temp.setReserved("selectedVideo",v); else temp.h["selectedVideo"] = v;
-			v;
-			var v1 = this._dom.getSelect("audio","setup").value;
-			if(__map_reserved.selectedAudio != null) temp.setReserved("selectedAudio",v1); else temp.h["selectedAudio"] = v1;
-			v1;
+			this._videoSourceId = this._dom.getSelect("video","setup").value;
 			this._dom.getButton("submit").addEventListener("click",$bind(this,this.onClickButtonStart));
 			break;
 		case 1:
@@ -534,7 +528,7 @@ speech_renderer_Index.prototype = {
 						audioList.push(track);
 						break;
 					default:
-						haxe_Log.trace(track,{ fileName : "Index.hx", lineNumber : 141, className : "speech.renderer.Index", methodName : "setState"});
+						haxe_Log.trace(track,{ fileName : "Index.hx", lineNumber : 147, className : "speech.renderer.Index", methodName : "setState"});
 					}
 				}
 				_g._dom.setMediaSource("video",videoList);
@@ -551,19 +545,6 @@ speech_renderer_Index.prototype = {
 			this._ws.addEventListener("error",$bind(this,this.onWsError));
 			this._slideview = this._dom.initPlayer(this._slideUrl);
 			this._prevUrl = this._slideUrl;
-			if((__map_reserved.selectedVideo != null?temp.getReserved("selectedVideo"):temp.h["selectedVideo"]) != null && (__map_reserved.selectedVideo != null?temp.getReserved("selectedVideo"):temp.h["selectedVideo"]).length > 0) {
-				haxe_Log.trace("webcam: " + (__map_reserved.selectedVideo != null?temp.getReserved("selectedVideo"):temp.h["selectedVideo"]),{ fileName : "Index.hx", lineNumber : 169, className : "speech.renderer.Index", methodName : "setState"});
-				var videoElem = this._dom.addVideo("webcam");
-				this._media.getUserVideo(__map_reserved.selectedVideo != null?temp.getReserved("selectedVideo"):temp.h["selectedVideo"],function(lms) {
-					haxe_Log.trace("get!",{ fileName : "Index.hx", lineNumber : 173, className : "speech.renderer.Index", methodName : "setState"});
-					_g._webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendonly({ localVideo : videoElem, videoStream : lms, onicecandidate : $bind(_g,_g.onIcecandidate)},function(err) {
-						if(err != null) _g.setState(speech_renderer_State.SETUP);
-						_g._webRtcPeer.generateOffer($bind(_g,_g.onOffer));
-					});
-				},function(err1) {
-					haxe_Log.trace("error getuservideo",{ fileName : "Index.hx", lineNumber : 183, className : "speech.renderer.Index", methodName : "setState"});
-				});
-			}
 			break;
 		case 2:
 			this._dom.changeScene("live");
@@ -633,17 +614,32 @@ speech_renderer_Index.prototype = {
 		}
 		obj.timestamp = new Date().getTime();
 		obj.requestId = this._reqCount++;
+		haxe_Log.trace("send",{ fileName : "Index.hx", lineNumber : 255, className : "speech.renderer.Index", methodName : "send", customParams : [obj.type]});
 		this._ws.send(JSON.stringify(obj));
 		return this._reqCount;
 	}
 	,onWsConnect: function(e) {
-		this.send(speech_renderer_Request.JOIN_PRESENTER({ title : this._title, slideUrl : this._slideUrl}));
+		var _g = this;
+		this.send(speech_renderer_Request.JOIN_PRESENTER({ title : this._title, description : this._description, slideUrl : this._slideUrl}));
+		if(this._videoSourceId != null && this._videoSourceId.length > 0) {
+			haxe_Log.trace("webcam: " + this._videoSourceId,{ fileName : "Index.hx", lineNumber : 273, className : "speech.renderer.Index", methodName : "onWsConnect"});
+			var videoElem = this._dom.addVideo("webcam");
+			this._media.getUserVideo(this._videoSourceId,function(lms) {
+				_g._webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendonly({ localVideo : videoElem, videoStream : lms, onicecandidate : $bind(_g,_g.onIcecandidate)},function(err) {
+					if(err != null) _g.setState(speech_renderer_State.SETUP);
+					_g._webRtcPeer.generateOffer($bind(_g,_g.onOffer));
+				});
+			},function(err1) {
+				haxe_Log.trace("error getUserVideo",{ fileName : "Index.hx", lineNumber : 286, className : "speech.renderer.Index", methodName : "onWsConnect"});
+			});
+		}
 	}
 	,onWsClose: function(e) {
 		this.setState(speech_renderer_State.SETUP);
 	}
 	,onWsMessage: function(e) {
 		var resp = JSON.parse(e.data);
+		haxe_Log.trace(resp.type,{ fileName : "Index.hx", lineNumber : 299, className : "speech.renderer.Index", methodName : "onWsMessage"});
 		var _g = resp.type;
 		switch(_g) {
 		case "accept":
@@ -661,11 +657,11 @@ speech_renderer_Index.prototype = {
 			this._webRtcPeer.addIceCandidate(resp.data);
 			break;
 		default:
-			haxe_Log.trace("unknown ws",{ fileName : "Index.hx", lineNumber : 311, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [resp]});
+			haxe_Log.trace("unknown ws",{ fileName : "Index.hx", lineNumber : 318, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [resp]});
 		}
 	}
 	,onWsError: function(error) {
-		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 317, className : "speech.renderer.Index", methodName : "onWsError", customParams : [error]});
+		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 324, className : "speech.renderer.Index", methodName : "onWsError", customParams : [error]});
 		this.setState(speech_renderer_State.SETUP);
 	}
 	,onOffer: function(error,offerSdp) {

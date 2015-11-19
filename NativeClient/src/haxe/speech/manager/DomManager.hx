@@ -91,7 +91,6 @@ class DomManager
 		_nowScene = id;
 		
 		for (key in _sceneMap.keys()) {
-			trace(key);
 			if (key == id) _sceneMap[key].classList.remove("hide");
 			else _sceneMap[key].classList.add("hide");
 		}
@@ -213,7 +212,7 @@ class DomManager
 	{
 		if (elem.id != null && elem.id.length > 0) {
 			_idMap[elem.id] = elem;
-			trace(elem.id);
+			//trace(elem.id);
 		}
 		
 		var child = elem.firstElementChild;

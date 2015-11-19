@@ -12,8 +12,8 @@ import ws.WsServer;
 class Main 
 {
 	private var WS_URI(default, never):Dynamic = { port: 8081, path: '/speech' };
-	private static inline var MS_URI:String = "ws://localhost:8888/kurento";
-	private static inline var MV_DIR:String = "file:///tmp";
+	private static inline var MS_URI:String = "ws://153.126.210.105:8888/kurento";
+	private static inline var MV_DIR:String = "file:///var/www";
 	
 	private var _server:WsServer;
 	private var _roomList:Array<Room>;
@@ -51,11 +51,13 @@ class Main
 	{
 		var mes = Json.parse(data);
 		var d:Dynamic = mes.data;
+		
+		trace("onWsMessage", mes.type);
 		switch (mes.type)
 		{
 			case "joinPresenter":
 				// 放送者が部屋を作り、配信を始める
-				var room = new Room(d.title, session, d.slideUrl);
+				var room = new Room(d.title, d.description, session, d.slideUrl);
 				_roomList.push(room);
 				
 				session.ws.send(Json.stringify( {
@@ -65,8 +67,8 @@ class Main
 				
 			case "leavePresenter":
 				// 放送者が配信を終え、部屋を閉じる
-				session.destroy();
 				_roomList.remove(session.room);
+				session.destroy();
 				
 			case "updateSlide":
 				// 放送者がスライドを切り替える
@@ -88,29 +90,32 @@ class Main
 				
 			case "joinViewer":
 				// 視聴者が部屋に入る
-				for (room in _roomList) {
-					if (room.id == d.roomId) {
-						// 部屋があった
-						room.viewerList.push(session);
-						session.room = room;
-						session.ws.send(Json.stringify( {
-							type: "accept",
-							data: { title: room.title, slideUrl: room.slideUrl }
-						} ));
-						// 配信映像を受信できるならする
-						if (d.sdpOffer != null && room.presenter.endpoint != null) {
-							session.connectStream(d.sdpOffer);
+				if (d != null && d.roomId != null) {
+					for (room in _roomList) {
+						if (room.id == d.roomId) {
+							// 部屋があった
+							onJoinViewer(session, room, d);
+							return;
 						}
-						return;
 					}
 				}
 					
 				// そんな部屋は無い
-				session.ws.send(Json.stringify( {
-					type: "onError",
-					data: "指定された部屋は存在しないか、中継が終了しています"
-				} ));
-				session.destroy();
+				if (_roomList.length == 0) {
+					// 一つも部屋がない
+					session.ws.send(Json.stringify( {
+						type: "onError",
+						data: "指定された部屋は存在しないか、中継が終了しています"
+					} ));
+					session.destroy();
+				} else {
+					// 適当に突っ込む
+					onJoinViewer(session, _roomList[0], d);
+				}
+				
+			case "requestStream":
+				// 視聴者が映像配信を要求する
+				if (d != null) session.connectStream(d);
 				
 			case "leaveViewer":
 				// 視聴者が部屋を去る
@@ -132,6 +137,10 @@ class Main
 	private function onWsClose(session:Session):Void
 	{
 		trace("close ws id: " + session.id);
+		if (session.isPresenter()) {
+			_roomList.remove(session.room);
+			session.room.destroy();
+		}
 		session.destroy();
 		_sessionList.remove(session);
 	}
@@ -142,6 +151,40 @@ class Main
 	}
 	
 	/* ------------------------------------- */
+	
+	private function onJoinViewer(viewer:Session, room:Room, ?data:Dynamic):Void
+	{
+		trace("room id", room.id);
+		trace("room slide url", room.slideUrl);
+		trace("room presenter id", room.presenter.id);
+		trace("room video", room.presenter.endpoint != null);
+		
+		room.viewerList.push(viewer);
+		viewer.room = room;
+		viewer.ws.send(Json.stringify( {
+			type: "accept",
+			data: {
+				title: room.title,
+				description: room.description,
+				slideUrl: room.slideUrl
+			},
+			timestamp: Date.now().getTime()
+		} ));
+		
+		if (room.presenter.endpoint != null) {
+			if (data != null && data.sdpOffer != null) {
+				// 配信映像を受信できるならする
+				viewer.connectStream(data.sdpOffer);
+			} else {
+				// 映像配信していることを通知する
+				viewer.ws.send(Json.stringify( {
+					type: "canStartStream",
+					timestamp: Date.now().getTime()
+				}));
+			}
+		}
+		
+	}
 	
 	/*
 	private function send(room:Room, resp:Response, ?requestId = -1)

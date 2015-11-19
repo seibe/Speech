@@ -138,18 +138,33 @@ a:hover {
     position: relative;
 }
 .player-main {
+	display: none;
+}
+.player-main.show {
+	display: block;
     height: 40vh;
     background: #000;
     pointer-events: none;
 }
-.player-webcam {
+.player-dummy {
+	padding: 1em;
+	color: #fff;
+	background: #000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.show + .player-dummy {
+	display: none;
+}
+.player-video {
     height: 7.5vh;
     position: absolute;
     left: 0;
     top: 24vh;
     display: none;
 }
-.player-webcam.show {
+.player-video.show {
     display: block;
 }
 .player-aside {
@@ -204,11 +219,12 @@ a:hover {
         height: 60vh;
         flex-direction: row;
     }
-    .player-main {
+	.player-dummy,
+    .player-main.show {
         height: 100%;
         flex: 1;
     }
-    .player-webcam {
+    .player-video {
         max-width: 15%;
         height: auto;
         top: auto;

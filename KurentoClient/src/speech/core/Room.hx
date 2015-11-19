@@ -20,6 +20,7 @@ enum Response {
 class Room
 {
 	public var title:String;
+	public var description:String;
 	public var id:String;
 	public var presenter:Session;
 	public var viewerList:Array<Session>;
@@ -32,16 +33,16 @@ class Room
 		return hash.digest("hex");
 	}
 
-	public function new(title:String, presenter:Session, slideUrl:String)
+	public function new(title:String, desc:String, presenter:Session, slideUrl:String)
 	{
 		this.title = title;
+		this.description = desc == null ? "" : desc;
 		this.presenter = presenter;
+		this.presenter.room = this;
 		this.slideUrl = slideUrl;
 		
 		id = getUniqueKey();
 		viewerList= new Array<Session>();
-		
-		presenter.room = this;
 		
 		var timestamp = Std.string(Date.now().getTime());
 		Fs.writeFile(Node.__dirname + "/file/" + id + ".txt",

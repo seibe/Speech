@@ -1,4 +1,5 @@
 -cp WebClient/src/haxe
 -main speech.Main
+-lib hxnodejs
 -debug
--js WebClient/src/js/script.js
+-js WebClient/src/script.js

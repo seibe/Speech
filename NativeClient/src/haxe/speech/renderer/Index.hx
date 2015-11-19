@@ -40,7 +40,9 @@ class Index
 	private var _prevUrl:String;
 	private var _reqCount:Int;
 	private var _title:String;
+	private var _description:String;
 	private var _slideUrl:String;
+	private var _videoSourceId:String;
 	
 	private var _slideview:WebViewElement;
 	private var _webRtcPeer:WebRtcPeer;
@@ -59,7 +61,9 @@ class Index
 			_state = null;
 			_prevUrl = "";
 			_title = null;
+			_description = null;
 			_slideUrl = null;
+			_videoSourceId = null;
 			_reqCount = 0;
 			_slideview = null;
 			
@@ -88,9 +92,11 @@ class Index
 			case State.SETUP:
 				// フォーム各値の取得
 				_title = _dom.getInput("title", "setup").value;
+				_description = _dom.getInput("description", "setup").value;
 				_slideUrl = _dom.getInput("slide-url", "setup").value;
-				temp["selectedVideo"] = _dom.getSelect("video", "setup").value;
-				temp["selectedAudio"] = _dom.getSelect("audio", "setup").value;
+				_videoSourceId = _dom.getSelect("video", "setup").value;
+				// trace(_title, _description, _slideUrl);
+				//temp["selectedAudio"] = _dom.getSelect("audio", "setup").value;
 				
 				// イベントリスナー解除
 				_dom.getButton("submit").addEventListener("click", onClickButtonStart);
@@ -162,28 +168,6 @@ class Index
 				// スライドビュー初期化
 				_slideview = _dom.initPlayer(_slideUrl);
 				_prevUrl = _slideUrl;
-				
-				// 映像配信の初期化
-				if (temp["selectedVideo"] != null && temp["selectedVideo"].length > 0) {
-					// WebCamの登録
-					trace("webcam: " + temp["selectedVideo"]);
-					var videoElem = _dom.addVideo("webcam");
-					_media.getUserVideo(temp["selectedVideo"], function(lms):Void {
-						//
-						trace("get!");
-						_webRtcPeer = WebRtcPeer.WebRtcPeerSendonly({
-							localVideo: videoElem,
-							videoStream: lms,
-							onicecandidate: onIcecandidate
-						}, function (err:Dynamic):Void {
-							if (err != null) setState(State.SETUP);
-							_webRtcPeer.generateOffer(onOffer);
-						});
-					}, function(err):Void {
-						trace("error getuservideo");
-					});
-					
-				}
 				
 			case State.LIVE:
 				// DOM表示切替
@@ -268,6 +252,7 @@ class Index
 		
 		obj.timestamp = Date.now().getTime();
 		obj.requestId = _reqCount++;
+		trace("send", obj.type);
 		_ws.send( Json.stringify(obj) );
 		
 		return _reqCount;
@@ -278,8 +263,29 @@ class Index
 		// 部屋を作成する
 		send(Request.JOIN_PRESENTER( {
 			title: _title,
+			description: _description,
 			slideUrl: _slideUrl
 		} ));
+		
+		// 映像配信の初期化
+		if (_videoSourceId != null && _videoSourceId.length > 0) {
+			// WebCamの登録
+			trace("webcam: " + _videoSourceId);
+			var videoElem = _dom.addVideo("webcam");
+			_media.getUserVideo(_videoSourceId, function(lms):Void {
+				//
+				_webRtcPeer = WebRtcPeer.WebRtcPeerSendonly({
+					localVideo: videoElem,
+					videoStream: lms,
+					onicecandidate: onIcecandidate
+				}, function (err:Dynamic):Void {
+					if (err != null) setState(State.SETUP);
+					_webRtcPeer.generateOffer(onOffer);
+				});
+			}, function(err):Void {
+				trace("error getUserVideo");
+			});
+		}
 	}
 	
 	private function onWsClose(e:Dynamic):Void
@@ -290,6 +296,7 @@ class Index
 	private function onWsMessage(e:Dynamic):Void
 	{
 		var resp:Dynamic = Json.parse(e.data);
+		trace(resp.type);
 		
 		switch (resp.type)
 		{
