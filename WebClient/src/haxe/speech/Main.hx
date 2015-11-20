@@ -1,11 +1,16 @@
 package speech;
 
 import haxe.Json;
+import haxe.Timer;
 import js.Browser;
+import js.html.ButtonElement;
 import js.html.Element;
 import js.html.IFrameElement;
+import js.html.InputElement;
+import js.html.MediaStreamTrack;
 import js.html.rtc.IceCandidate;
 import js.html.rtc.SessionDescription;
+import js.html.SelectElement;
 import js.html.VideoElement;
 import js.html.WebSocket;
 import kurentoUtils.WebRtcPeer;
@@ -16,11 +21,20 @@ enum State {
 	WATCH(title:String, desc:String, url:String);
 	WATCH_WITH_VIDEO_STARTING;
 	WATCH_WITH_VIDEO(answer:SessionDescription);
+	DELIVER_SETUP;
+	DELIVER_STARTING(slideUrl:String, title:String, description:String);
+	DELIVER;
+	DELIVER_WITH_VIDEO_STARTING(slideUrl:String, videoId:String, title:String, description:String);
+	DELIVER_WITH_VIDEO(answer:SessionDescription);
 }
 
 enum Request {
 	JOIN_VIEWER;
 	REQUEST_STREAM(sdpOffer:SessionDescription);
+	JOIN_PRESENTER(params:Dynamic);
+	BEGIN_STREAM_PRESENTER(sdpOffer:SessionDescription);
+	UPDATE_PAGE(slideUrl:String);
+	COMMENT(name:String, text:String);
 	ICE_CANDIDATE(candidate:IceCandidate);
 }
 
@@ -31,22 +45,31 @@ class Main
 	private var _webRtcPeer:WebRtcPeer;
 	
 	private var _state:State;
+	private var _prevUrl:String;
+	private var _prevComment:String;
 	
 	private var _slide:IFrameElement;
 	private var _video:VideoElement;
-	private var _title:Element;
-	private var _description:Element;
+	private var _defaultPane:Element;
+	private var _createPane:Element;
+	private var _infoPane:Element;
+	private var _discussPane:Element;
+	private var _labelTitle:Element;
+	private var _labelDesc:Element;
+	private var _commentList:Element;
 	
-	/*
-	private var _isConnect:Bool;
-	private var _title:Element;
-	private var _board:UListElement;
-	private var _inputName:InputElement;
-	private var _inputText:InputElement;
-	private var _inputSubmit:ButtonElement;
-	private var _prevText:String;
-	private var _roomId:String;
-	*/
+	private var _inputComment:InputElement;
+	private var _inputSlideUrl:InputElement;
+	private var _inputTitle:InputElement;
+	private var _inputDescription:InputElement;
+	private var _selectCamera:SelectElement;
+	private var _outputError:Element;
+	
+	private var _btnSubmitComment:ButtonElement;
+	private var _btnRetryJoinViewer:ButtonElement;
+	private var _btnSetupBegin:ButtonElement;
+	private var _btnSetupSubmit:ButtonElement;
+	private var _btnLeavePresenter:ButtonElement;
 	
 	static function main() 
 	{
@@ -62,62 +85,6 @@ class Main
 	{
 		initDomElements();
 		setState(State.WATCH_STARTING);
-		
-		/*
-		// 1. 変数初期化
-		_isConnect = false;
-		_prevText = "";
-		_title = Browser.document.getElementById("title");
-		_frame = cast Browser.document.getElementById("slide-frame");
-		_board = cast Browser.document.getElementById("comment-list");
-		_inputName = cast Browser.document.getElementById("comment-form-name");
-		_inputText = cast Browser.document.getElementById("comment-form-text");
-		_inputSubmit = cast Browser.document.getElementById("comment-form-submit");
-		
-		// 2. 部屋番号を確認
-		_roomId = Browser.location.hash;
-		if (_roomId.length < 2) {
-			// 番号が無い
-			_board.innerHTML = "<li class='system'>有効な部屋番号ではありません</li>" + _board.innerHTML;
-			return;
-		}
-		_roomId = _roomId.substr(1);
-		_frame.src = "img/wait.jpg";
-		
-		// 3. WebSocketサーバーに接続する
-		_ws = new WebSocket(WS_URL);
-		_ws.addEventListener("open", onConnect);
-		_ws.addEventListener("close", onDisconnect);
-		_ws.addEventListener("message", onMessage);
-		//_ws.onerror = null;
-		
-		// 4. INPUT投稿周りのイベント
-		var doComment = function():Void {
-			if (!_isConnect) return;
-			var name:String = _inputName.value;
-			var text:String = _inputText.value;
-			name = name.length > 0 ? name : "anonymous";
-			if (text == _prevText) return;
-			
-			_ws.send(Json.stringify( {
-				type: "comment",
-				data: {
-					roomId: _roomId,
-					name: name,
-					text: text,
-					slideUrl: _frame.src
-				},
-				requestId: 0,
-				timestamp: Date.now().getTime()
-			} ));
-			_prevText = text;
-			_inputText.value = "";
-		}
-		_inputText.addEventListener("keypress", function(e:Dynamic):Void {
-			if (e.keyCode == 13) doComment();
-		});
-		_inputSubmit.addEventListener("click", doComment);
-		*/
 	}
 	
 	private function initDomElements():Void
@@ -125,8 +92,71 @@ class Main
 		_slide = cast Browser.document.getElementById("slide");
 		_video = cast Browser.document.getElementById("video");
 		
-		_title = Browser.document.getElementById("slide-title");
-		_description = Browser.document.getElementById("slide-desc");
+		_labelTitle = Browser.document.getElementById("label-title");
+		_labelDesc = Browser.document.getElementById("label-description");
+		_commentList = Browser.document.getElementById("comment-list");
+		
+		_defaultPane = Browser.document.getElementById("pane-default");
+		_createPane = Browser.document.getElementById("pane-create");
+		_infoPane = Browser.document.getElementById("pane-info");
+		_discussPane = Browser.document.getElementById("pane-discuss");
+		
+		_inputComment = cast Browser.document.getElementById("input-comment");
+		_inputComment.addEventListener("keypress", function(e:Dynamic):Void {
+			if (e.keyCode == 13) doComment();
+		});
+		_inputSlideUrl = cast Browser.document.getElementById("input-slide-url");
+		_inputTitle = cast Browser.document.getElementById("input-title");
+		_inputDescription = cast Browser.document.getElementById("input-description");
+		_selectCamera = cast Browser.document.getElementById("select-camera");
+		_outputError = Browser.document.getElementById("output-setup-error");
+		
+		_btnSubmitComment = cast Browser.document.getElementById("button-submit-comment");
+		_btnSubmitComment.addEventListener("click", doComment);
+		_btnRetryJoinViewer = cast Browser.document.getElementById("button-retry-join-viewer");
+		_btnRetryJoinViewer.addEventListener("click", function():Void {
+			setState(State.WATCH_STARTING);
+		});
+		_btnSetupBegin = cast Browser.document.getElementById("button-begin-setup");
+		_btnSetupBegin.addEventListener("click", function():Void {
+			setState(State.DELIVER_SETUP);
+		});
+		_btnSetupSubmit = cast Browser.document.getElementById("button-complete-setup");
+		_btnSetupSubmit.addEventListener("click", function():Void {
+			var urlChecker:EReg = ~/https?:\/\/.+/;
+			var slideUrl = _inputSlideUrl.value;
+			if (slideUrl.length == 0 || !urlChecker.match(slideUrl)) {
+				_outputError.innerText = "正しいスライドURLを入力してください";
+				_inputSlideUrl.focus();
+				return;
+			}
+			
+			var title = _inputTitle.value;
+			if (title.length == 0) {
+				_outputError.innerText = "プレゼンテーションタイトルを入力してください";
+				_inputTitle.focus();
+				return;
+			}
+			
+			var desc = _inputDescription.value;
+			if (desc.length == 0) desc = "No description";
+			
+			_outputError.innerText = "";
+			_labelTitle.innerText = StringTools.htmlEscape(title);
+			_slide.src = StringTools.htmlEscape(slideUrl);
+			_labelDesc.innerText = StringTools.htmlEscape(desc);
+			
+			var videoId = _selectCamera.value;
+			if (videoId.length == 0 || videoId == "none") {
+				setState(State.DELIVER_STARTING(slideUrl, title, desc));
+			} else {
+				setState(State.DELIVER_WITH_VIDEO_STARTING(slideUrl, videoId, title, desc));
+			}
+		});
+		_btnLeavePresenter = cast Browser.document.getElementById("button-leave-presenter");
+		_btnLeavePresenter.addEventListener("click", function():Void {
+			setState(State.STOP);
+		});
 	}
 	
 	private function setState(nextState:State):Void
@@ -139,19 +169,50 @@ class Main
 		{
 			case State.STOP:
 				// State.STOPの終了処理
+				_defaultPane.classList.remove("show");
 				
 			case State.WATCH_STARTING:
 				// State.WATCH_STARTINGの終了処理
 				
 			case State.WATCH(title, desc, url):
 				// State.WATCHの終了処理
+				_infoPane.classList.remove("show");
+				_discussPane.classList.remove("show");
 				
 			case State.WATCH_WITH_VIDEO_STARTING:
 				// State.WATCH_WITH_VIDEO_STARTINGの終了処理
 				
 			case State.WATCH_WITH_VIDEO(answer):
 				// State.WATCH_WITH_VIDEOの終了処理
+				_infoPane.classList.remove("show");
+				_discussPane.classList.remove("show");
 				_video.classList.remove("show");
+				
+			case State.DELIVER_SETUP:
+				// State.DELIVER_SETUPの終了処理
+				_createPane.classList.remove("show");
+				
+			case State.DELIVER_STARTING(slideUrl, title, desc):
+				// State.DELIVER_STARTINGの終了処理
+				
+			case State.DELIVER:
+				// State.DELIVERの終了処理
+				_infoPane.classList.remove("show");
+				_discussPane.classList.remove("show");
+				_slide.contentWindow.removeEventListener("keydown", checkPage);
+				_slide.contentWindow.removeEventListener("wheel", checkPage);
+				_slide.contentWindow.removeEventListener("mouseup", checkPage);
+				
+			case State.DELIVER_WITH_VIDEO_STARTING(slideUrl, videoId, title, desc):
+				// State.DELIVER_WITH_VIDEO_STARTINGの終了処理
+				
+			case State.DELIVER_WITH_VIDEO(answer):
+				// State.DELIVER_WITH_VIDEOの終了処理
+				_infoPane.classList.remove("show");
+				_discussPane.classList.remove("show");
+				_slide.contentWindow.removeEventListener("keydown", checkPage);
+				_slide.contentWindow.removeEventListener("wheel", checkPage);
+				_slide.contentWindow.removeEventListener("mouseup", checkPage);
 				
 			case null:
 				// 起動時の特別な処理
@@ -165,7 +226,11 @@ class Main
 				// WebSocketサーバーから切断する
 				if (_ws != null) _ws.close();
 				_ws = null;
+				// スライドを非表示にする
 				_slide.classList.remove("show");
+				_defaultPane.classList.add("show");
+				_prevUrl = null;
+				_prevComment = null;
 				
 			case State.WATCH_STARTING:
 				// State.WATCH_STARTINGの開始処理
@@ -179,11 +244,12 @@ class Main
 			case State.WATCH(title, desc, url):
 				// State.WATCHの開始処理
 				// スライドを表示する
-				trace(title, desc, url);
-				_title.innerText = StringTools.htmlEscape(title);
+				_labelTitle.innerText = StringTools.htmlEscape(title);
 				_slide.src = StringTools.htmlEscape(url);
-				_description.innerText = StringTools.htmlEscape(desc);
+				_labelDesc.innerText = StringTools.htmlEscape(desc);
 				_slide.classList.add("show");
+				_infoPane.classList.add("show");
+				_discussPane.classList.add("show");
 				
 			case State.WATCH_WITH_VIDEO_STARTING:
 				// State.WATCH_WITH_VIDEO_STARTINGの開始処理
@@ -203,6 +269,60 @@ class Main
 				// State.WATCH_WITH_VIDEOの開始処理
 				_webRtcPeer.processAnswer(answer);
 				_video.classList.add("show");
+				_infoPane.classList.add("show");
+				_discussPane.classList.add("show");
+				
+			case State.DELIVER_SETUP:
+				// State.DELIVER_SETUPの開始処理
+				untyped MediaStreamTrack.getSources(function(trackList:Array<MediaStreamTrack>):Void {
+					_selectCamera.innerHTML = '<option value="none">なし</option>';
+					for (track in trackList) {
+						if (track.kind == "video") {
+							_selectCamera.insertAdjacentHTML("beforeend", '<option value="'+track.id+'">'+track.label+'</option>');
+						}
+					}
+				});
+				_createPane.classList.add("show");
+				
+			case State.DELIVER_STARTING(slideUrl, title, desc):
+				// State.DELIVER_STARTINGの開始処理
+				_prevUrl = slideUrl;
+				// WebSocketサーバーに接続する
+				_ws = new WebSocket(WS_URL);
+				_ws.addEventListener("open", onWsConnect);
+				_ws.addEventListener("close", onWsClose);
+				_ws.addEventListener("message", onWsMessage);
+				_ws.addEventListener("error", onWsError);
+				
+			case State.DELIVER:
+				// State.DELIVERの開始処理
+				_infoPane.classList.add("show");
+				_discussPane.classList.add("show");
+				_slide.classList.add("show");
+				_slide.contentWindow.addEventListener("keydown", checkPage);
+				_slide.contentWindow.addEventListener("wheel", checkPage);
+				_slide.contentWindow.addEventListener("mouseup", checkPage);
+				
+			case State.DELIVER_WITH_VIDEO_STARTING(slideUrl, videoId, title, desc):
+				// State.DELIVER_WITH_VIDEO_STARTINGの開始処理
+				_prevUrl = slideUrl;
+				// WebSocketサーバーに接続する
+				_ws = new WebSocket(WS_URL);
+				_ws.addEventListener("open", onWsConnect);
+				_ws.addEventListener("close", onWsClose);
+				_ws.addEventListener("message", onWsMessage);
+				_ws.addEventListener("error", onWsError);
+				
+			case State.DELIVER_WITH_VIDEO(answer):
+				// State.DELIVER_WITH_VIDEOの開始処理
+				_infoPane.classList.add("show");
+				_discussPane.classList.add("show");
+				_slide.classList.add("show");
+				_video.classList.add("show");
+				_webRtcPeer.processAnswer(answer);
+				_slide.contentWindow.addEventListener("keydown", checkPage);
+				_slide.contentWindow.addEventListener("wheel", checkPage);
+				_slide.contentWindow.addEventListener("mouseup", checkPage);
 		}
 		
 		_state = nextState;
@@ -215,14 +335,34 @@ class Main
 		switch (req)
 		{
 			case Request.JOIN_VIEWER:
-				// プレゼンに参加する
+				// 視聴者としてプレゼンに参加する
 				obj.type = "joinViewer";
 				obj.data = { };
 				
 			case Request.REQUEST_STREAM(offer):
-				// 映像の受信を要求する
+				// 視聴者として映像の受信を要求する
 				obj.type = "requestStream";
 				obj.data = offer;
+				
+			case Request.JOIN_PRESENTER(params):
+				// 放送者としてプレゼンを開始する
+				obj.type = "joinPresenter";
+				obj.data = params;
+				
+			case Request.BEGIN_STREAM_PRESENTER(offerSdp):
+				// 放送者としてsdpOfferを送る
+				obj.type = "startStream";
+				obj.data = offerSdp;
+				
+			case Request.UPDATE_PAGE(slideUrl):
+				// 放送者としてページの変更を通知する
+				obj.type = "updateSlide";
+				obj.data = slideUrl;
+				
+			case Request.COMMENT(name, text):
+				// コメントする
+				obj.type = "comment";
+				obj.data = { name: name, text: text };
 				
 			case Request.ICE_CANDIDATE(candidate):
 				//
@@ -234,11 +374,80 @@ class Main
 		_ws.send(Json.stringify(obj));
 	}
 	
+	private function checkPage():Void
+	{
+		trace(_slide.contentWindow.location.href);
+		if (!_state.match(State.DELIVER) && !_state.match(State.WATCH_WITH_VIDEO)) return;
+		
+		Timer.delay( function():Void {
+			// 前回とURLが異なっていればページ移動したと看做す
+			var url:String = _slide.contentWindow.location.href;
+			if (_prevUrl != url) {
+				send(Request.UPDATE_PAGE(url));
+				_prevUrl = url;
+			}
+		}, 250);
+	}
+	
+	private function doComment():Void
+	{
+		var name:String = "anonymous";
+		var text:String = _inputComment.value;
+		
+		if (text.length == 0 || text == _prevComment) return;
+		
+		send(Request.COMMENT(name, text));
+		
+		_prevComment = text;
+		_inputComment.value = "";
+	}
+	
 	private function onWsConnect(e:Dynamic):Void
 	{
 		trace("open ws");
 		
-		send(Request.JOIN_VIEWER);
+		switch (_state) {
+			case State.WATCH_STARTING:
+				send(Request.JOIN_VIEWER);
+				
+			case State.DELIVER_STARTING(slideUrl, title, description):
+				send(Request.JOIN_PRESENTER({
+					title: title,
+					description: description,
+					slideUrl: slideUrl
+				}));
+				
+			case State.DELIVER_WITH_VIDEO_STARTING(slideUrl, videoId, title, description):
+				send(Request.JOIN_PRESENTER({
+					title: title,
+					description: description,
+					slideUrl: slideUrl
+				}));
+				untyped navigator.getUserMedia = ( navigator.getUserMedia ||
+                       navigator.webkitGetUserMedia ||
+                       navigator.mozGetUserMedia ||
+                       navigator.msGetUserMedia);
+				untyped navigator.getUserMedia( {
+					video: { optional: [ { sourceId: videoId } ] },
+					audio: true
+				}, function (lms):Void {
+					_webRtcPeer = WebRtcPeer.WebRtcPeerSendonly({
+						localVideo: _video,
+						videoStream: lms,
+						onicecandidate: onIcecandidate
+					}, function (err:Dynamic):Void {
+						if (err != null) setState(State.STOP);
+						_webRtcPeer.generateOffer(function(err2, offer):Void {
+							send(Request.BEGIN_STREAM_PRESENTER(offer));
+						});
+					});
+				}, function (err3):Void {
+					trace(err3);
+				});
+				
+			default:
+				trace("throw@onWsConnect", _state);
+		}
 	}
 	
 	private function onWsClose(e:Dynamic):Void
@@ -257,52 +466,39 @@ class Main
 		switch (mes.type)
 		{
 			case "onUpdateSlide":
-				
 				_slide.src = d;
-				// _board.innerHTML = "<li class='system'><a href='" + m.data + "'>ページ</a>が変わりました</li>" + _board.innerHTML;
-				// _frame.src = m.data;
 				
 			case "onComment":
-				// _board.innerHTML = "<li>" + StringTools.htmlEscape(m.data.text) + "<br/><small>(" + StringTools.htmlEscape(m.data.name) + ")</small></li>" + _board.innerHTML;
+				var name = StringTools.htmlEscape(d.name);
+				var text = StringTools.htmlEscape(d.text);
+				_commentList.insertAdjacentHTML("afterbegin", '<li class="discuss-comment new"><img class="discuss-comment-image" src="img/avatar.jpg" width="32" height="32"><div class="discuss-comment-body"><strong>' + name+'</strong><p>' + text + '</p></div></li>');
 				
 			case "canStartStream":
 				setState(State.WATCH_WITH_VIDEO_STARTING);
 				
 			case "onStopStream":
-				//setState(State.WATCH);
+				setState(State.STOP);
 				
 			case "accept":
-				setState(State.WATCH(d.title, d.description, d.slideUrl));
-				// _isConnect = true;
-				// _title.innerText = m.data.title;
-				// _board.innerHTML = "<li class='system'>入室しました</li>" + _board.innerHTML;
-				// if (m.data.slideUrl && m.data.slideUrl.length > 0) _frame.src = m.data.slideUrl;
+				switch (_state) {
+					case State.WATCH_STARTING:
+						setState(State.WATCH(d.title, d.description, d.slideUrl));
+						
+					case State.DELIVER_STARTING:
+						setState(State.DELIVER);
+						
+					case State.DELIVER_WITH_VIDEO_STARTING:
+						// ※acceptStreamが来るまで何もしない
+						
+					default:
+						trace("state error", mes);
+				}
+				
+			case "acceptStream":
+				setState(State.DELIVER_WITH_VIDEO(d));
 				
 			case "startStream":
 				setState(State.WATCH_WITH_VIDEO(d));
-				
-			/*
-			case "onLeave":
-				_isConnect = false;
-				_frame.src = "wait.jpg";
-				
-			case "onBegin":
-				_board.innerHTML = "<li class='system'>発表が始まりました</li>" + _board.innerHTML;
-				
-			case "onPause":
-				_board.innerHTML = "<li class='system'>発表が中断しました</li>" + _board.innerHTML;
-				
-			case "onEnd":
-				_board.innerHTML = "<li class='system'>発表が終了しました</li>" + _board.innerHTML;
-				_ws.close();
-				
-			case "onOpen":
-				_board.innerHTML = "<li class='system'><a href='" + m.data.slideUrl + "'>スライド資料</a>が開かれました</li>" + _board.innerHTML;
-				_frame.src = m.data.slideUrl;
-				
-			case "onError":
-				_board.innerHTML = "<li class='system'>エラー: " + StringTools.htmlEscape(m.data) + "</li>" + _board.innerHTML;
-			*/
 				
 			default:
 				trace("unknown message", mes);
