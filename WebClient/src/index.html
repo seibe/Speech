@@ -26,80 +26,120 @@
         <div class="main-visual">
             
             <section class="player">
-                <iframe class="player-main" id="slide" src="https://docs.google.com/presentation/d/1skXg3-4AngJ0DbVzuJzdadlLwHIY6dEYT_Qu0fxwZGQ/embed"></iframe>
-				<div class="player-dummy"><p>現在、配信中のプレゼンはありません。</p></div>
+                <iframe class="player-main" id="slide"></iframe>
+				<div class="player-blank">
+                    <p>現在、配信中のプレゼンテーションはありません。</p>
+                    <div class="player-blank-action">
+                        <button class="button player-blank-action-button" id="button-retry-join-viewer">リロード</button>　<button class="button player-blank-action-button" id="button-begin-setup">新しく配信する</button>
+                    </div>
+                </div>
                 
                 <video class="player-video" id="video" autoplay></video>
                 
                 <div class="player-aside">
-                    <div class="player-aside-info">
-                        <h1 class="player-aside-info-h1" id="slide-title">Presentation title</h1>
-                        <p class="player-aside-info-p" id="slide-desc">Just a few months after The International, Valve brings you more incredible Dota 2 action with the game's first official Major tournament.</p>
+                    
+                    <div class="player-aside-group player-aside-default show" id="pane-default">
+                        <p class="player-aside-group-h1">Speech (スピーチ)</p>
+                        <p>Speech は、プレゼンテーションをWEBでリアルタイムに配信・録画できるシステムです。</p>
+                        <p><a href="https://github.com/seibe/Speech/blob/master/Poster/Speech_poster.jpg"><img alt="#" src="img/thumb_poster.jpg" /></a></p>
                     </div>
                     
-                    <div class="player-aside-input">
-                        <input type="text" class="player-aside-input-text" maxlength="140" />
-                        <button class="player-aside-input-submit">Tweet</button>
+                    <div class="player-aside-group player-aside-create" id="pane-create">
+                        <p class="player-aside-group-h1">発表情報の入力 <span data-help="これから始めるプレゼンテーションの設定をします" class="tooltip">？</span></p>
+                        <div class="create-item">
+                            <span class="create-item-label">スライドURL</span>
+                            <input type="url" class="create-item-input" id="input-slide-url" placeholder="http://" />
+                        </div>
+                        <div class="create-item">
+                            <span class="create-item-label">タイトル</span>
+                            <input type="text" class="create-item-input" id="input-title" placeholder="製品発表会2015" />
+                        </div>
+                        <div class="create-item">
+                            <span class="create-item-label">紹介文</span>
+                            <textarea class="create-item-input" id="input-description"></textarea>
+                        </div>
+                        <div class="create-item">
+                            <span class="create-item-label">カメラ接続</span>
+                            <select class="create-item-input" id="select-camera">
+                                <option value="none">なし</option>
+                            </select>
+                        </div>
+                        <p class="create-error" id="output-setup-error"></p>
+                        <div class="create-submit">
+                            <button class="button" id="button-complete-setup">配信を始める</button>
+                        </div>
                     </div>
                     
-                    <ul class="player-aside-discuss">
-                        <li class="comment new">
-                            <img class="comment-image" src="img/avatar.jpg" width="32" height="32">
-                            <div class="comment-body">
-                                <strong>Seibe TAKAHASHI</strong>
-                                <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
-                            </div>
-                        </li>
-                        <li class="comment">
-                            <img class="comment-image" src="img/avatar.jpg" width="32" height="32">
-                            <div class="comment-body">
-                                <strong>Seibe TAKAHASHI</strong>
-                                <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
-                            </div>
-                        </li>
-                        <li class="comment">
-                            <img class="comment-image" src="img/avatar.jpg" width="32" height="32">
-                            <div class="comment-body">
-                                <strong>Seibe TAKAHASHI</strong>
-                                <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
-                            </div>
-                        </li>
-                        <li class="comment">
-                            <img class="comment-image" src="img/avatar.jpg" width="32" height="32">
-                            <div class="comment-body">
-                                <strong>Seibe TAKAHASHI</strong>
-                                <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
-                            </div>
-                        </li>
-                        <li class="comment">
-                            <img class="comment-image" src="img/avatar.jpg" width="32" height="32">
-                            <div class="comment-body">
-                                <strong>Seibe TAKAHASHI</strong>
-                                <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
-                            </div>
-                        </li>
-                        <li class="comment">
-                            <img class="comment-image" src="img/avatar.jpg" width="32" height="32">
-                            <div class="comment-body">
-                                <strong>Seibe TAKAHASHI</strong>
-                                <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
-                            </div>
-                        </li>
-                        <li class="comment">
-                            <img class="comment-image" src="img/avatar.jpg" width="32" height="32">
-                            <div class="comment-body">
-                                <strong>Seibe TAKAHASHI</strong>
-                                <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
-                            </div>
-                        </li>
-                        <li class="comment">
-                            <img class="comment-image" src="img/avatar.jpg" width="32" height="32">
-                            <div class="comment-body">
-                                <strong>Seibe TAKAHASHI</strong>
-                                <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
-                            </div>
-                        </li>
-                    </ul>
+                    <div class="player-aside-group player-aside-info" id="pane-info">
+                        <h1 class="player-aside-group-h1" id="label-title">Presentation title</h1>
+                        <p id="label-description">Presentation description</p>
+                    </div>
+                    
+                    <div class="player-aside-group player-aside-discuss" id="pane-discuss">
+						<button class="button" id="button-leave-presenter">終了する</button>
+                        <div class="discuss-input">
+                            <input type="text" class="discuss-input-text" id="input-comment" maxlength="140" />
+                            <button class="discuss-input-submit" id="button-submit-comment">Send</button>
+                        </div>
+                        <ul class="discuss-comment-list" id="comment-list">
+                            <li class="discuss-comment new">
+                                <img class="discuss-comment-image" src="img/avatar.jpg" width="32" height="32">
+                                <div class="discuss-comment-body">
+                                    <strong>Seibe TAKAHASHI</strong>
+                                    <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
+                                </div>
+                            </li>
+                            <li class="discuss-comment">
+                                <img class="discuss-comment-image" src="img/avatar.jpg" width="32" height="32">
+                                <div class="discuss-comment-body">
+                                    <strong>Seibe TAKAHASHI</strong>
+                                    <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
+                                </div>
+                            </li>
+                            <li class="discuss-comment">
+                                <img class="discuss-comment-image" src="img/avatar.jpg" width="32" height="32">
+                                <div class="discuss-comment-body">
+                                    <strong>Seibe TAKAHASHI</strong>
+                                    <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
+                                </div>
+                            </li>
+                            <li class="discuss-comment">
+                                <img class="discuss-comment-image" src="img/avatar.jpg" width="32" height="32">
+                                <div class="discuss-comment-body">
+                                    <strong>Seibe TAKAHASHI</strong>
+                                    <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
+                                </div>
+                            </li>
+                            <li class="discuss-comment">
+                                <img class="discuss-comment-image" src="img/avatar.jpg" width="32" height="32">
+                                <div class="discuss-comment-body">
+                                    <strong>Seibe TAKAHASHI</strong>
+                                    <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
+                                </div>
+                            </li>
+                            <li class="discuss-comment">
+                                <img class="discuss-comment-image" src="img/avatar.jpg" width="32" height="32">
+                                <div class="discuss-comment-body">
+                                    <strong>Seibe TAKAHASHI</strong>
+                                    <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
+                                </div>
+                            </li>
+                            <li class="discuss-comment">
+                                <img class="discuss-comment-image" src="img/avatar.jpg" width="32" height="32">
+                                <div class="discuss-comment-body">
+                                    <strong>Seibe TAKAHASHI</strong>
+                                    <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
+                                </div>
+                            </li>
+                            <li class="discuss-comment">
+                                <img class="discuss-comment-image" src="img/avatar.jpg" width="32" height="32">
+                                <div class="discuss-comment-body">
+                                    <strong>Seibe TAKAHASHI</strong>
+                                    <p>Tottemo iito omoi-masu! Tottemo iito omoi-masu!</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </section>
             
@@ -108,7 +148,9 @@
             
             <section class="main-content-section">
                 <h1 class="main-content-section-h1">最近のプレゼンテーション</h1>
+				<p>※ 2015/11/20現在、録画・再生機能は開発中です。</p>
                 
+				<!--
                 <ul class="grid">
                     <li class="grid-cell">
                         <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
@@ -175,8 +217,10 @@
                     </li>
                 </ul>
                 <p class="button more"><a href="#">過去のプレゼンテーションの一覧</a></p>
+				-->
             </section>
             
+            <!--
             <section class="main-content-section">
                 <h1 class="main-content-section-h1">プレゼンを配信するには</h1>
                 <p>専用のアプリをお使いください。Windows および OS X、Linux に対応しています。</p>
@@ -185,29 +229,9 @@
                     <li class="button"><a href="#">ダウンロード (OS X)</a></li>
                     <li class="button"><a href="#">ダウンロード (Linux)</a></li>
             </section>
+            -->
             
         </div>
-        <!--
-		<div class="box-left">
-			<ul class="tab">
-				<li class="tab-item active"><button>スライド</button></li>
-				<li class="tab-item"><button disabled>ビデオカメラ</button></li>
-				<li class="tab-item"><button disabled>添付資料</button></li>
-			</ul>
-			
-			<iframe id="slide-frame" src="img/wait.jpg" width="636" height="477"></iframe>
-			
-			<div class="comment-form">
-				<input type="text" id="comment-form-name" placeholder="お名前(任意)" />
-				<input type="text" id="comment-form-text" placeholder="コメント" />
-				<button id="comment-form-submit">コメント</button>
-			</div>
-		</div>
-		
-		<div class="box-right">
-			<ul id="comment-list" class="comment-list"></ul>
-		</div>
-        -->
 	</main>
     <footer class="footer">
         (C)2015 Seibe TAKAHASHI.

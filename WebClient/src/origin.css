@@ -11,12 +11,14 @@ body {
  * ANCHOR & BUTTON
  * --------------------- */
 
-a, button {
+a,
+button {
     color: #000;
     cursor: pointer;
     outline: none;
 }
-a:hover {
+a:hover,
+button:hover {
     margin: -1px;
     border: 1px solid #fcc800;
 }
@@ -26,9 +28,54 @@ a:hover {
     display: inline-block;
     line-height: 1.5;
 }
+button.button {
+    padding: 0 0.5em;
+    font-size: 1rem;
+    line-height: 2em;
+    background: #fcc800;
+}
+.button a:hover:active,
+button.button:hover:active {
+    transform: translateY(1px);
+}
 .more {
     text-align: right;
 }
+
+
+/* ------------------------
+ * TOOLTIP
+ * --------------------- */
+
+.tooltip {
+    width: 16px;
+    height: 16px;
+    transform: translateY(-6px);
+    font-size: 0.75rem;
+    line-height: 16px;
+    text-align: center;
+    background: #455765;
+    border-radius: 100%;
+    display: inline-block;
+    position: relative;
+}
+.tooltip:hover {
+    cursor: pointer;
+}
+.tooltip:hover:after {
+    content: attr(data-help);
+    width: 12em;
+    padding: 5px 15px;
+    text-align: left;
+    color: #fff;
+    background: rgba(0,0,0,.8);
+    border-radius: 5px;
+    z-index: 98;
+    position: absolute;
+    left: 1em;
+    top: 1em;
+}
+
 
 /* ------------------------
  * CORE LAYOUT
@@ -144,18 +191,21 @@ a:hover {
 	display: block;
     height: 40vh;
     background: #000;
-    pointer-events: none;
 }
-.player-dummy {
+.player-blank {
 	padding: 1em;
 	color: #fff;
 	background: #000;
 	display: flex;
+    flex-flow: column;
 	align-items: center;
 	justify-content: center;
 }
-.show + .player-dummy {
+.show + .player-blank {
 	display: none;
+}
+.player-blank-action {
+    margin: 1em 0;
 }
 .player-video {
     height: 7.5vh;
@@ -172,6 +222,7 @@ a:hover {
     color: #fff;
     background: rgba(0,0,0,0.5);
     overflow-y: auto;
+    scrollbar-base-color: #fcc800;
 }
 .player-aside::-webkit-scrollbar {
     width: 3px;
@@ -184,42 +235,30 @@ a:hover {
 .player-aside::-webkit-scrollbar-thumb {
     background:#fcc800;
 }
-.player-aside-info {
-    padding: 1.5em 1.5em 0;
+.player-aside-group {
+    padding: 2em 1.5em 0;
+    font-size: 0.75rem;
+    display: none;
 }
-.player-aside-info-h1 {
+.player-aside-group.show {
+    display: block;
+}
+.player-aside-group-h1 {
     font-size: 1rem;
     margin-bottom: 1em;
 }
-.player-aside-info-p {
-    font-size: 0.75rem;
+.player-aside-group img {
+    max-width: 100%;
 }
-.player-aside-input {
-    display: none;
-}
-.player-aside-input-text {
-    flex: 1;
-    border: 1px solid rgba(64,64,64,0.5);
-    border-radius: 2px 0 0 2px;
-    padding: 0.5em 0.75em;
-    background: rgba(255,255,255,0.9);
-}
-.player-aside-input-submit {
-    border: 1px solid rgba(64,64,64,0.5);
-    border-radius: 0 2px 2px 0;
-    border-left: 0;
-    padding: 0.5em 0.75em;
-    background: #ccc;
-}
-.player-aside-discuss {
-    padding: 1.5em;
+.player-aside-group p + p {
+    margin-top: 1em;
 }
 @media (min-width: 480px) {
     .player {
         height: 60vh;
         flex-direction: row;
     }
-	.player-dummy,
+	.player-blank,
     .player-main.show {
         height: 100%;
         flex: 1;
@@ -233,14 +272,43 @@ a:hover {
     .player-aside {
         width: 320px;
         flex: none;
-        scrollbar-base-color: #fcc800;
     }
-    .player-aside-input {
-        padding: 1.5em 1.5em 0.5em;
-        display: flex;
-        color: #000;
-        font-size: 0.75rem;
-    }
+}
+
+/* ------------------------
+ * CREATE FORM
+ * --------------------- */
+
+.create-item {
+    margin: 0.4em 0;
+    display: flex;
+    color: #000;
+    font-size: 0.8rem;
+}
+.create-item-label {
+    min-width: 8em;
+    border: 1px solid rgba(64,64,64,0.5);
+    border-radius: 2px 0 0 2px;
+    padding: 0.5em 0.75em;
+    background: #ccc;
+}
+.create-item-input {
+    flex: 1;
+    border: 1px solid rgba(64,64,64,0.5);
+    border-left: 0;
+    border-radius: 0 2px 2px 0;
+    padding: 0.5em 0.75em;
+    background: rgba(255,255,255,0.9);
+}
+.create-error {
+    margin: 1em 0;
+    font-size: 0.8em;
+    text-align: center;
+    color: #ff4400;
+}
+.create-submit {
+    margin: 1em 0;
+    text-align: right;
 }
 
 
@@ -248,25 +316,48 @@ a:hover {
  * COMMENT LIST
  * --------------------- */
 
-.comment {
+.discuss-input {
+    margin: 1.5rem 0;
+    display: flex;
+    color: #000;
+    font-size: 0.75rem;
+}
+.discuss-input-text {
+    flex: 1;
+    border: 1px solid rgba(64,64,64,0.5);
+    border-radius: 2px 0 0 2px;
+    padding: 0.5em 0.75em;
+    background: rgba(255,255,255,0.9);
+}
+.discuss-input-submit {
+    border: 1px solid rgba(64,64,64,0.5);
+    border-radius: 0 2px 2px 0;
+    border-left: 0;
+    padding: 0.5em 0.75em;
+    background: #ccc;
+}
+.discuss-comment-list {
+    margin: 1.5em 0;
+}
+.discuss-comment {
     display: flex;
     overflow: hidden;
 }
-.comment + .comment {
+.discuss-comment + .discuss-comment {
     margin-top: 10px;
     border-top: 1px dotted #444;
     padding-top: 10px;
 }
-.comment-image {
+.discuss-comment-image {
     width: 40px;
     height: 40px;
     margin-right: 10px;
     border-radius: 50%;
 }
-.comment-body {
+.discuss-comment-body {
     font-size: 0.8rem;
 }
-.comment.new {
+.discuss-comment.new {
     height: 0;
     opacity: 0;
     transform: translateX(-320px);
