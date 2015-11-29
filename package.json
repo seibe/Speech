@@ -32,7 +32,7 @@
     "release:haxe-native": "haxe ./release_native.hxml",
     "release:haxe-web": "haxe ./release_web.hxml",
     "release:haxe": "concurrent \"npm run release:haxe-kurento\" \"npm run release:haxe-native\" \"npm run release:haxe-web\"",
-    "release:css-native": "npm run build:css-native && cleancss -o NativeClient/dist/style.css WebClient/src/style.css",
+    "release:css-native": "npm run build:css-native && cleancss -o NativeClient/dist/src/style.css NativeClient/src/style.css",
     "release:css-web": "npm run build:css-web && cleancss -o WebClient/dist/style.css WebClient/src/style.css",
     "release:build-native": "npm run release:clean-native && npm run release:copy-native && npm run release:haxe-native && npm run release:css-native",
     "release:build": "npm run release:build-native",
