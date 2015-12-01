@@ -14,84 +14,6 @@ Std.string = function(s) {
 };
 var electron_Electron = function() { };
 electron_Electron.__name__ = true;
-electron_Electron.get_app = function() {
-	return electron_Electron.require("app");
-};
-electron_Electron.get_autoUpdater = function() {
-	return electron_Electron.require("auto-updater");
-};
-electron_Electron.get_contentTracing = function() {
-	return electron_Electron.require("content-tracing");
-};
-electron_Electron.get_dialog = function() {
-	return electron_Electron.require("dialog");
-};
-electron_Electron.get_globalShortcut = function() {
-	return electron_Electron.require("global-shortcut");
-};
-electron_Electron.get_ipc = function() {
-	return electron_Electron.require("ipc");
-};
-electron_Electron.get_powerMonitor = function() {
-	return electron_Electron.require("power-monitor");
-};
-electron_Electron.get_protocol = function() {
-	return electron_Electron.require("protocol");
-};
-electron_Electron.get_remote = function() {
-	return electron_Electron.require("remote");
-};
-electron_Electron.get_remoteApp = function() {
-	return electron_Electron.remoteRequire("app");
-};
-electron_Electron.get_remoteAutoUpdater = function() {
-	return electron_Electron.remoteRequire("auto-updater");
-};
-electron_Electron.get_remoteContentTracing = function() {
-	return electron_Electron.remoteRequire("content-tracing");
-};
-electron_Electron.get_remoteDialog = function() {
-	return electron_Electron.remoteRequire("dialog");
-};
-electron_Electron.get_remoteGlobalShortcut = function() {
-	return electron_Electron.remoteRequire("global-shortcut");
-};
-electron_Electron.get_remoteIpc = function() {
-	return electron_Electron.remoteRequire("ipc");
-};
-electron_Electron.get_remotePowerMonitor = function() {
-	return electron_Electron.remoteRequire("power-monitor");
-};
-electron_Electron.get_remoteProtocol = function() {
-	return electron_Electron.remoteRequire("protocol");
-};
-electron_Electron.get_remoteClipboard = function() {
-	return electron_Electron.remoteRequire("clipboard");
-};
-electron_Electron.get_remoteCrashReporter = function() {
-	return electron_Electron.remoteRequire("crash-reporter");
-};
-electron_Electron.get_remoteScreen = function() {
-	return electron_Electron.remoteRequire("screen");
-};
-electron_Electron.get_remoteShell = function() {
-	return electron_Electron.remoteRequire("shell");
-};
-electron_Electron.get_webFrame = function() {
-	return electron_Electron.require("web-frame");
-};
-electron_Electron.get_clipboard = function() {
-	return electron_Electron.require("clipboard");
-};
-electron_Electron.get_crashReporter = function() {
-	return electron_Electron.require("crash-reporter");
-};
-electron_Electron.get_screen = function() {
-	return electron_Electron.require("screen");
-};
-electron_Electron.get_shell = function() {
-	return electron_Electron.require("shell");
-};
 var electron_ElectronBrowserWindow = require("browser-window");
 var haxe__$Int64__$_$_$Int64 = function(high,low) {
 	this.high = high;
@@ -519,7 +441,6 @@ if(ArrayBuffer.prototype.slice == null) ArrayBuffer.prototype.slice = js_html_co
 var DataView = $global.DataView || js_html_compat_DataView;
 var Uint8Array = $global.Uint8Array || js_html_compat_Uint8Array._new;
 electron_Electron.require = require;
-electron_Electron.remoteRequire = require("remote").require;
 haxe_io_FPHelper.i64tmp = (function($this) {
 	var $r;
 	var x = new haxe__$Int64__$_$_$Int64(0,0);
@@ -530,5 +451,3 @@ js_Boot.__toStr = {}.toString;
 js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
 speech_Main.main();
 })(typeof console != "undefined" ? console : {log:function(){}}, typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
-
-//# sourceMappingURL=main.js.map

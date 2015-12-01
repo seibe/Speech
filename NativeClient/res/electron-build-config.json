@@ -1,8 +1,8 @@
 {
   "osx" : {
     "title": "Speech",
-    "background": "NativeClient/res/app.png",
-    "icon": "NativeClient/res/app.icns",
+    "background": "res/app.png",
+    "icon": "res/app.icns",
     "icon-size": 80,
     "contents": [
       { "x": 438, "y": 344, "type": "link", "path": "/Applications" },
@@ -11,7 +11,7 @@
   },
   "win" : {
     "title" : "Speech",
-    "icon" : "NativeClient/res/app.ico",
-    "nsiTemplate" : "NativeClient/res/win-installer.nsi.tpl"
+    "icon" : "res/app.ico",
+    "nsiTemplate" : "res/win-installer.nsi.tpl"
   }
 }

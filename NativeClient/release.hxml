@@ -1,0 +1,13 @@
+-cp src/haxe
+-dce full
+-lib hxnodejs
+
+--each
+
+-main speech.Main
+-js dist/src/main.js
+
+--next
+
+-main speech.renderer.Index
+-js dist/src/index.js
