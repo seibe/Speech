@@ -105,7 +105,7 @@ class DomManager
 	public function setMediaSource(id:String, trackList:Array<MediaStreamTrack>):Void
 	{
 		var optionHtml:Array<String> = new Array<String>();
-		optionHtml.push('<option value="">None</option>');
+		optionHtml.push('<option value="">なし</option>');
 		for (track in trackList) {
 			optionHtml.push('<option value="' + track.id + '">' + track.label + '</option>');
 		}
@@ -119,40 +119,13 @@ class DomManager
 	*/
 	public function initPlayer(src:String):WebViewElement
 	{
-		get("player-main", "live").innerHTML = "";
+		var webview:WebViewElement = cast get("slide", "live");
+		webview.src = src;
+		webview.classList.add("show");
 		
-		addMedia('<webview class="player-webview" id="live-slideview" src="' + src + '" autosize="on" disablewebsecurity></webview>', true);
-		_idMap["live-slideview"] = Browser.document.getElementById("live-slideview");
-		
-		return cast _idMap["live-slideview"];
+		return webview;
 	}
 	
-	/**
-	* Add new webview for player
-	* @param src new webview element's src property
-	*/
-	public function addWebView(src:String):Void
-	{
-		addMedia('<webview class="player-webview" src="' + src + '" autosize="on" disablewebsecurity></webview>');
-	}
-	
-	/**
-	* Add new webview for player
-	* @param src new webview element's src property
-	*/
-	public function addVideo(name:String, ?src:String, ?posterSrc:String):VideoElement
-	{
-		var id = _getId(name, "live", "video");
-		if (_idMap[id] != null) return cast _idMap[id];
-		
-		addMedia('<video class="player-video" id="' + id + '" autoplay></video>');
-		var video:VideoElement = cast Browser.document.getElementById(id);
-		if (src != null) video.src = src;
-		if (posterSrc != null) video.poster = posterSrc;
-		_idMap[id] = video;
-		
-		return cast _idMap[id];
-	}
 	
 	/* ------------------------------------------------------
 	 *  Private Functions

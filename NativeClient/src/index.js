@@ -23,6 +23,12 @@ HxOverrides.iter = function(a) {
 	}};
 };
 Math.__name__ = true;
+var StringTools = function() { };
+StringTools.__name__ = true;
+StringTools.htmlEscape = function(s,quotes) {
+	s = s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
+	if(quotes) return s.split("\"").join("&quot;").split("'").join("&#039;"); else return s;
+};
 var haxe_IMap = function() { };
 haxe_IMap.__name__ = true;
 var haxe_Log = function() { };
@@ -223,7 +229,7 @@ speech_manager_DomManager.prototype = {
 	}
 	,setMediaSource: function(id,trackList) {
 		var optionHtml = [];
-		optionHtml.push("<option value=\"\">None</option>");
+		optionHtml.push("<option value=\"\">なし</option>");
 		var _g = 0;
 		while(_g < trackList.length) {
 			var track = trackList[_g];
@@ -233,25 +239,10 @@ speech_manager_DomManager.prototype = {
 		this.setOptions(id,optionHtml);
 	}
 	,initPlayer: function(src) {
-		this.get("player-main","live").innerHTML = "";
-		this.addMedia("<webview class=\"player-webview\" id=\"live-slideview\" src=\"" + src + "\" autosize=\"on\" disablewebsecurity></webview>",true);
-		var v = window.document.getElementById("live-slideview");
-		this._idMap.set("live-slideview",v);
-		v;
-		return this._idMap.get("live-slideview");
-	}
-	,addVideo: function(name,src,posterSrc) {
-		var id = this._getId(name,"live","video");
-		if(this._idMap.get(id) != null) return this._idMap.get(id);
-		this.addMedia("<video class=\"player-video\" id=\"" + id + "\" autoplay></video>");
-		var video = window.document.getElementById(id);
-		if(src != null) video.src = src;
-		if(posterSrc != null) video.poster = posterSrc;
-		{
-			this._idMap.set(id,video);
-			video;
-		}
-		return this._idMap.get(id);
+		var webview = this.get("slide","live");
+		webview.src = src;
+		webview.classList.add("show");
+		return webview;
 	}
 	,_getId: function(id,sceneId,prefix) {
 		var array = [];
@@ -263,31 +254,6 @@ speech_manager_DomManager.prototype = {
 	,_get: function(id,sceneId,prefix) {
 		var key = this._getId(id,sceneId,prefix);
 		return this._idMap.get(key);
-	}
-	,addMedia: function(innerHTML,forceActive) {
-		if(forceActive == null) forceActive = false;
-		var player = this.get("player-main","live");
-		var i;
-		if(player.childElementCount == null) i = "null"; else i = "" + player.childElementCount;
-		var list;
-		var _this = window.document;
-		list = _this.createElement("li");
-		list.classList.add("player-main-item");
-		list.innerHTML = "<input type=\"checkbox\" id=\"player-main-item-" + i + "\" /><div><button>×</button><label for=\"player-main-item-" + i + "\">-</label></div>";
-		var div = list.getElementsByTagName("div")[0];
-		div.insertAdjacentHTML("afterbegin",innerHTML);
-		if(player.childElementCount == 0 || forceActive) {
-			var others = window.document.getElementsByClassName("player-main-item");
-			var _g = 0;
-			while(_g < others.length) {
-				var elem = others[_g];
-				++_g;
-				elem.classList.remove("active");
-			}
-			list.classList.add("active");
-		}
-		player.appendChild(list);
-		return list;
 	}
 	,setOptions: function(selectId,optionHtml) {
 		var select = this.getSelect(selectId);
@@ -321,7 +287,7 @@ speech_manager_MediaManager.prototype = {
 		window.navigator.webkitGetUserMedia({ video : { optional : [{ sourceId : videoId}]}, audio : true},success,error);
 	}
 };
-var speech_renderer_State = { __ename__ : true, __constructs__ : ["SETUP","LIVE_STARTING","LIVE"] };
+var speech_renderer_State = { __ename__ : true, __constructs__ : ["SETUP","LIVE_STARTING","LIVE","LIVE_WITH_VIDEO"] };
 speech_renderer_State.SETUP = ["SETUP",0];
 speech_renderer_State.SETUP.toString = $estr;
 speech_renderer_State.SETUP.__enum__ = speech_renderer_State;
@@ -331,6 +297,9 @@ speech_renderer_State.LIVE_STARTING.__enum__ = speech_renderer_State;
 speech_renderer_State.LIVE = ["LIVE",2];
 speech_renderer_State.LIVE.toString = $estr;
 speech_renderer_State.LIVE.__enum__ = speech_renderer_State;
+speech_renderer_State.LIVE_WITH_VIDEO = ["LIVE_WITH_VIDEO",3];
+speech_renderer_State.LIVE_WITH_VIDEO.toString = $estr;
+speech_renderer_State.LIVE_WITH_VIDEO.__enum__ = speech_renderer_State;
 var speech_renderer_Request = { __ename__ : true, __constructs__ : ["JOIN_PRESENTER","LEAVE_PRESENTER","UPDATE_SLIDE","START_STREAM","STOP_STREAM","ICE_CANDIDATE"] };
 speech_renderer_Request.JOIN_PRESENTER = function(option) { var $x = ["JOIN_PRESENTER",0,option]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
 speech_renderer_Request.LEAVE_PRESENTER = ["LEAVE_PRESENTER",1];
@@ -343,7 +312,7 @@ speech_renderer_Request.STOP_STREAM.toString = $estr;
 speech_renderer_Request.STOP_STREAM.__enum__ = speech_renderer_Request;
 speech_renderer_Request.ICE_CANDIDATE = function(ice) { var $x = ["ICE_CANDIDATE",5,ice]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
 var speech_renderer_Index = function() {
-	this.WS_URL = "ws://seibe.jp:8081/speech";
+	this.WS_URL = "ws://localhost:8081/speech";
 	var _g = this;
 	window.onload = function() {
 		_g._state = null;
@@ -385,19 +354,39 @@ speech_renderer_Index.prototype = {
 			this._dom.getDialog("loading").close();
 			break;
 		case 2:
-			this._dom.get("player-main","live").innerHTML = "";
-			if(this._webRtcPeer != null) {
-				this.send(speech_renderer_Request.STOP_STREAM);
-				this._webRtcPeer.dispose();
-				this._webRtcPeer = null;
+			if(nextState != speech_renderer_State.LIVE_WITH_VIDEO) {
+				this._dom.get("controller","live").classList.add("hide");
+				if(this._webRtcPeer != null) {
+					this.send(speech_renderer_Request.STOP_STREAM);
+					this._webRtcPeer.dispose();
+					this._webRtcPeer = null;
+				}
+				this.send(speech_renderer_Request.LEAVE_PRESENTER);
+				this._ws.close();
+				this._ws = null;
+				window.removeEventListener("resize",$bind(this,this.onResize));
+				this._slideview.removeEventListener("keydown",$bind(this,this.onChangeSlide));
+				this._slideview.removeEventListener("wheel",$bind(this,this.onChangeSlide));
+				this._slideview.removeEventListener("mouseup",$bind(this,this.onChangeSlide));
 			}
-			this.send(speech_renderer_Request.LEAVE_PRESENTER);
-			this._ws.close();
-			this._ws = null;
-			window.removeEventListener("resize",$bind(this,this.onResize));
-			this._slideview.removeEventListener("keydown",$bind(this,this.onChangeSlide));
-			this._slideview.removeEventListener("wheel",$bind(this,this.onChangeSlide));
-			this._slideview.removeEventListener("mouseup",$bind(this,this.onChangeSlide));
+			break;
+		case 3:
+			if(nextState != speech_renderer_State.LIVE) {
+				this._dom.get("controller","live").classList.add("hide");
+				if(this._webRtcPeer != null) {
+					this.send(speech_renderer_Request.STOP_STREAM);
+					this._webRtcPeer.dispose();
+					this._webRtcPeer = null;
+				}
+				this.send(speech_renderer_Request.LEAVE_PRESENTER);
+				this._ws.close();
+				this._ws = null;
+				window.removeEventListener("resize",$bind(this,this.onResize));
+				this._slideview.removeEventListener("keydown",$bind(this,this.onChangeSlide));
+				this._slideview.removeEventListener("wheel",$bind(this,this.onChangeSlide));
+				this._slideview.removeEventListener("mouseup",$bind(this,this.onChangeSlide));
+			}
+			this._dom.get("video").classList.remove("show");
 			break;
 		}
 		switch(nextState[1]) {
@@ -419,7 +408,7 @@ speech_renderer_Index.prototype = {
 						audioList.push(track);
 						break;
 					default:
-						haxe_Log.trace(track,{ fileName : "Index.hx", lineNumber : 147, className : "speech.renderer.Index", methodName : "setState"});
+						haxe_Log.trace(track,{ fileName : "Index.hx", lineNumber : 174, className : "speech.renderer.Index", methodName : "setState"});
 					}
 				}
 				_g._dom.setMediaSource("video",videoList);
@@ -439,12 +428,30 @@ speech_renderer_Index.prototype = {
 			break;
 		case 2:
 			this._dom.changeScene("live");
+			this._dom.get("controller").classList.remove("hide");
+			this._dom.get("url").innerText = this._roomId;
+			this._dom.get("title").innerText = StringTools.htmlEscape(this._title);
 			window.addEventListener("resize",$bind(this,this.onResize));
 			this.onResize();
 			this._slideview.addEventListener("keydown",$bind(this,this.onChangeSlide));
 			this._slideview.addEventListener("wheel",$bind(this,this.onChangeSlide));
 			this._slideview.addEventListener("mouseup",$bind(this,this.onChangeSlide));
 			this._dom.getButton("finish").addEventListener("click",$bind(this,this.onClickButtonFinish));
+			break;
+		case 3:
+			if(this._state != speech_renderer_State.LIVE) {
+				this._dom.changeScene("live");
+				this._dom.get("controller").classList.remove("hide");
+				this._dom.get("url").innerText = this._roomId;
+				this._dom.get("title").innerText = StringTools.htmlEscape(this._title);
+				window.addEventListener("resize",$bind(this,this.onResize));
+				this.onResize();
+				this._slideview.addEventListener("keydown",$bind(this,this.onChangeSlide));
+				this._slideview.addEventListener("wheel",$bind(this,this.onChangeSlide));
+				this._slideview.addEventListener("mouseup",$bind(this,this.onChangeSlide));
+				this._dom.getButton("finish").addEventListener("click",$bind(this,this.onClickButtonFinish));
+			}
+			this._dom.get("video").classList.add("show");
 			break;
 		}
 		this._state = nextState;
@@ -461,8 +468,9 @@ speech_renderer_Index.prototype = {
 		},250);
 	}
 	,onResize: function() {
-		var playerHeight = this._dom.get("player-main","live").offsetHeight;
+		var playerHeight = window.innerHeight - 144;
 		this._slideview.style.height = (playerHeight == null?"null":"" + playerHeight) + "px";
+		this._dom.get("aside","live").style.height = (playerHeight == null?"null":"" + playerHeight) + "px";
 	}
 	,onClickButtonStart: function() {
 		var slideUrl = this._dom.getInput("slide-url").value;
@@ -505,7 +513,7 @@ speech_renderer_Index.prototype = {
 		}
 		obj.timestamp = new Date().getTime();
 		obj.requestId = this._reqCount++;
-		haxe_Log.trace("send",{ fileName : "Index.hx", lineNumber : 255, className : "speech.renderer.Index", methodName : "send", customParams : [obj.type]});
+		haxe_Log.trace("send",{ fileName : "Index.hx", lineNumber : 305, className : "speech.renderer.Index", methodName : "send", customParams : [obj.type]});
 		this._ws.send(JSON.stringify(obj));
 		return this._reqCount;
 	}
@@ -513,15 +521,14 @@ speech_renderer_Index.prototype = {
 		var _g = this;
 		this.send(speech_renderer_Request.JOIN_PRESENTER({ title : this._title, description : this._description, slideUrl : this._slideUrl}));
 		if(this._videoSourceId != null && this._videoSourceId.length > 0) {
-			haxe_Log.trace("webcam: " + this._videoSourceId,{ fileName : "Index.hx", lineNumber : 273, className : "speech.renderer.Index", methodName : "onWsConnect"});
-			var videoElem = this._dom.addVideo("webcam");
+			var videoElem = this._dom.get("video","live");
 			this._media.getUserVideo(this._videoSourceId,function(lms) {
 				_g._webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendonly({ localVideo : videoElem, videoStream : lms, onicecandidate : $bind(_g,_g.onIcecandidate)},function(err) {
 					if(err != null) _g.setState(speech_renderer_State.SETUP);
 					_g._webRtcPeer.generateOffer($bind(_g,_g.onOffer));
 				});
 			},function(err1) {
-				haxe_Log.trace("error getUserVideo",{ fileName : "Index.hx", lineNumber : 287, className : "speech.renderer.Index", methodName : "onWsConnect"});
+				haxe_Log.trace("error getUserVideo",{ fileName : "Index.hx", lineNumber : 336, className : "speech.renderer.Index", methodName : "onWsConnect"});
 			});
 		}
 	}
@@ -530,11 +537,11 @@ speech_renderer_Index.prototype = {
 	}
 	,onWsMessage: function(e) {
 		var resp = JSON.parse(e.data);
-		haxe_Log.trace(resp.type,{ fileName : "Index.hx", lineNumber : 300, className : "speech.renderer.Index", methodName : "onWsMessage"});
+		haxe_Log.trace(resp.type,{ fileName : "Index.hx", lineNumber : 349, className : "speech.renderer.Index", methodName : "onWsMessage"});
 		var _g = resp.type;
 		switch(_g) {
 		case "accept":
-			this._dom.getInput("url","live").value = resp.data;
+			this._roomId = resp.data;
 			this.setState(speech_renderer_State.LIVE);
 			break;
 		case "acceptStream":
@@ -544,15 +551,20 @@ speech_renderer_Index.prototype = {
 			this._webRtcPeer.dispose();
 			this._webRtcPeer = null;
 			break;
+		case "onComment":
+			var name = StringTools.htmlEscape(resp.data.name);
+			var text = StringTools.htmlEscape(resp.data.text);
+			this._dom.get("comment-list","live").insertAdjacentHTML("afterbegin","<li class=\"discuss-comment new\"><img class=\"discuss-comment-image\" src=\"img/avatar.jpg\" width=\"32\" height=\"32\"><div class=\"discuss-comment-body\"><strong>" + name + "</strong><p>" + text + "</p></div></li>");
+			break;
 		case "iceCandidate":
 			this._webRtcPeer.addIceCandidate(resp.data);
 			break;
 		default:
-			haxe_Log.trace("unknown ws",{ fileName : "Index.hx", lineNumber : 319, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [resp]});
+			haxe_Log.trace("unknown ws",{ fileName : "Index.hx", lineNumber : 373, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [resp]});
 		}
 	}
 	,onWsError: function(error) {
-		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 325, className : "speech.renderer.Index", methodName : "onWsError", customParams : [error]});
+		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 379, className : "speech.renderer.Index", methodName : "onWsError", customParams : [error]});
 		this.setState(speech_renderer_State.SETUP);
 	}
 	,onOffer: function(error,offerSdp) {

@@ -16,7 +16,7 @@
     "release:clean": "trash ./dist/src",
     "release:copy": "cpx \"./src/**/{*.html,*.jpg,*.png,*.eot,*.svg,*.ttf,*.woff,package.json,js/*.js,css/*.css}\" ./dist/src",
     "release:haxe": "haxe ./release.hxml",
-    "release:css": "npm run build:css && cleancss -o dist/src/style.css src/style.css",
+    "release:css": "npm run build:css && cleancss --skip-rebase -o dist/src/style.css src/style.css",
     "release:build": "npm run release:clean && npm run release:copy && npm run release:haxe && npm run release:css",
     "release:pack-win": "electron-packager ./dist/src Speech --out=dist/bin --cache=dist/cache --platform=win32 --arch=x64 --version=0.34.3 --overwrite --asar --icon=res/app.ico --version-string.CompanyName=\"Seibe TAKAHASHI\" --version-string.LegalCopyright=\"Copylight (C) Seibe TAKAHASHI, All right reserved.\" --version-string.FileDescription=\"Speech native application\" --version-string.OriginalFilename=\"Speech.exe\" --version-string.FileVersion=\"1.0.0\" --version-string.ProductVersion=\"1.0.0\" --version-string.ProductName=\"Speech\" --version-string.InternalName=\"Speech\"",
     "release:pack": "npm run release:pack-win",

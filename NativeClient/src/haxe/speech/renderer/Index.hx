@@ -19,6 +19,7 @@ enum State {
 	SETUP;
 	LIVE_STARTING;
 	LIVE;
+	LIVE_WITH_VIDEO;
 }
 
 enum Request {
@@ -43,6 +44,7 @@ class Index
 	private var _description:String;
 	private var _slideUrl:String;
 	private var _videoSourceId:String;
+	private var _roomId:String;
 	
 	private var _slideview:WebViewElement;
 	private var _webRtcPeer:WebRtcPeer;
@@ -106,24 +108,49 @@ class Index
 				_dom.getDialog("loading").close();
 				
 			case State.LIVE:
-				// プレイヤーのクリア
-				_dom.get("player-main", "live").innerHTML = "";
-				
-				// 配信の終了
-				if (_webRtcPeer != null) {
-					send(Request.STOP_STREAM);
-					_webRtcPeer.dispose();
-					_webRtcPeer = null;
+				if (nextState != State.LIVE_WITH_VIDEO) {
+					// プレイヤーのクリア
+					_dom.get("controller", "live").classList.add("hide");
+					
+					// 配信の終了
+					if (_webRtcPeer != null) {
+						send(Request.STOP_STREAM);
+						_webRtcPeer.dispose();
+						_webRtcPeer = null;
+					}
+					send(Request.LEAVE_PRESENTER);
+					_ws.close();
+					_ws = null;
+					
+					// イベントリスナー解除
+					Browser.window.removeEventListener("resize", onResize);
+					_slideview.removeEventListener("keydown", onChangeSlide);
+					_slideview.removeEventListener("wheel", onChangeSlide);
+					_slideview.removeEventListener("mouseup", onChangeSlide);
 				}
-				send(Request.LEAVE_PRESENTER);
-				_ws.close();
-				_ws = null;
 				
-				// イベントリスナー解除
-				Browser.window.removeEventListener("resize", onResize);
-				_slideview.removeEventListener("keydown", onChangeSlide);
-				_slideview.removeEventListener("wheel", onChangeSlide);
-				_slideview.removeEventListener("mouseup", onChangeSlide);
+			case State.LIVE_WITH_VIDEO:
+				if (nextState != State.LIVE) {
+					// プレイヤーのクリア
+					_dom.get("controller", "live").classList.add("hide");
+					
+					// 配信の終了
+					if (_webRtcPeer != null) {
+						send(Request.STOP_STREAM);
+						_webRtcPeer.dispose();
+						_webRtcPeer = null;
+					}
+					send(Request.LEAVE_PRESENTER);
+					_ws.close();
+					_ws = null;
+					
+					// イベントリスナー解除
+					Browser.window.removeEventListener("resize", onResize);
+					_slideview.removeEventListener("keydown", onChangeSlide);
+					_slideview.removeEventListener("wheel", onChangeSlide);
+					_slideview.removeEventListener("mouseup", onChangeSlide);
+				}
+				_dom.get("video").classList.remove("show");
 				
 			case null:
 				//
@@ -172,6 +199,9 @@ class Index
 			case State.LIVE:
 				// DOM表示切替
 				_dom.changeScene("live");
+				_dom.get("controller").classList.remove("hide");
+				_dom.get("url").innerText = _roomId;
+				_dom.get("title").innerText = StringTools.htmlEscape(_title);
 				
 				// イベントリスナー登録
 				Browser.window.addEventListener("resize", onResize);
@@ -180,6 +210,25 @@ class Index
 				_slideview.addEventListener("wheel", onChangeSlide);
 				_slideview.addEventListener("mouseup", onChangeSlide);
 				_dom.getButton("finish").addEventListener("click", onClickButtonFinish);
+				
+			case State.LIVE_WITH_VIDEO:
+				if (_state != State.LIVE) {
+					// DOM表示切替
+					_dom.changeScene("live");
+					_dom.get("controller").classList.remove("hide");
+					_dom.get("url").innerText = _roomId;
+					_dom.get("title").innerText = StringTools.htmlEscape(_title);
+					
+					// イベントリスナー登録
+					Browser.window.addEventListener("resize", onResize);
+					onResize();
+					_slideview.addEventListener("keydown", onChangeSlide);
+					_slideview.addEventListener("wheel", onChangeSlide);
+					_slideview.addEventListener("mouseup", onChangeSlide);
+					_dom.getButton("finish").addEventListener("click", onClickButtonFinish);
+				}
+				// DOM表示切替
+				_dom.get("video").classList.add("show");
 		}
 		
 		_state = nextState;
@@ -201,8 +250,9 @@ class Index
 	
 	private function onResize():Void
 	{
-		var playerHeight = _dom.get("player-main", "live").offsetHeight;
+		var playerHeight = Browser.window.innerHeight - 144;
 		_slideview.style.height = Std.string(playerHeight) + "px";
+		_dom.get("aside", "live").style.height = Std.string(playerHeight) + "px";
 	}
 	
 	private function onClickButtonStart():Void
@@ -270,8 +320,8 @@ class Index
 		// 映像配信の初期化
 		if (_videoSourceId != null && _videoSourceId.length > 0) {
 			// WebCamの登録
-			trace("webcam: " + _videoSourceId);
-			var videoElem = _dom.addVideo("webcam");
+			var videoElem = cast _dom.get("video", "live");
+			
 			_media.getUserVideo(_videoSourceId, function(lms):Void {
 				//
 				_webRtcPeer = WebRtcPeer.WebRtcPeerSendonly({
@@ -301,7 +351,7 @@ class Index
 		switch (resp.type)
 		{
 			case "accept":
-				_dom.getInput("url", "live").value = resp.data;
+				_roomId = resp.data;
 				setState(State.LIVE);
 				
 			case 'acceptStream':
@@ -310,6 +360,11 @@ class Index
 			case "onStopStream":
 				_webRtcPeer.dispose();
 				_webRtcPeer = null;
+				
+			case "onComment":
+				var name = StringTools.htmlEscape(resp.data.name);
+				var text = StringTools.htmlEscape(resp.data.text);
+				_dom.get("comment-list", "live").insertAdjacentHTML("afterbegin", '<li class="discuss-comment new"><img class="discuss-comment-image" src="img/avatar.jpg" width="32" height="32"><div class="discuss-comment-body"><strong>' + name+'</strong><p>' + text + '</p></div></li>');
 				
 			case 'iceCandidate': //iceCandidate
 				_webRtcPeer.addIceCandidate(resp.data);
