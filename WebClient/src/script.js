@@ -1,18 +1,5 @@
 (function (console) { "use strict";
 var $estr = function() { return js_Boot.__string_rec(this,''); };
-var EReg = function(r,opt) {
-	opt = opt.split("u").join("");
-	this.r = new RegExp(r,opt);
-};
-EReg.__name__ = true;
-EReg.prototype = {
-	match: function(s) {
-		if(this.r.global) this.r.lastIndex = 0;
-		this.r.m = this.r.exec(s);
-		this.r.s = s;
-		return this.r.m != null;
-	}
-};
 Math.__name__ = true;
 var StringTools = function() { };
 StringTools.__name__ = true;
@@ -207,43 +194,11 @@ speech_Main.prototype = {
 		this._btnRetryJoinViewer.addEventListener("click",function() {
 			_g.setState(speech_State.WATCH_STARTING);
 		});
-		this._btnSetupBegin = window.document.getElementById("button-begin-setup");
-		this._btnSetupBegin.addEventListener("click",function() {
-			_g.setState(speech_State.DELIVER_SETUP);
-		});
-		this._btnSetupSubmit = window.document.getElementById("button-complete-setup");
-		this._btnSetupSubmit.addEventListener("click",function() {
-			var urlChecker = new EReg("https?://.+","");
-			var slideUrl = _g._inputSlideUrl.value;
-			if(slideUrl.length == 0 || !urlChecker.match(slideUrl)) {
-				_g._outputError.innerText = "正しいスライドURLを入力してください";
-				_g._inputSlideUrl.focus();
-				return;
-			}
-			var title = _g._inputTitle.value;
-			if(title.length == 0) {
-				_g._outputError.innerText = "プレゼンテーションタイトルを入力してください";
-				_g._inputTitle.focus();
-				return;
-			}
-			var desc = _g._inputDescription.value;
-			if(desc.length == 0) desc = "No description";
-			_g._outputError.innerText = "";
-			_g._labelTitle.innerText = StringTools.htmlEscape(title);
-			_g._slide.src = StringTools.htmlEscape(slideUrl);
-			_g._labelDesc.innerText = StringTools.htmlEscape(desc);
-			var videoId = _g._selectCamera.value;
-			if(videoId.length == 0 || videoId == "none") _g.setState(speech_State.DELIVER_STARTING(slideUrl,title,desc)); else _g.setState(speech_State.DELIVER_WITH_VIDEO_STARTING(slideUrl,videoId,title,desc));
-		});
-		this._btnLeavePresenter = window.document.getElementById("button-leave-presenter");
-		this._btnLeavePresenter.addEventListener("click",function() {
-			_g.setState(speech_State.STOP);
-		});
 	}
 	,setState: function(nextState) {
 		var _g = this;
 		if(this._state == nextState) return;
-		haxe_Log.trace("state",{ fileName : "Main.hx", lineNumber : 165, className : "speech.Main", methodName : "setState", customParams : [nextState]});
+		haxe_Log.trace("state",{ fileName : "Main.hx", lineNumber : 166, className : "speech.Main", methodName : "setState", customParams : [nextState]});
 		{
 			var _g1 = this._state;
 			if(_g1 == null) {
@@ -252,6 +207,7 @@ speech_Main.prototype = {
 				this._defaultPane.classList.remove("show");
 				break;
 			case 1:
+				this._defaultPane.classList.remove("show");
 				break;
 			case 2:
 				var url = _g1[4];
@@ -443,7 +399,7 @@ speech_Main.prototype = {
 	}
 	,checkPage: function() {
 		var _g = this;
-		haxe_Log.trace(this._slide.contentWindow.location.href,{ fileName : "Main.hx", lineNumber : 379, className : "speech.Main", methodName : "checkPage"});
+		haxe_Log.trace(this._slide.contentWindow.location.href,{ fileName : "Main.hx", lineNumber : 381, className : "speech.Main", methodName : "checkPage"});
 		if(!(function($this) {
 			var $r;
 			var _g1 = $this._state;
@@ -484,7 +440,7 @@ speech_Main.prototype = {
 		},250);
 	}
 	,doComment: function() {
-		var name = "anonymous";
+		var name = "匿名視聴者";
 		var text = this._inputComment.value;
 		if(text.length == 0 || text == this._prevComment) return;
 		this.send(speech_Request.COMMENT(name,text));
@@ -493,7 +449,7 @@ speech_Main.prototype = {
 	}
 	,onWsConnect: function(e) {
 		var _g1 = this;
-		haxe_Log.trace("open ws",{ fileName : "Main.hx", lineNumber : 407, className : "speech.Main", methodName : "onWsConnect"});
+		haxe_Log.trace("open ws",{ fileName : "Main.hx", lineNumber : 409, className : "speech.Main", methodName : "onWsConnect"});
 		{
 			var _g = this._state;
 			switch(_g[1]) {
@@ -521,22 +477,22 @@ speech_Main.prototype = {
 						});
 					});
 				},function(err3) {
-					haxe_Log.trace(err3,{ fileName : "Main.hx", lineNumber : 445, className : "speech.Main", methodName : "onWsConnect"});
+					haxe_Log.trace(err3,{ fileName : "Main.hx", lineNumber : 447, className : "speech.Main", methodName : "onWsConnect"});
 				});
 				break;
 			default:
-				haxe_Log.trace("throw@onWsConnect",{ fileName : "Main.hx", lineNumber : 449, className : "speech.Main", methodName : "onWsConnect", customParams : [this._state]});
+				haxe_Log.trace("throw@onWsConnect",{ fileName : "Main.hx", lineNumber : 451, className : "speech.Main", methodName : "onWsConnect", customParams : [this._state]});
 			}
 		}
 	}
 	,onWsClose: function(e) {
-		haxe_Log.trace("close ws",{ fileName : "Main.hx", lineNumber : 455, className : "speech.Main", methodName : "onWsClose"});
+		haxe_Log.trace("close ws",{ fileName : "Main.hx", lineNumber : 457, className : "speech.Main", methodName : "onWsClose"});
 		this.setState(speech_State.STOP);
 	}
 	,onWsMessage: function(e) {
 		var mes = JSON.parse(e.data);
 		var d = mes.data;
-		haxe_Log.trace(mes.type,{ fileName : "Main.hx", lineNumber : 464, className : "speech.Main", methodName : "onWsMessage"});
+		haxe_Log.trace(mes.type,{ fileName : "Main.hx", lineNumber : 466, className : "speech.Main", methodName : "onWsMessage"});
 		var _g = mes.type;
 		switch(_g) {
 		case "onUpdateSlide":
@@ -565,7 +521,7 @@ speech_Main.prototype = {
 			case 8:
 				break;
 			default:
-				haxe_Log.trace("state error",{ fileName : "Main.hx", lineNumber : 494, className : "speech.Main", methodName : "onWsMessage", customParams : [mes]});
+				haxe_Log.trace("state error",{ fileName : "Main.hx", lineNumber : 496, className : "speech.Main", methodName : "onWsMessage", customParams : [mes]});
 			}
 			break;
 		case "acceptStream":
@@ -575,7 +531,7 @@ speech_Main.prototype = {
 			this.setState(speech_State.WATCH_WITH_VIDEO(d));
 			break;
 		default:
-			haxe_Log.trace("unknown message",{ fileName : "Main.hx", lineNumber : 504, className : "speech.Main", methodName : "onWsMessage", customParams : [mes]});
+			haxe_Log.trace("unknown message",{ fileName : "Main.hx", lineNumber : 506, className : "speech.Main", methodName : "onWsMessage", customParams : [mes]});
 		}
 	}
 	,onWsError: function(e) {

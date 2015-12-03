@@ -33,7 +33,7 @@
     "release:haxe-web": "haxe ./release_web.hxml",
     "release:haxe": "concurrent \"npm run release:haxe-kurento\" \"npm run release:haxe-native\" \"npm run release:haxe-web\"",
     "release:css-native": "npm run build:css-native && cleancss -o NativeClient/dist/src/style.css NativeClient/src/style.css",
-    "release:css-web": "npm run build:css-web && cleancss -o WebClient/dist/style.css WebClient/src/style.css",
+    "release:css-web": "npm run build:css-web && cleancss --skip-rebase -o WebClient/dist/style.css WebClient/src/style.css",
     "release:build-native": "npm run release:clean-native && npm run release:copy-native && npm run release:haxe-native && npm run release:css-native",
     "release:build": "npm run release:build-native",
     "release:pack-win": "electron-packager ./NativeClient/dist/src Speech --out=NativeClient/dist/bin --cache=NativeClient/dist/cache --platform=win32 --arch=x64 --version=0.34.3 --overwrite --asar --icon=NativeClient/res/app.ico --version-string.CompanyName=\"Seibe TAKAHASHI\" --version-string.LegalCopyright=\"Copylight (C) Seibe TAKAHASHI, All right reserved.\" --version-string.FileDescription=\"Speech native application\" --version-string.OriginalFilename=\"Speech.exe\" --version-string.FileVersion=\"1.0.0\" --version-string.ProductVersion=\"1.0.0\" --version-string.ProductName=\"Speech\" --version-string.InternalName=\"Speech\"",

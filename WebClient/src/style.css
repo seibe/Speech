@@ -166,7 +166,8 @@ button.button:hover:active {
 }
 .main-visual {
     padding: 4vh 0;
-    background: #222;
+    background: url(img/top.jpg) no-repeat center center;
+    background-size: cover;
 }
 .main-content {
     width: 100%;
@@ -220,12 +221,11 @@ button.button:hover:active {
 .player-main.show {
 	display: block;
     height: 40vh;
-    background: #000;
 }
 .player-blank {
 	padding: 1em;
 	color: #fff;
-	background: #000;
+    background: rgba(0,0,0,0.75);
 	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;

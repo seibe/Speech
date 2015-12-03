@@ -117,6 +117,7 @@ class Main
 		_btnRetryJoinViewer.addEventListener("click", function():Void {
 			setState(State.WATCH_STARTING);
 		});
+		/*
 		_btnSetupBegin = cast Browser.document.getElementById("button-begin-setup");
 		_btnSetupBegin.addEventListener("click", function():Void {
 			setState(State.DELIVER_SETUP);
@@ -156,7 +157,7 @@ class Main
 		_btnLeavePresenter = cast Browser.document.getElementById("button-leave-presenter");
 		_btnLeavePresenter.addEventListener("click", function():Void {
 			setState(State.STOP);
-		});
+		});*/
 	}
 	
 	private function setState(nextState:State):Void
@@ -173,6 +174,7 @@ class Main
 				
 			case State.WATCH_STARTING:
 				// State.WATCH_STARTINGの終了処理
+				_defaultPane.classList.remove("show");
 				
 			case State.WATCH(title, desc, url):
 				// State.WATCHの終了処理
@@ -391,7 +393,7 @@ class Main
 	
 	private function doComment():Void
 	{
-		var name:String = "anonymous";
+		var name:String = "匿名視聴者";
 		var text:String = _inputComment.value;
 		
 		if (text.length == 0 || text == _prevComment) return;
