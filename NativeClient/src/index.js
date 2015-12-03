@@ -312,7 +312,7 @@ speech_renderer_Request.STOP_STREAM.toString = $estr;
 speech_renderer_Request.STOP_STREAM.__enum__ = speech_renderer_Request;
 speech_renderer_Request.ICE_CANDIDATE = function(ice) { var $x = ["ICE_CANDIDATE",5,ice]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
 var speech_renderer_Index = function() {
-	this.WS_URL = "ws://localhost:8081/speech";
+	this.WS_URL = "ws://seibe.jp:8081/speech";
 	var _g = this;
 	window.onload = function() {
 		_g._state = null;
