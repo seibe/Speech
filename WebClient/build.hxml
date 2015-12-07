@@ -1,0 +1,5 @@
+-cp src/haxe
+-main speech.Main
+-lib hxnodejs
+-debug
+-js src/script.js

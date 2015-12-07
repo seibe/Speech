@@ -1,0 +1,30 @@
+{
+  "name": "speech-kurento-client",
+  "version": "1.0.0",
+  "description": "Notice: This project is work in progress.",
+  "main": "app.js",
+  "bin": {
+    "speech-kurento-client": "app.js"
+  },
+  "scripts": {
+    "start": "npm run watch",
+    "server": "mkdirp ./bin/file && node ./bin/app.js",
+    "build": "haxe ./build.hxml",
+    "watch": "watch \"npm run build\" ./src/",
+    "release": "haxe ./release.hxml"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seibe/Speech.git"
+  },
+  "author": "seibe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/seibe/Speech/issues"
+  },
+  "homepage": "https://github.com/seibe/Speech#readme",
+  "devDependencies": {
+    "mkdirp": "^0.5.1",
+    "watch": "^0.16.0"
+  }
+}

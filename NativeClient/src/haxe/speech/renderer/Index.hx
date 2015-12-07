@@ -34,7 +34,7 @@ enum Request {
 
 class Index 
 {
-	private var WS_URL(default, null):String = "ws://seibe.jp:8081/speech";
+	private var WS_URL(default, null):String = "wss://seibe.jp:8081/speech";
 	private var _ws:WebSocket;
 	private var _state:State;
 	

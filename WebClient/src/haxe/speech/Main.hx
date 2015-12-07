@@ -40,7 +40,7 @@ enum Request {
 
 class Main
 {
-	private var WS_URL(default, null):String = "ws://localhost:8081/speech";
+	private var WS_URL(default, null):String = "wss://localhost:8081/speech";
 	private var _ws:WebSocket;
 	private var _webRtcPeer:WebRtcPeer;
 	

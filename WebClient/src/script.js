@@ -156,7 +156,7 @@ speech_Request.UPDATE_PAGE = function(slideUrl) { var $x = ["UPDATE_PAGE",4,slid
 speech_Request.COMMENT = function(name,text) { var $x = ["COMMENT",5,name,text]; $x.__enum__ = speech_Request; $x.toString = $estr; return $x; };
 speech_Request.ICE_CANDIDATE = function(candidate) { var $x = ["ICE_CANDIDATE",6,candidate]; $x.__enum__ = speech_Request; $x.toString = $estr; return $x; };
 var speech_Main = function() {
-	this.WS_URL = "ws://localhost:8081/speech";
+	this.WS_URL = "wss://localhost:8081/speech";
 	window.onload = $bind(this,this.init);
 };
 speech_Main.__name__ = true;

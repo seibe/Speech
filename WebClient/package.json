@@ -1,0 +1,39 @@
+{
+  "name": "speech-web-client",
+  "version": "1.0.0",
+  "description": "Notice: This project is work in progress.",
+  "main": "script.js",
+  "scripts": {
+    "start": "npm run watch",
+    "build:haxe": "haxe ./build.hxml",
+    "build:css": "postcss -u autoprefixer --autoprefixer.browsers \"last 2 versions\" -o src/style.css src/origin.css",
+    "build": "concurrent \"npm run build:haxe\" \"npm run build:css\"",
+    "watch:browser": "browser-sync start --server src --files \"src/**/*\" --port 8082",
+    "watch:haxe": "watch \"npm run build:haxe\" ./src/haxe/",
+    "watch:css": "postcss --watch -u autoprefixer --autoprefixer.browsers \"last 2 versions\" -o src/style.css src/origin.css",
+    "watch": "concurrent \"npm run watch:haxe\" \"npm run watch:css\" \"npm run watch:browser\"",
+    "release:copy": "cpx \"./src/**/{*.html,*.jpg,*.png,*.eot,*.svg,*.ttf,*.woff,js/*.js,css/*.css}\" ./dist",
+    "release:haxe": "haxe ./release.hxml",
+    "release:css": "npm run build:css && cleancss --skip-rebase -o dist/style.css src/style.css",
+    "release": "concurrent \"npm run release:haxe\" \"npm run release:css\" && npm run release:copy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seibe/Speech.git"
+  },
+  "author": "seibe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/seibe/Speech/issues"
+  },
+  "homepage": "https://github.com/seibe/Speech#readme",
+  "devDependencies": {
+    "autoprefixer": "^6.1.0",
+    "browser-sync": "^2.10.0",
+    "clean-css": "^3.4.8",
+    "concurrently": "^0.1.1",
+    "cpx": "^1.2.1",
+    "postcss-cli": "^2.3.2",
+    "watch": "^0.16.0"
+  }
+}

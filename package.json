@@ -25,7 +25,7 @@
     "watch:web": "concurrent \"npm run watch:haxe-web\" \"npm run watch:css-web\" \"npm run watch:server-web\"",
     "watch": "concurrent \"npm run watch:haxe\" \"npm run watch:native\" \"npm run watch:web\"",
     "release:clean-native": "trash ./NativeClient/dist/src",
-    "release:clean": "npm run release:clean",
+    "release:clean": "npm run release:clean-native",
     "release:copy-native": "cpx \"./NativeClient/src/**/{*.html,*.jpg,*.png,*.eot,*.svg,*.ttf,*.woff,package.json,js/*.js,css/*.css}\" ./NativeClient/dist/src",
     "release:copy-web": "cpx \"./WebClient/src/**/{*.html,*.jpg,*.png,*.eot,*.svg,*.ttf,*.woff,js/*.js,css/*.css}\" ./WebClient/dist",
     "release:haxe-kurento": "haxe ./release_kurento.hxml",

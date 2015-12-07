@@ -1,5 +1,0 @@
--cp WebClient/src/haxe
--main speech.Main
--lib hxnodejs
--dce full
--js WebClient/dist/script.js
