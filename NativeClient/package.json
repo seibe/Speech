@@ -9,6 +9,7 @@
     "browser": "browser-sync start --server src --files \"src/**/*\" --port 8082",
     "build:haxe": "haxe ./build.hxml",
     "build:css": "postcss -u autoprefixer --autoprefixer.browsers \"Chrome 45\" -o src/style.css src/origin.css",
+    "build": "concurrent \"npm run build:haxe\" \"npm run build:css\"",
     "watch:haxe": "watch \"npm run build:haxe\" ./src/haxe/",
     "watch:css": "postcss --watch -u autoprefixer --autoprefixer.browsers \"Chrome 45\" -o src/style.css src/origin.css",
     "watch:node": "node-inspector",

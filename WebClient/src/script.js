@@ -530,8 +530,11 @@ speech_Main.prototype = {
 		case "startStream":
 			this.setState(speech_State.WATCH_WITH_VIDEO(d));
 			break;
+		case "iceCandidate":
+			this._webRtcPeer.addIceCandidate(d);
+			break;
 		default:
-			haxe_Log.trace("unknown message",{ fileName : "Main.hx", lineNumber : 506, className : "speech.Main", methodName : "onWsMessage", customParams : [mes]});
+			haxe_Log.trace("unknown message",{ fileName : "Main.hx", lineNumber : 509, className : "speech.Main", methodName : "onWsMessage", customParams : [mes]});
 		}
 	}
 	,onWsError: function(e) {

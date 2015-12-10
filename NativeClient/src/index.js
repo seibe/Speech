@@ -312,7 +312,7 @@ speech_renderer_Request.STOP_STREAM.toString = $estr;
 speech_renderer_Request.STOP_STREAM.__enum__ = speech_renderer_Request;
 speech_renderer_Request.ICE_CANDIDATE = function(ice) { var $x = ["ICE_CANDIDATE",5,ice]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
 var speech_renderer_Index = function() {
-	this.WS_URL = "wss://seibe.jp:8081/speech";
+	this.WS_URL = "wss://localhost:8081/speech";
 	var _g = this;
 	window.onload = function() {
 		_g._state = null;
@@ -412,7 +412,6 @@ speech_renderer_Index.prototype = {
 					}
 				}
 				_g._dom.setMediaSource("video",videoList);
-				_g._dom.setMediaSource("audio",audioList);
 			});
 			this._dom.getButton("submit").addEventListener("click",$bind(this,this.onClickButtonStart));
 			break;
@@ -513,7 +512,7 @@ speech_renderer_Index.prototype = {
 		}
 		obj.timestamp = new Date().getTime();
 		obj.requestId = this._reqCount++;
-		haxe_Log.trace("send",{ fileName : "Index.hx", lineNumber : 305, className : "speech.renderer.Index", methodName : "send", customParams : [obj.type]});
+		haxe_Log.trace("send",{ fileName : "Index.hx", lineNumber : 304, className : "speech.renderer.Index", methodName : "send", customParams : [obj.type]});
 		this._ws.send(JSON.stringify(obj));
 		return this._reqCount;
 	}
@@ -528,7 +527,7 @@ speech_renderer_Index.prototype = {
 					_g._webRtcPeer.generateOffer($bind(_g,_g.onOffer));
 				});
 			},function(err1) {
-				haxe_Log.trace("error getUserVideo",{ fileName : "Index.hx", lineNumber : 336, className : "speech.renderer.Index", methodName : "onWsConnect"});
+				haxe_Log.trace("error getUserVideo",{ fileName : "Index.hx", lineNumber : 335, className : "speech.renderer.Index", methodName : "onWsConnect"});
 			});
 		}
 	}
@@ -537,7 +536,7 @@ speech_renderer_Index.prototype = {
 	}
 	,onWsMessage: function(e) {
 		var resp = JSON.parse(e.data);
-		haxe_Log.trace(resp.type,{ fileName : "Index.hx", lineNumber : 349, className : "speech.renderer.Index", methodName : "onWsMessage"});
+		haxe_Log.trace(resp.type,{ fileName : "Index.hx", lineNumber : 348, className : "speech.renderer.Index", methodName : "onWsMessage"});
 		var _g = resp.type;
 		switch(_g) {
 		case "accept":
@@ -560,11 +559,11 @@ speech_renderer_Index.prototype = {
 			this._webRtcPeer.addIceCandidate(resp.data);
 			break;
 		default:
-			haxe_Log.trace("unknown ws",{ fileName : "Index.hx", lineNumber : 373, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [resp]});
+			haxe_Log.trace("unknown ws",{ fileName : "Index.hx", lineNumber : 372, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [resp]});
 		}
 	}
 	,onWsError: function(error) {
-		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 379, className : "speech.renderer.Index", methodName : "onWsError", customParams : [error]});
+		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 378, className : "speech.renderer.Index", methodName : "onWsError", customParams : [error]});
 		this.setState(speech_renderer_State.SETUP);
 	}
 	,onOffer: function(error,offerSdp) {

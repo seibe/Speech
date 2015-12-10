@@ -96,7 +96,8 @@ function WebRtcPeer(mode, options, callback) {
     if (oncandidategatheringdone) {
         this.on('candidategatheringdone', oncandidategatheringdone);
     }
-	var RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection;
+	var RTCPeerConnection = (window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection);
+    var RTCSessionDescription = (window.mozRTCSessionDescription || window.RTCSessionDescription);
     if (!pc)
         pc = new RTCPeerConnection(configuration);
     Object.defineProperties(this, {

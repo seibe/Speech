@@ -14,10 +14,10 @@ import ws.WsServer;
 class Main 
 {
 	
-	private static inline var MS_URI:String = "wss://localhost:8433/kurento";
+	private static inline var MS_URI:String = "ws://localhost:8888/kurento";
 	private static inline var MV_DIR:String = "file:///var/www";
-	private static inline var TLS_KEY:String = "privkey.pem";
-	private static inline var TLS_CERT:String = "cert.pem";
+	private static inline var TLS_KEY:String = "/etc/letsencrypt/live/example.com/privkey.pem";
+	private static inline var TLS_CERT:String = "/etc/letsencrypt/live/example.com/cert.pem";
 	
 	private var _server:WsServer;
 	private var _roomList:Array<Room>;

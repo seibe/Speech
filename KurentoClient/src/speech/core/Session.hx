@@ -200,11 +200,11 @@ class Session
 			endpoint.addIceCandidate(cast candidate);
 		}
 		
-		endpoint.on("OnIceCandidate", function(ic:IceCandidate):Void {
-			var candidate = untyped kurento.register.complexTypes.IceCandidate(ic.candidate);
+		endpoint.on("OnIceCandidate", function(event:Dynamic):Void {
+			var candidate = untyped kurento.register.complexTypes.IceCandidate(event.candidate);
 			ws.send(Json.stringify({
 				type: "iceCandidate",
-				candidate: candidate
+				data: candidate
 			}));
 		});
 	}

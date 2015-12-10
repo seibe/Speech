@@ -502,6 +502,9 @@ class Main
 			case "startStream":
 				setState(State.WATCH_WITH_VIDEO(d));
 				
+			case "iceCandidate":
+				_webRtcPeer.addIceCandidate(d);
+				
 			default:
 				trace("unknown message", mes);
 		}

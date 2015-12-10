@@ -457,7 +457,7 @@ var speech_Main = function() {
 	var _g = this;
 	this._roomList = [];
 	this._sessionList = [];
-	var server = js_node_Https.createServer({ key : js_node_Fs.readFileSync("privkey.pem"), cert : js_node_Fs.readFileSync("cert.pem")},function(req,res) {
+	var server = js_node_Https.createServer({ key : js_node_Fs.readFileSync("/etc/letsencrypt/live/example.com/privkey.pem"), cert : js_node_Fs.readFileSync("/etc/letsencrypt/live/example.com/cert.pem")},function(req,res) {
 		res.writeHead(200);
 		res.end("All glory to WebSockets!\n");
 	}).listen(8081);
@@ -501,7 +501,7 @@ speech_Main.prototype = {
 			session.room.broadcast(speech_core_Response.UPDATE_SLIDE(d));
 			break;
 		case "startStream":
-			session.startStream("wss://localhost:8433/kurento","file:///var/www",d);
+			session.startStream("ws://localhost:8888/kurento","file:///var/www",d);
 			break;
 		case "stopStream":
 			session.stopStream();
@@ -781,9 +781,9 @@ speech_core_Session.prototype = {
 			var candidate = this._candidatesQueue.shift();
 			this.endpoint.addIceCandidate(candidate);
 		}
-		this.endpoint.on("OnIceCandidate",function(ic) {
-			var candidate1 = kurento.register.complexTypes.IceCandidate(ic.candidate);
-			_g.ws.send(JSON.stringify({ type : "iceCandidate", candidate : candidate1}));
+		this.endpoint.on("OnIceCandidate",function(event) {
+			var candidate1 = kurento.register.complexTypes.IceCandidate(event.candidate);
+			_g.ws.send(JSON.stringify({ type : "iceCandidate", data : candidate1}));
 		});
 	}
 	,clearCandidatesQueue: function() {
@@ -843,10 +843,10 @@ haxe_io_FPHelper.i64tmp = (function($this) {
 }(this));
 js_Boot.__toStr = {}.toString;
 js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
-speech_Main.MS_URI = "wss://localhost:8433/kurento";
+speech_Main.MS_URI = "ws://localhost:8888/kurento";
 speech_Main.MV_DIR = "file:///var/www";
-speech_Main.TLS_KEY = "privkey.pem";
-speech_Main.TLS_CERT = "cert.pem";
+speech_Main.TLS_KEY = "/etc/letsencrypt/live/example.com/privkey.pem";
+speech_Main.TLS_CERT = "/etc/letsencrypt/live/example.com/cert.pem";
 speech_core_Session._idCounter = 0;
 speech_Main.main();
 })(typeof console != "undefined" ? console : {log:function(){}}, typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
