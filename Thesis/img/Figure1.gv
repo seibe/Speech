@@ -1,0 +1,35 @@
+digraph sample {
+	graph[
+		fontname="Yu Gothic bold";
+		layout = fdp;
+		charset = "UTF-8";
+		dpi = 120;
+	];
+	node[
+		fontname = "Yu Gothic bold";
+		fontsize = 10;
+	];
+	edge[fontname="Yu Gothic bold"];
+
+	subgraph cluster {
+		label = "会場";
+		fontsize = 12;
+
+		people1 [label="司会"]
+		people2 [label="発表者"]
+		people3 [label="聴衆"]
+		people4 [label="聴衆"]
+		people5 [label="聴衆"]
+
+		people1->people2 [dir=both]
+		people1->people3 [dir=both]
+		people1->people4 [dir=both]
+		people1->people5 [dir=both]
+		people2->people3 [dir=both]
+		people2->people4 [dir=both]
+		people2->people5 [dir=both]
+		people3->people4 [dir=both]
+		people3->people5 [dir=both]
+		people4->people5 [dir=both]
+	};
+}
