@@ -1,7 +1,7 @@
-digraph sample {
+digraph sample1 {
 	graph[
 		fontname="Yu Gothic bold";
-		layout = fdp;
+		layout = dot;
 		charset = "UTF-8";
 		dpi = 120;
 	];
@@ -11,25 +11,24 @@ digraph sample {
 	];
 	edge[fontname="Yu Gothic bold"];
 
-	subgraph cluster {
+	subgraph cluster0 {
 		label = "会場";
-		fontsize = 12;
+		fontsize = 10;
 
-		people1 [label="司会"]
-		people2 [label="発表者"]
-		people3 [label="聴衆"]
-		people4 [label="聴衆"]
-		people5 [label="聴衆"]
+		master [label="司会"];
+		presenter [label="発表者"];
+		audience1 [label="聴衆"];
+		audience2 [label="聴衆"];
 
-		people1->people2 [dir=both]
-		people1->people3 [dir=both]
-		people1->people4 [dir=both]
-		people1->people5 [dir=both]
-		people2->people3 [dir=both]
-		people2->people4 [dir=both]
-		people2->people5 [dir=both]
-		people3->people4 [dir=both]
-		people3->people5 [dir=both]
-		people4->people5 [dir=both]
+		presenter->audience1 [dir=both];
+		presenter->audience2 [dir=both];
 	};
+	
+	subgraph cluster1 {
+		label = "オンライン";
+		fontsize = 10;
+		audience3 [label="聴衆"]
+	}
+
+	presenter->audience3 [dir=both];
 }

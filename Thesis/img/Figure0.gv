@@ -1,0 +1,33 @@
+digraph sample1 {
+	graph[
+		fontname="Yu Gothic bold";
+		layout = dot;
+		charset = "UTF-8";
+		dpi = 120;
+	];
+	node[
+		fontname = "Yu Gothic bold";
+		fontsize = 10;
+	];
+	edge[fontname="Yu Gothic bold"];
+
+	subgraph cluster0 {
+		label = "会場";
+		fontsize = 10;
+
+		master [label="司会"]
+		presenter [label="発表者"]
+		audience1 [label="聴衆"]
+		audience2 [label="聴衆"]
+		audience3 [label="聴衆"]
+
+		presenter->audience1 [dir=both];
+		presenter->audience2 [dir=both];
+		presenter->audience3 [dir=both];
+
+		audience1->audience2 [dir=both; color="#cccccc"];
+		audience2->audience3 [dir=both; color="#cccccc"];
+
+		{rank = same; audience1; audience2; audience3;}
+	};
+}
