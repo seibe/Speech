@@ -5,6 +5,7 @@ import js.Node;
 import js.node.Crypto;
 import js.node.crypto.Hash;
 import js.node.Fs;
+import shortId.ShortId;
 
 enum Response {
 	ENTER(userId:String, totalNum:Int);
@@ -26,13 +27,6 @@ class Room
 	public var viewerList:Array<Session>;
 	public var slideUrl:String;
 	
-	public static function getUniqueKey():String
-	{
-		var hash:Hash = Crypto.createHash("sha1");
-		hash.update( Std.string(Date.now().getTime()) + Std.string(Math.random()) );
-		return hash.digest("hex");
-	}
-
 	public function new(title:String, desc:String, presenter:Session, slideUrl:String)
 	{
 		this.title = title;
@@ -41,7 +35,7 @@ class Room
 		this.presenter.room = this;
 		this.slideUrl = slideUrl;
 		
-		id = getUniqueKey();
+		id = ShortId.generate();
 		viewerList= new Array<Session>();
 		
 		var timestamp = Std.string(Date.now().getTime());

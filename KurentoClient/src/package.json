@@ -1,0 +1,25 @@
+{
+  "name": "speech-kurento-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "bin": {
+    "speech-kurento-client": "app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seibe/Speech.git"
+  },
+  "author": "seibe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/seibe/Speech/issues"
+  },
+  "homepage": "https://github.com/seibe/Speech#readme",
+  "dependencies": {
+    "kurento-client": "^6.2.0",
+    "pg": "^4.4.3",
+    "shortid": "^2.2.4",
+    "ws": "^0.8.1"
+  }
+}

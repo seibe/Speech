@@ -15,7 +15,7 @@ class Main
 {
 	
 	private static inline var MS_URI:String = "ws://localhost:8888/kurento";
-	private static inline var MV_DIR:String = "file:///var/www";
+	private static inline var MV_DIR:String = "file:///var/www/example.com/record";
 	private static inline var TLS_KEY:String = "/etc/letsencrypt/live/example.com/privkey.pem";
 	private static inline var TLS_CERT:String = "/etc/letsencrypt/live/example.com/cert.pem";
 	

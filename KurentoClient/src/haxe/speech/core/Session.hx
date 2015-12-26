@@ -8,6 +8,7 @@ import kurento.core.MediaPipeline;
 import kurento.elements.RecorderEndpoint;
 import kurento.elements.WebRtcEndpoint;
 import kurento.kurentoClient.KurentoClient;
+import shortId.ShortId;
 import speech.core.Room.Response;
 import ws.WsServer.WsSocket;
 import ws.WsServer.WsSocketFlags;
@@ -77,7 +78,7 @@ class Session
 				// 3. create endpoints
 				var p1 = pipeline.create("WebRtcEndpoint");
 				// 4. create recoder
-				recordPath = Path.join(recordDir, Std.string( Date.now().getTime() ) + ".webm");
+				recordPath = Path.join(recordDir, ShortId.generate() + ".webm");
 				var p2 = pipeline.create("RecorderEndpoint", { uri: recordPath });
 				return Promise.all([p1, p2]);
 			})

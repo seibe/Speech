@@ -9,9 +9,9 @@
   "scripts": {
     "start": "npm run watch",
     "server": "mkdirp ./bin/file && node ./bin/app.js",
-    "build": "haxe ./build.hxml",
-    "watch": "watch \"npm run build\" ./src/",
-    "release": "haxe ./release.hxml"
+    "build": "haxe ./build.hxml && cpx \"./src/package.json\" ./bin",
+    "watch": "watch \"npm run build\" ./src/haxe/",
+    "release": "haxe ./release.hxml && cpx \"./src/package.json\" ./dist"
   },
   "repository": {
     "type": "git",
@@ -25,6 +25,8 @@
   "homepage": "https://github.com/seibe/Speech#readme",
   "devDependencies": {
     "mkdirp": "^0.5.1",
+    "cpx": "^1.2.1",
     "watch": "^0.16.0"
-  }
+  },
+  "dependencies": {}
 }

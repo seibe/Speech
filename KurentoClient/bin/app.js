@@ -446,13 +446,13 @@ js_html_compat_Uint8Array._subarray = function(start,end) {
 	a.byteOffset = start;
 	return a;
 };
-var js_node_Crypto = require("crypto");
 var js_node_Fs = require("fs");
 var js_node_Https = require("https");
 var js_node_Path = require("path");
 var js_node_tls_SecureContext = function() { };
 js_node_tls_SecureContext.__name__ = true;
 var kurento = require("kurento-client");
+var shortId_ShortId = require("shortid");
 var speech_Main = function() {
 	var _g = this;
 	this._roomList = [];
@@ -501,7 +501,7 @@ speech_Main.prototype = {
 			session.room.broadcast(speech_core_Response.UPDATE_SLIDE(d));
 			break;
 		case "startStream":
-			session.startStream("ws://localhost:8888/kurento","file:///var/www",d);
+			session.startStream("ws://localhost:8888/kurento","file:///var/www/example.com/record",d);
 			break;
 		case "stopStream":
 			session.stopStream();
@@ -587,17 +587,12 @@ var speech_core_Room = function(title,desc,presenter,slideUrl) {
 	this.presenter = presenter;
 	this.presenter.room = this;
 	this.slideUrl = slideUrl;
-	this.id = speech_core_Room.getUniqueKey();
+	this.id = shortId_ShortId.generate();
 	this.viewerList = [];
 	var timestamp = Std.string(new Date().getTime());
 	js_node_Fs.writeFile(__dirname + "/file/" + this.id + ".txt",timestamp + ",create,\r\n",$bind(this,this.onSave));
 };
 speech_core_Room.__name__ = true;
-speech_core_Room.getUniqueKey = function() {
-	var hash = js_node_Crypto.createHash("sha1");
-	hash.update(Std.string(new Date().getTime()) + Std.string(Math.random()));
-	return hash.digest("hex");
-};
 speech_core_Room.prototype = {
 	broadcast: function(resp) {
 		var obj = { };
@@ -625,7 +620,7 @@ speech_core_Room.prototype = {
 			this.save("stopStream");
 			break;
 		default:
-			haxe_Log.trace("broadcast error",{ fileName : "Room.hx", lineNumber : 79, className : "speech.core.Room", methodName : "broadcast", customParams : [resp]});
+			haxe_Log.trace("broadcast error",{ fileName : "Room.hx", lineNumber : 73, className : "speech.core.Room", methodName : "broadcast", customParams : [resp]});
 		}
 		obj.timestamp = new Date().getTime();
 		var data = JSON.stringify(obj);
@@ -666,7 +661,7 @@ speech_core_Room.prototype = {
 		js_node_Fs.appendFile(path,timestamp + "," + data + "\r\n",$bind(this,this.onSave));
 	}
 	,onSave: function(err) {
-		if(err != null) haxe_Log.trace("save error",{ fileName : "Room.hx", lineNumber : 119, className : "speech.core.Room", methodName : "onSave", customParams : [err]});
+		if(err != null) haxe_Log.trace("save error",{ fileName : "Room.hx", lineNumber : 113, className : "speech.core.Room", methodName : "onSave", customParams : [err]});
 	}
 	,__class__: speech_core_Room
 };
@@ -696,13 +691,13 @@ speech_core_Session.prototype = {
 		kurento.getSingleton(kurentoUrl).then(function(client) {
 			return client.create("MediaPipeline");
 		})["catch"](function(error) {
-			haxe_Log.trace(error,{ fileName : "Session.hx", lineNumber : 68, className : "speech.core.Session", methodName : "startStream"});
+			haxe_Log.trace(error,{ fileName : "Session.hx", lineNumber : 69, className : "speech.core.Session", methodName : "startStream"});
 			_g.ws.send(JSON.stringify({ type : "onStopStream", data : error}));
 			return null;
 		}).then(function(pipe) {
 			_g.pipeline = pipe;
 			var p1 = _g.pipeline.create("WebRtcEndpoint");
-			_g.recordPath = js_node_Path.join(recordDir,Std.string(new Date().getTime()) + ".webm");
+			_g.recordPath = js_node_Path.join(recordDir,shortId_ShortId.generate() + ".webm");
 			var p2 = _g.pipeline.create("RecorderEndpoint",{ uri : _g.recordPath});
 			return Promise.all([p1,p2]);
 		}).then(function(endpoints) {
@@ -721,37 +716,37 @@ speech_core_Session.prototype = {
 			_g.room.broadcast(speech_core_Response.CAN_START_STREAM);
 			return null;
 		})["catch"](function(error1) {
-			haxe_Log.trace(error1,{ fileName : "Session.hx", lineNumber : 110, className : "speech.core.Session", methodName : "startStream"});
+			haxe_Log.trace(error1,{ fileName : "Session.hx", lineNumber : 111, className : "speech.core.Session", methodName : "startStream"});
 			_g.stopStream();
 			return null;
 		});
 	}
 	,connectStream: function(sdpOffer) {
 		var _g = this;
-		haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 118, className : "speech.core.Session", methodName : "connectStream", customParams : [1]});
+		haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 119, className : "speech.core.Session", methodName : "connectStream", customParams : [1]});
 		if(this.room == null || this.room.presenter == null || this.room.presenter.pipeline == null) return;
-		haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 120, className : "speech.core.Session", methodName : "connectStream", customParams : [2]});
+		haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 121, className : "speech.core.Session", methodName : "connectStream", customParams : [2]});
 		this.pipeline = this.room.presenter.pipeline;
 		var sdpAnswer = null;
 		this.pipeline.create("WebRtcEndpoint").then(function(endpoint) {
-			haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 128, className : "speech.core.Session", methodName : "connectStream", customParams : [3]});
+			haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 129, className : "speech.core.Session", methodName : "connectStream", customParams : [3]});
 			_g.endpoint = endpoint;
 			_g.exchangeCandidates();
 			return endpoint.processOffer(sdpOffer);
 		}).then(function(answer) {
-			haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 135, className : "speech.core.Session", methodName : "connectStream", customParams : [4]});
+			haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 136, className : "speech.core.Session", methodName : "connectStream", customParams : [4]});
 			sdpAnswer = answer;
 			return _g.room.presenter.endpoint.connect(_g.endpoint);
 		}).then(function(dummy) {
-			haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 141, className : "speech.core.Session", methodName : "connectStream", customParams : [5]});
+			haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 142, className : "speech.core.Session", methodName : "connectStream", customParams : [5]});
 			return _g.endpoint.gatherCandidates();
 		}).then(function(dummy1) {
-			haxe_Log.trace("startStream",{ fileName : "Session.hx", lineNumber : 147, className : "speech.core.Session", methodName : "connectStream"});
+			haxe_Log.trace("startStream",{ fileName : "Session.hx", lineNumber : 148, className : "speech.core.Session", methodName : "connectStream"});
 			_g.ws.send(JSON.stringify({ type : "startStream", data : sdpAnswer}));
 			return null;
 		})["catch"](function(error) {
-			haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 155, className : "speech.core.Session", methodName : "connectStream", customParams : [-1]});
-			haxe_Log.trace(error,{ fileName : "Session.hx", lineNumber : 157, className : "speech.core.Session", methodName : "connectStream"});
+			haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 156, className : "speech.core.Session", methodName : "connectStream", customParams : [-1]});
+			haxe_Log.trace(error,{ fileName : "Session.hx", lineNumber : 158, className : "speech.core.Session", methodName : "connectStream"});
 			_g.stopStream();
 		});
 	}
@@ -762,7 +757,7 @@ speech_core_Session.prototype = {
 				this.recorder.stop();
 				this.recorder.release();
 				this.recorder = null;
-				haxe_Log.trace("stop recording",{ fileName : "Session.hx", lineNumber : 171, className : "speech.core.Session", methodName : "stopStream"});
+				haxe_Log.trace("stop recording",{ fileName : "Session.hx", lineNumber : 172, className : "speech.core.Session", methodName : "stopStream"});
 			}
 			if(this.pipeline != null) this.pipeline.release();
 		}
@@ -844,7 +839,7 @@ haxe_io_FPHelper.i64tmp = (function($this) {
 js_Boot.__toStr = {}.toString;
 js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
 speech_Main.MS_URI = "ws://localhost:8888/kurento";
-speech_Main.MV_DIR = "file:///var/www";
+speech_Main.MV_DIR = "file:///var/www/example.com/record";
 speech_Main.TLS_KEY = "/etc/letsencrypt/live/example.com/privkey.pem";
 speech_Main.TLS_CERT = "/etc/letsencrypt/live/example.com/cert.pem";
 speech_core_Session._idCounter = 0;
