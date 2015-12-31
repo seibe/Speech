@@ -1,0 +1,36 @@
+digraph sample1 {
+	graph[
+		fontname="Yu Gothic bold";
+		layout = dot;
+		charset = "UTF-8";
+		rankdir = LR;
+	];
+	node[
+		fontname = "Yu Gothic bold";
+		fontsize = 10;
+	];
+	edge[
+		fontname="Yu Gothic bold";
+		fontsize = 10;
+	];
+
+	start[label="開く"; group=1; shape=diamond];
+	end[label="閉じる"; group=1; shape=diamond];
+
+	subgraph cluster0 {
+		label = "視聴画面";
+		fontsize = 12;
+
+		watch0[label="視聴待機"; group=1];
+		watch1[label="OAuth認証(Twitter)\n視聴告知"; shape=plaintext];
+		watch2[label="視聴"; group=1];
+		watch3[label="コメント\nアンケート回答"; shape=plaintext];
+
+		watch1->watch0[dir=none; style=dotted];
+		watch3->watch2[dir=none; style=dotted];
+		{rank=same; watch0; watch1}
+		{rank=same; watch2; watch3}
+	}
+
+	start->watch0->watch2->end[weight=999];
+}
