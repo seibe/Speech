@@ -130,7 +130,7 @@ WEBコミュニティは1990年代から始まった情報通信技術の発達�
 WEBコミュニティのメンバーは時々、より密なコミュニケーションを求めてMeetupと呼ばれるオフラインイベントを開催することがある。Meetupは、知見共有・人間交流を目的とした対面・リアルタイムのカジュアルな勉強会・交流会である。Meetupの形態はコミュニティごとに様々だが、とくにエンジニア界隈の技術系Meetupでは設定されたテーマに沿って参加者のうち少人数が発表者としてプレゼンテーションを行うセミナースタイルが主流である。Meetupの特徴は、その母体となるコミュニティの活動が全てWEB上で行われているという点にある。Meetup開催前後のやりとりは全てWEBで、Meetupだけがオフラインでのリアルイベントである。そのため、Meetupで共有された情報をできるだけ抜けのないように記録しWEBに還元することが、コミュニティの継続的な発展に重要だと言える（ REF _Ref439601802 \h 図 1）。
 
 
-図  SEQ 図 \* ARABIC 1　WEBコミュニティの活動と情報の流れ
+図 1　WEBコミュニティの活動と情報の流れ
 しかしながらMeetupの多くは個人が趣味的に開催するため、企業主催のカンファレンスのように発表や質疑応答に専任の撮影者や速記者が用意されることは稀である。現状Meetupにおけるプレゼンテーションの記録手法は、聴衆によるボランティア的な文字起こしか、そもそも全く記録していないかのどちらかである。聴衆による文字起こしとは、有志がマイクロブログサービス等にプレゼンテーションの内容やその後の質疑応答を同時進行的にテキストに書き起こし、まるで実況中継のようにマイクロブログサービスへ投稿する手法である。マイクロブログサービスはその性質上、投稿ひとつひとつが独立しており、また時間がたつと投稿内容を参照することが難しくなるので、さらにマイクロブログまとめサービスを用いて投稿された文字起こしを編纂することもある。
 この手法の問題点は、文字起こしの負担が大きい点と、聴衆の自主的・献身的な活動に頼りきっている点、そして記録の品質が保証されない点である。リアルタイムに書き起こして投稿する作業は高度なタイピング能力と集中力を求められ、しかもそれは聴衆の自主的・献身的な活動に支えられている。文字起こしができ、かつやりたいという聴衆が名乗り出ない限り記録作業が行われない。また、運よく献身的な聴衆が現れたとしても、その記録フォーマットに統一されたものがないために、個々人の能力や主観によって記録内容が欠けたり、変化したりする恐れがある。
 本研究の課題
@@ -159,7 +159,7 @@ Meetupプレゼンテーション記録フォーマット
 SNS投稿
 
 
-図  SEQ 図 \* ARABIC 2　Meetupプレゼンテーション記録フォーマットの概念図
+図 2　Meetupプレゼンテーション記録フォーマットの概念図
 用語定義
 本節では、本論文中で用いられる主な用語を定義する。
 Meetup（ミートアップ）　主にWEB上で活動するコミュニティのメンバーが、知見・意見共有と人間交流を目的として行うカジュアルな勉強会や交流会。参加者のうち数人が発表者となりプレゼンテーションを行う。発表内容は、後日発表者によって任意にオンライン公開され、WEBコミュニティに共有されることがある。
@@ -194,7 +194,7 @@ Meetupにおけるプレゼンテーションは、スライド資料を用い�
 
 Meetupにおけるプレゼンテーション
 
-図  SEQ 図 \* ARABIC 3　一般的なプレゼンテーションとMeetupにおけるプレゼンテーションの構造比較
+図 3　一般的なプレゼンテーションとMeetupにおけるプレゼンテーションの構造比較
  REF _Ref438431796 \h 図 2に示すように、Meetupにおけるプレゼンテーションの特徴はインターネット越しに視聴する遠隔の参加者の存在である。一般的なプレゼンテーションはすべての参加者が同一の物理的な空間内に存在するのに対して、Meetupにおけるプレゼンテーションでは参加者の一部がインターネット越しに遠隔で視聴する。主催者が会場の様子をストリーミング配信したり、発表者が事前に発表資料をスライド共有サービスに投稿したり、現地の参加者が進行や感想をマイクロブログにリアルタイムに投稿したりすることで、このような遠隔での参加を実現している。
 Meetupにおけるプレゼンテーションの構成要素
  REF _Ref438451069 \h 図 3は、Meetupにおけるプレゼンテーションの構成要素を表したものである。Meetupにおけるプレゼンテーションでは、まず参加者がいて、次に発表者のスライド資料やそのコントロール情報（スライドタイムライン）があり、そして放送者や参加者の表情や身振りなどの視覚情報、発話や拍手などの音声情報がある。これらの基本的な構成要素に加えて、主に遠隔の参加者によるSNS投稿など会場の外の情報も構成要素として挙げられる。
@@ -218,14 +218,14 @@ Meetupプレゼンテーション記録フォーマット
 SNS投稿
 
 
-図  SEQ 図 \* ARABIC 4　Meetupプレゼンテーション記録フォーマットの概念図（再掲）
+図 4　Meetupプレゼンテーション記録フォーマットの概念図（再掲）
 
 既存のスライドフォーマットとその問題点
 本章では、スライド資料における既存フォーマットを分析し、それぞれの問題点を整理する。
 
 既存のスライドフォーマットと記録可能なデータ
 スライド資料に用いられるフォーマットと表現可能なデータの組み合わせの可否を REF _Ref438407323 \h 表 1に示す。
-表  SEQ 表 \* ARABIC 1　スライドフォーマットと記録可能コンテンツ
+表 1　スライドフォーマットと記録可能コンテンツ
 
 OOXML
 MP4
@@ -266,7 +266,7 @@ Meetup会場にいない遠隔参加者の活動を記録できる
 
 記録するプレゼンテーション構成要素
 本システムで記録対象とするプレゼンテーション構成要素を以下に挙げる。
-表  SEQ 表 \* ARABIC 2　プレゼンテーションの記録対象とデータ形式
+表 2　プレゼンテーションの記録対象とデータ形式
 記録対象
 データ形式
 付随するメタ情報
@@ -303,10 +303,10 @@ SNS投稿
  REF _Ref439281138 \h 図 5で、本システムを用いたプレゼンテーションの大まかな流れを表す。
 
 
-図  SEQ 図 \* ARABIC 5　システム化前のプレゼンテーションフロー全体図
+図 5　システム化前のプレゼンテーションフロー全体図
 
 
-図  SEQ 図 \* ARABIC 6　システム化プレゼンテーションフロー全体図
+図 6　システム化プレゼンテーションフロー全体図
 あああ
 発表者用クライアントアプリケーションの設計
 本節では、本システムのうち発表者用クライアントアプリケーションの設計について述べる。
@@ -314,7 +314,7 @@ SNS投稿
 発表者用クライアントアプリケーションの振る舞い
 本項では、本研究で実装する発表者用クライアントアプリケーションの機能及び動作の概要を述べる。まず、 REF _Ref439008224 \h 表 3で本アプリケーションの機能の一覧を示す。
 
-表  SEQ 表 \* ARABIC 3　発表者用クライアントアプリケーションの機能一覧
+表 3　発表者用クライアントアプリケーションの機能一覧
 No.
 大機能
 小機能
@@ -469,7 +469,7 @@ Gist投稿
  REF _Ref438999975 \h 図 4で、本システムの発表者用クライアントの画面遷移を示す。
 
 
-図  SEQ 図 \* ARABIC 7　発表者用クライアントアプリケーションの画面遷移
+図 7　発表者用クライアントアプリケーションの画面遷移
 
 本システムの発表者用クライアントは、認証画面、準備画面、配信画面、配信後画面の4つの画面によって構成される。本論文では、画面を画面レイアウトの単位とする。それぞれの画面は1つ以上のステップで構成され、0個以上のビューを内包する。本論文において、ステップはユーザーインターフェース（入力可能なユーザー操作の組み合わせ）の単位とし、ビューはユーザー操作をきっかけに同一画面にオーバーレイ表示されるコンテンツの単位とする。
 
@@ -497,7 +497,7 @@ Gist投稿
 聴衆用クライアントアプリケーションの振る舞い
 本項では、本研究で実装する聴衆用クライアントアプリケーションの機能及び動作の概要を述べる。まず、 REF _Ref439435887 \h 表 4で本アプリケーションの機能の一覧を示す。
 
-表  SEQ 表 \* ARABIC 4　聴衆用クライアントアプリケーションの機能一覧
+表 4　聴衆用クライアントアプリケーションの機能一覧
 No.
 大機能
 小機能
@@ -601,7 +601,7 @@ A23
  REF _Ref439369402 \h 図 7で、本システムの聴衆用クライアントの画面遷移を示す。
 
 
-図  SEQ 図 \* ARABIC 8　聴衆用クライアントアプリケーションの画面遷移
+図 8　聴衆用クライアントアプリケーションの画面遷移
 本システムの聴衆用クライアントは、視聴画面のみによって構成される。
 視聴画面
 (画面レイアウト)
@@ -612,7 +612,7 @@ A23
 サーバーアプリケーションの振る舞い
 本項では、本研究で実装するプレゼンテーション記録システムのサーバーアプリケーションの動作概要を述べる。まず、 REF _Ref439631615 \h 表 5で本アプリケーションの機能の一覧を示す。
 
-表  SEQ 表 \* ARABIC 5　サーバーアプリケーションの機能一覧
+表 5　サーバーアプリケーションの機能一覧
 No.
 大機能
 小機能
@@ -741,105 +741,303 @@ S30
 サーバーアプリケーションは、本システムにおいてクライアント間の情報の受け渡しとその記録を担う。Meetupにおける全てのプレゼンテーション構成要素を発表者用・聴衆用クライアントから受け取り、サーバー内に記録したうえで参加者全員に同じ情報をブロードキャストして伝える。
 
 プレゼンテーション記録フォーマットの設計
-本節では、本システムが記録するプレゼンテーションデータのフォーマット設計について述べる。技術系Meetupにおけるプレゼンテーションの記録データはWEBコミュニティでの利用が想定されるため、WEBと親和性の高いJSONおよびMarkdownをコンテナフォーマットとして採用する。前者はプレゼンテーションの完全な記録に適し、後者はプレゼンテーションのGist等SNS上での容易な共有に適しているためである。
+本節では、本システムが記録するプレゼンテーションデータのフォーマット設計について述べる。技術系Meetupにおけるプレゼンテーションの記録データはWEBコミュニティでの利用が想定されるため、WEBと親和性の高いJSONおよびMarkdownをコンテナフォーマットとして採用する。異なる2つのフォーマットを用いるのは、前者はプレゼンテーションの完全な記録に適し、後者はプレゼンテーションのGist等SNS上での容易な共有に適しているためである。
 
 JSON出力の記録フォーマットの設計
-本項では、JSONをコンテナとする記録フォーマットの設計について述べる。まず、この記録フォーマットでの記録例をで REF _Ref439633793 \h 図 9示す。
+本項では、JSONをコンテナとする記録フォーマットの設計について述べる。まず、この記録フォーマットでの記録例を REF _Ref439633793 \h 図 9に示す。
 
 {
 "title": "プレゼンテーションのタイトル",
-"time_begin": 1451814678,
-"time_end": 1451816301,
+"description": "このプレゼンテーションはサンプルです。",
+"time_begin": 14518146780000,
+"time_end": 14518163010000,
 "presenter": {
 "name": "山田太郎",
-"twitter": "@_taro_yamada",
-"github": "tyamada"
+"twitter": "@example_yamada",
+"google": null,
+"github": "exampleyamada"
 },
 "audience": [{
-"id": 0,
 "name": "竹田花子",
-"tiwtter": "@hanako_chan"
+"tiwtter": "@example_hanako "
 }, {
-"id": 1,
 "name": "たまちゃん",
-"tiwtter": "@azarashi_idol"
+"tiwtter": "@example_azarashi"
 }],
 "slide": [
 "http://example.com/slide.html",
 "http://example.com/slide.html#2",
-"http://example.com/slide.html#2",
 "http://example.com/slide.html#3"
 ] ,
 "attachment": [{
-"mime_type": "video/webm",
-"url": "http://example.com/recerd.webm"
+"type": "video/webm",
+"url": "http://example.com/recerd.webm",
+"name": "録画映像"
 }],
 "activity": [{
-"time": 1451814862,
+"time": 14518148620000,
 "type": "slide_update",
-"page_num": 1
+"page ": 1
 }, {
-"time": 1451814924,
+"time": 14518149240000,
 "type": "comment",
-"page_num": 1,
+"page": 1,
 "area": null,
 "text": "よろしくー",
-"audience_id": 0
+"audience_id": 0,
+"url": "http://twitter.com/status/9999999999"
 }, {
-"time": 1451815272,
-"type": "slide_update",
-"page_num": 2
+　　　　　　　　　　　　　　　　　　　　　　　　　　　　中略　　　　　　　　　　　　　　　　　　　　　　　　　　　　　
+}, {
+"time": 14518182720000,
+"type": "finish"
 }]
 }
 {
 "title": "プレゼンテーションのタイトル",
-"time_begin": 1451814678,
-"time_end": 1451816301,
+"description": "このプレゼンテーションはサンプルです。",
+"time_begin": 14518146780000,
+"time_end": 14518163010000,
 "presenter": {
 "name": "山田太郎",
-"twitter": "@_taro_yamada",
-"github": "tyamada"
+"twitter": "@example_yamada",
+"google": null,
+"github": "exampleyamada"
 },
 "audience": [{
-"id": 0,
 "name": "竹田花子",
-"tiwtter": "@hanako_chan"
+"tiwtter": "@example_hanako "
 }, {
-"id": 1,
 "name": "たまちゃん",
-"tiwtter": "@azarashi_idol"
+"tiwtter": "@example_azarashi"
 }],
 "slide": [
 "http://example.com/slide.html",
 "http://example.com/slide.html#2",
-"http://example.com/slide.html#2",
 "http://example.com/slide.html#3"
 ] ,
 "attachment": [{
-"mime_type": "video/webm",
-"url": "http://example.com/recerd.webm"
+"type": "video/webm",
+"url": "http://example.com/recerd.webm",
+"name": "録画映像"
 }],
 "activity": [{
-"time": 1451814862,
+"time": 14518148620000,
 "type": "slide_update",
-"page_num": 1
+"page ": 1
 }, {
-"time": 1451814924,
+"time": 14518149240000,
 "type": "comment",
-"page_num": 1,
+"page": 1,
 "area": null,
 "text": "よろしくー",
-"audience_id": 0
+"audience_id": 0,
+"url": "http://twitter.com/status/9999999999"
 }, {
-"time": 1451815272,
-"type": "slide_update",
-"page_num": 2
+　　　　　　　　　　　　　　　　　　　　　　　　　　　　中略　　　　　　　　　　　　　　　　　　　　　　　　　　　　　
+}, {
+"time": 14518182720000,
+"type": "finish"
 }]
 }
 
 
-図  SEQ 図 \* ARABIC 9　プレゼンテーション記録フォーマット(JSON)の例
+図 9　プレゼンテーション記録フォーマット(JSON)の例
 
+記録データには、プレゼンテーションのタイトルや時刻などの基本情報に加え、発表者情報、聴衆のリスト、スライド資料と各ページのURL、スライド資料以外の添付資料のURL、そして時系列順に整理された発表中のアクティビティのリストが含まれる。
+各属性の詳細な構造を REF _Ref439679704 \h 表 6に示す
+
+表 6　プレゼンテーション記録フォーマット(JSON)の属性詳細
+属性名
+型
+親要素
+必須
+説明/備考
+title
+string
+-
+Y
+発表者が指定した発表タイトル
+description
+string
+-
+N
+発表者が指定した発表の説明文
+time_begin
+integer
+-
+Y
+プレゼンテーションの開始時刻（ミリ秒単位のUNIX時刻）
+time_end
+integer
+-
+Y
+プレゼンテーションの終了時刻（ミリ秒単位のUNIX時刻）
+presenter
+object
+-
+Y
+発表者情報を格納するオブジェクト
+name
+string
+presenter
+Y
+発表者の氏名またはニックネーム
+twitter
+string
+presenter
+N
+発表者のTwitterスクリーンネーム
+google
+string
+presenter
+N
+発表者のGoogle ID
+github
+string
+presenter
+N
+発表者のGitHub ID
+audience
+array<object>
+-
+Y
+聴衆情報を格納する配列。indexは聴衆のIDと同義
+name
+string
+audience
+N
+聴衆の氏名またはニックネーム
+twitter
+string
+audience
+N
+聴衆のTwitterスクリーンネーム
+slide
+array<string>
+-
+Y
+スライド資料とそのページごとのURLを格納する配列。indexはページ番号と同義。ページごとに固有のURLが割り振られていないスライド資料の場合は要素が重複する場合がある
+attachment
+array<object>
+-
+N
+スライド資料以外の添付資料を格納する配列。indexは添付資料のIDと同義
+type
+string
+attachment
+Y
+添付資料のMIME Type
+url
+string
+attachment
+Y
+添付資料の参照先URL
+name
+string
+attachment
+N
+添付資料の名称
+activity
+array<object>
+-
+Y
+プレゼンテーション内のイベントを時系列順に格納する配列。indexは要素のIDと同義
+time
+integer
+activity
+Y
+イベントの発生時刻（ミリ秒単位のUNIX時刻）
+type
+string
+activity
+Y
+イベントの種類。begin, end, comment等がある
+page
+integer
+activity
+N
+イベントと紐づいたページ(slide配列のindex)
+area
+object
+activity
+N
+ページの特定座標・領域を示す場合に用いる
+x
+integer
+area
+Y
+スライド資料の横幅を1.0としたときのX座標
+y
+integer
+area
+Y
+スライド資料の縦幅を1.0としたときのY座標
+width
+integer
+area
+N
+スライド資料の横幅を1.0としたときの領域幅
+height
+integer
+area
+N
+スライド資料の縦幅を1.0としたときの領域高さ
+text
+string
+activity
+N
+聴衆のコメント
+url
+string
+activity
+N
+イベントに紐づいたURL
+audience_id
+integer
+activity
+N
+イベントに紐づいた聴衆のID。0以上
+attachment_id
+integer
+activity
+N
+イベントに紐づいた添付資料のID。0以上
+activity_id
+integer
+activity
+
+イベントに紐づいた他のイベントのID。0以上
+question
+object
+-
+N
+アンケート情報
+type
+string
+question
+Y
+アンケートの形式。singleまたはmultiple
+text
+string
+question
+Y
+アンケートの質問文
+option
+array<object>
+question
+Y
+アンケートの選択肢を格納する配列。2要素以上
+text
+string
+option
+Y
+アンケート選択肢の文章
+number
+integer
+option
+Y
+アンケート選択肢の選択数。0以上
 
 Markdown出力の記録フォーマットの設計
 本項では、Markdownをコンテナとする記録フォーマットの設計について述べる。まず、この記録フォーマットでの記録例を REF _Ref439634730 \h 図 10で示す。
@@ -853,15 +1051,16 @@ Markdown出力の記録フォーマットの設計
 
 ## 参加者
 ### 発表者
-山田太郎 ([Twitter](https://twitter.com/_taro_yamada), [GitHub](https://github.com/tyamada))
+山田太郎 ([Twitter](https://twitter.com/example_yamada), [GitHub](https://github.com/exampleyamada))
 ### 聴講者
-* [竹田花子](https://twitter.com/hanako_chan)
-* [たまちゃん](https://twitter.com/azarashi_idol)
+* [竹田花子](https://twitter.com/example_hanako)
+* [たまちゃん](https://twitter.com/example_azarashi)
 ほか4名
 
 ## コメントログ
 * [2ページ目](http://example.com/slide.html#2)
-* [よろしくー (竹田花子)](https://twitter.com/hanako_chan/status/9999999999)
+* [よろしくー (竹田花子)](https://twitter.com/exmple_hanako /status/9999999999)
+　　　　　　　　　　　　　　　　　　　　　　　　　　　後略　　　　　　　　　　　　　　　　　　　　　　　　　　　
 # プレゼンテーションのタイトル
 
 ## 発表概要
@@ -871,18 +1070,19 @@ Markdown出力の記録フォーマットの設計
 
 ## 参加者
 ### 発表者
-山田太郎 ([Twitter](https://twitter.com/_taro_yamada), [GitHub](https://github.com/tyamada))
+山田太郎 ([Twitter](https://twitter.com/example_yamada), [GitHub](https://github.com/exampleyamada))
 ### 聴講者
-* [竹田花子](https://twitter.com/hanako_chan)
-* [たまちゃん](https://twitter.com/azarashi_idol)
+* [竹田花子](https://twitter.com/example_hanako)
+* [たまちゃん](https://twitter.com/example_azarashi)
 ほか4名
 
 ## コメントログ
 * [2ページ目](http://example.com/slide.html#2)
-* [よろしくー (竹田花子)](https://twitter.com/hanako_chan/status/9999999999)
+* [よろしくー (竹田花子)](https://twitter.com/exmple_hanako /status/9999999999)
+　　　　　　　　　　　　　　　　　　　　　　　　　　　後略　　　　　　　　　　　　　　　　　　　　　　　　　　　
 
 
-図  SEQ 図 \* ARABIC 10　プレゼンテーション記録フォーマット(Markdown)の例
+図 10　プレゼンテーション記録フォーマット(Markdown)の例
 
 
 
@@ -896,7 +1096,7 @@ WEBサーバー
 
 実装環境
 本研究で実装したMeetupにおけるプレゼンテーション記録システムの実装環境を REF _Ref438453487 \h 表 3に示す。
-表  SEQ 表 \* ARABIC 6　本研究のプレゼンテーション記録システムの実装環境
+表 7　本研究のプレゼンテーション記録システムの実装環境
 名称
 詳細
 WEBサーバーOS
@@ -924,7 +1124,7 @@ Meetupにおけるプレゼンテーション記録システムの実装の概�
 本節では、本研究で実装したプレゼンテーション記録システムの実装概要を述べる。実装の概要を REF _Ref438455114 \h 図 4に示す。本システムの実装は、発表者が使用するネイティブアプリケーションと、聴衆が使用するWebアプリケーション、ならびにそれらから発信される情報を受け取り記録・他の参加者に仲介するWebサーバー・Kurentoメディアサーバーに大別される。
 
 
-図  SEQ 図 \* ARABIC 11　Meetupにおけるプレゼンテーション記録システムの実装概要
+図 11　Meetupにおけるプレゼンテーション記録システムの実装概要
 
 実証実験
 実際のプレゼンテーションにおいて本システムを用いた2つの実証実験について述べる。
