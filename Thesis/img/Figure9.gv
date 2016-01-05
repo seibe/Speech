@@ -1,0 +1,37 @@
+digraph sample1 {
+	graph[
+		fontname="Yu Gothic bold";
+		layout = dot;
+		charset = "UTF-8";
+		rankdir = LR;
+	];
+	node[
+		fontname = "Yu Gothic bold";
+		fontsize = 10;
+	];
+	edge[
+		fontname="Yu Gothic bold";
+		fontsize = 10;
+	];
+
+	start[label="はじめ"; group=1; shape=diamond];
+	end[label="終わり"; group=1; shape=diamond];
+
+	flow1[label="はじめの挨拶"; group=1];
+	flow2[label="発表者登壇"; group=1];
+
+	subgraph cluster0 {
+		label = "プレゼンテーション";
+		fontsize = 12;
+
+		flow3[label="発表"; group=1];
+		flow4[label="質疑応答"; group=1];
+	};
+
+	flow5[label="発表者降壇"; group=1];
+	flow6[label="終わりの挨拶"; group=1];
+	flow7[label="懇親会"; group=1];
+
+	start->flow1->flow2->flow3->flow4->flow5->flow6->flow7->end[weight=999];
+	flow2->flow5[dir=back];
+}

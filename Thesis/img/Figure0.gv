@@ -25,9 +25,6 @@ digraph sample1 {
 		presenter->audience2 [dir=both];
 		presenter->audience3 [dir=both];
 
-		audience1->audience2 [dir=both; color="#cccccc"];
-		audience2->audience3 [dir=both; color="#cccccc"];
-
 		{rank = same; audience1; audience2; audience3;}
 	};
 }

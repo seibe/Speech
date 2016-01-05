@@ -27,8 +27,8 @@ digraph sample1 {
 	subgraph cluster1 {
 		label = "オンライン";
 		fontsize = 10;
-		audience3 [label="聴衆"]
+		audience3 [label="遠隔の聴衆"]
 	}
 
-	presenter->audience3 [dir=both];
+	audience3->audience2 [dir=both];
 }
