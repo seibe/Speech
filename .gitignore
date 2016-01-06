@@ -7,3 +7,5 @@ docs
 *.psd
 *.ai
 *.xlsx
+Thesis/make_image.bat
+Thesis/make_text.bat
