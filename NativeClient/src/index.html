@@ -11,33 +11,22 @@
 </head>
 
 <body>
-    <header class="header">
-        <div class="header-content">
-            <h1 class="header-content-h1" id="title">Speech</h1>
-            <p class="header-content-p">Let's broadcast your presentation now!</p>
-            <div class="header-content-action">
-                <div class="header-content-action-item"><a href="#">ヘルプ</a></div>
-                <div class="header-content-action-item button"><a href="#">ログイン</a></div>
-            </div>
-        </div>
-    </header>
-    
     <main class="main">
         <div class="main-visual">
             
-            <section class="scene create" id="scene-setup">
-                <h1 class="create-h1">発表情報の入力 <span data-help="これから始めるプレゼンテーションの設定をします" class="tooltip">？</span></h1>
+            <section class="scene create hide" id="scene-setup">
+                <h1 class="create-h1">発表情報の入力</h1>
                 <div class="create-item">
                     <span class="create-item-label">スライドURL</span>
                     <input type="url" class="create-item-input" id="input-setup-slide-url" placeholder="http://" />
                 </div>
                 <div class="create-item">
-                    <span class="create-item-label">タイトル</span>
-                    <input type="text" class="create-item-input" id="input-setup-title" placeholder="製品発表会2015" />
+                    <span class="create-item-label">発表タイトル</span>
+                    <input type="text" class="create-item-input" id="input-setup-title" placeholder="製品発表会 2016" />
                 </div>
                 <div class="create-item">
-                    <span class="create-item-label">紹介文</span>
-                    <textarea class="create-item-input" id="input-setup-description"></textarea>
+                    <span class="create-item-label">発表者名</span>
+                    <input type="text" class="create-item-input" id="input-setup-presenter" placeholder="ももたろう" />
                 </div>
                 <div class="create-item">
                     <span class="create-item-label">カメラ接続</span>
@@ -51,38 +40,84 @@
                 </div>
             </section>
             
-            <section class="scene player hide" id="scene-live">
+            <section class="scene live" id="scene-live">
                 
-                <webview class="player-main" id="live-slide" disablewebsecurity autosize="on"></webview>
-				<video class="player-video" id="live-video" autoplay></video>
-                
-                <div class="player-aside" id="live-aside">
-                    <div class="player-aside-group player-aside-info show" id="pane-info">
-                        <h1 class="player-aside-group-h1" id="live-title">Presentation title</h1>
-                        <p id="live-url">Presentation description</p>
+                <div class="live-left">
+                    <div class="live-header">
+                        <div class="live-header-logo"><img alt="Speech" src="img/logo.png" /></div>
+                        <button class="live-header-finish" id="button-live-finish"><img alt="発表終了" src="img/button_finish.png" /></button>
+                        <p class="live-header-time">経過時間<span id="live-elapsed-time">04:48</span></p>
                     </div>
                     
-                    <div class="player-aside-group player-aside-discuss show" id="pane-discuss">
-                        <div class="discuss-input">
-                            <input type="text" class="discuss-input-text" id="input-comment" maxlength="140" />
-                            <button class="discuss-input-submit" id="button-submit-comment">投稿</button>
+                    <webview class="live-slide" id="live-slide" disablewebsecurity autosize="on"></webview>
+
+                    <div class="live-footer">
+                        <video class="live-footer-video" id="live-video" autoplay></video>
+                        
+                        <div class="live-footer-tool">
+                            <div class="live-footer-tool-info">
+                                <p>ここにお知らせやTipsが表示されてもいいかなとか考えています。マーキーではないです。</p>
+                            </div>
+                            
+                            <ul class="live-footer-tool-action live-footer-tool-presenter">
+                                <li><button id="live-action-desktop">デスクトップ配信</button></li>
+                                <li><button id="live-action-pointer">レーザーポインタ</button></li>
+                                <li><button id="live-action-question">アンケート</button></li>
+                            </ul>
                         </div>
-                        <ul class="discuss-comment-list" id="live-comment-list">
-                        </ul>
                     </div>
+                </div>
+                
+                <div class="live-right" id="live-aside">
+                    <div class="live-discus" id="pane-discuss">
+                        
+                        <input class="live-discus-radio" id="live-discus-all" type="radio" name="radio-discus" checked />
+                        <input class="live-discus-radio" id="live-discus-question" type="radio" name="radio-discus" />
+                        
+                        <div class="live-discus-wrapper">
+                            <label class="live-discus-tab" for="live-discus-all" id="live-discus-all-tab">全てのコメント</label>
+                            <label class="live-discus-tab" for="live-discus-question" id="live-discus-question-tab">質問<span id="live-num-question">11</span></label>
+
+                            <ul class="live-discus-group live-discus-all-comment" id="live-comment-list">
+                                <li class="discuss-comment new">
+                                    <img class="discuss-comment-image" src="img/avatar.jpg" width="48" height="48">
+                                    <div class="discuss-comment-body">
+                                        <strong>seibe</strong>
+                                        <p>ここに視聴者のコメントが表示されます。あなたもプレゼンテーションの感想を呟いてみましょう</p>
+                                    </div>
+                                </li>
+                            </ul>
+                            
+                            <ul class="live-discus-group live-discus-question-comment" id="live-question-list">
+                                <li class="discuss-comment new">
+                                    <img class="discuss-comment-image" src="img/avatar.jpg" width="48" height="48">
+                                    <div class="discuss-comment-body">
+                                        <strong>seibe</strong>
+                                        <p>ここに視聴者の質問が表示されます。あなたも発表者に対して質問してみましょう</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="live-atmos" id="live-atmos">
+                        <div class="live-atmos-count">現在<span id="live-num-audience">0</span>人</div>
+                    </div>
+                    
                 </div>
                 
             </section>
             
         </div>
-                    
-        <footer class="controller hide" id="live-controller">
+<!--
+        <footer class="controller" id="live-controller">
             <button class="button controller-button" id="button-live-add"><span>メディア追加</span></button>
             <button class="button controller-button" id="button-live-switch"><span>主画面切替</span></button>
             <button class="button controller-button" id="button-live-pointer"><span>ポインター</span></button>
             <button class="button controller-button" id="button-live-quest"><span>アンケート</span></button>
             <button class="button controller-button" id="button-live-finish"><span>配信終了</span></button>
         </footer>
+-->
 	</main>
     
     <dialog class="dialog" id="dialog-loading">

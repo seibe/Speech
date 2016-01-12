@@ -20,11 +20,12 @@ HxOverrides.indexOf = function(a,obj,i) {
 	}
 	return -1;
 };
-HxOverrides.remove = function(a,obj) {
-	var i = HxOverrides.indexOf(a,obj,0);
-	if(i == -1) return false;
-	a.splice(i,1);
-	return true;
+HxOverrides.iter = function(a) {
+	return { cur : 0, arr : a, hasNext : function() {
+		return this.cur < this.arr.length;
+	}, next : function() {
+		return this.arr[this.cur++];
+	}};
 };
 Math.__name__ = true;
 var Std = function() { };
@@ -32,6 +33,8 @@ Std.__name__ = true;
 Std.string = function(s) {
 	return js_Boot.__string_rec(s,"");
 };
+var haxe_IMap = function() { };
+haxe_IMap.__name__ = true;
 var haxe__$Int64__$_$_$Int64 = function(high,low) {
 	this.high = high;
 	this.low = low;
@@ -44,6 +47,55 @@ var haxe_Log = function() { };
 haxe_Log.__name__ = true;
 haxe_Log.trace = function(v,infos) {
 	js_Boot.__trace(v,infos);
+};
+var haxe_ds_IntMap = function() {
+	this.h = { };
+};
+haxe_ds_IntMap.__name__ = true;
+haxe_ds_IntMap.__interfaces__ = [haxe_IMap];
+haxe_ds_IntMap.prototype = {
+	remove: function(key) {
+		if(!this.h.hasOwnProperty(key)) return false;
+		delete(this.h[key]);
+		return true;
+	}
+	,keys: function() {
+		var a = [];
+		for( var key in this.h ) {
+		if(this.h.hasOwnProperty(key)) a.push(key | 0);
+		}
+		return HxOverrides.iter(a);
+	}
+	,iterator: function() {
+		return { ref : this.h, it : this.keys(), hasNext : function() {
+			return this.it.hasNext();
+		}, next : function() {
+			var i = this.it.next();
+			return this.ref[i];
+		}};
+	}
+	,__class__: haxe_ds_IntMap
+};
+var haxe_ds_ObjectMap = function() {
+	this.h = { };
+	this.h.__keys__ = { };
+};
+haxe_ds_ObjectMap.__name__ = true;
+haxe_ds_ObjectMap.__interfaces__ = [haxe_IMap];
+haxe_ds_ObjectMap.prototype = {
+	set: function(key,value) {
+		var id = key.__id__ || (key.__id__ = ++haxe_ds_ObjectMap.count);
+		this.h[id] = value;
+		this.h.__keys__[id] = key;
+	}
+	,remove: function(key) {
+		var id = key.__id__;
+		if(this.h.__keys__[id] == null) return false;
+		delete(this.h[id]);
+		delete(this.h.__keys__[id]);
+		return true;
+	}
+	,__class__: haxe_ds_ObjectMap
 };
 var haxe_io_Error = { __ename__ : true, __constructs__ : ["Blocked","Overflow","OutsideBounds","Custom"] };
 haxe_io_Error.Blocked = ["Blocked",0];
@@ -449,363 +501,637 @@ js_html_compat_Uint8Array._subarray = function(start,end) {
 var js_node_Fs = require("fs");
 var js_node_Https = require("https");
 var js_node_Path = require("path");
+var js_node_Url = require("url");
 var js_node_tls_SecureContext = function() { };
 js_node_tls_SecureContext.__name__ = true;
 var kurento = require("kurento-client");
 var shortId_ShortId = require("shortid");
 var speech_Main = function() {
-	var _g = this;
-	this._roomList = [];
-	this._sessionList = [];
-	var server = js_node_Https.createServer({ key : js_node_Fs.readFileSync("/etc/letsencrypt/live/example.com/privkey.pem"), cert : js_node_Fs.readFileSync("/etc/letsencrypt/live/example.com/cert.pem")},function(req,res) {
+	this._w = new haxe_ds_ObjectMap();
+	this._u = new haxe_ds_IntMap();
+	this._p = new haxe_ds_IntMap();
+	var server = js_node_Https.createServer({ key : js_node_Fs.readFileSync("/etc/letsencrypt/live/seibe.jp/privkey.pem"), cert : js_node_Fs.readFileSync("/etc/letsencrypt/live/seibe.jp/cert.pem")},function(req,res) {
 		res.writeHead(200);
 		res.end("All glory to WebSockets!\n");
 	}).listen(8081);
 	this._server = new ws_WsServer({ server : server, path : "/speech"});
-	this._server.on("connection",function(ws) {
-		var session = new speech_core_Session(ws);
-		_g._sessionList.push(session);
-		haxe_Log.trace("Connection received with sessionId",{ fileName : "Main.hx", lineNumber : 53, className : "speech.Main", methodName : "new", customParams : [session.id]});
-		ws.on("message",function(data,flags) {
-			_g.onWsMessage(session,data,flags);
-		});
-		ws.on("close",function() {
-			_g.onWsClose(session);
-		});
-		ws.on("error",function(error) {
-			_g.onWsError(session,error);
-		});
-	});
+	this._server.on("connection",$bind(this,this.onConnect));
 };
 speech_Main.__name__ = true;
 speech_Main.main = function() {
 	new speech_Main();
 };
 speech_Main.prototype = {
-	onWsMessage: function(session,data,flags) {
-		var mes = JSON.parse(data);
-		var d = mes.data;
-		haxe_Log.trace("onWsMessage",{ fileName : "Main.hx", lineNumber : 69, className : "speech.Main", methodName : "onWsMessage", customParams : [mes.type]});
-		var _g = mes.type;
-		switch(_g) {
+	onConnect: function(ws) {
+		var _g = this;
+		{
+			this._w.set(ws,null);
+			null;
+		}
+		ws.on("message",function(data,flags) {
+			_g.onMessage(ws,data,flags);
+		});
+		ws.on("close",function() {
+			_g.onClose(ws);
+		});
+		ws.on("error",function(error) {
+			_g.onError(ws,error);
+		});
+	}
+	,onMessage: function(ws,data,flags) {
+		var json = JSON.parse(data);
+		var type = json.type;
+		var d = json.data;
+		var u = this._w.h[ws.__id__];
+		switch(type) {
 		case "joinPresenter":
-			var room = new speech_core_Room(d.title,d.description,session,d.slideUrl);
-			this._roomList.push(room);
-			session.ws.send(JSON.stringify({ type : "accept", data : room.id}));
+			this.initPresentation(ws,d.title,d.slideUrl,d.name);
 			break;
 		case "leavePresenter":
-			HxOverrides.remove(this._roomList,session.room);
-			session.destroy();
-			break;
-		case "updateSlide":
-			session.room.broadcast(speech_core_Response.UPDATE_SLIDE(d));
-			break;
-		case "startStream":
-			session.startStream("ws://localhost:8888/kurento","file:///var/www/example.com/record",d);
-			break;
-		case "stopStream":
-			session.stopStream();
-			break;
-		case "appendMedia":
-			break;
-		case "removeMedia":
+			if(u.type != speech_abstracts_UserType.PRESENTER) return;
+			this.finalizePresentation(u);
 			break;
 		case "joinViewer":
-			if(d != null && d.roomId != null) {
-				var _g1 = 0;
-				var _g2 = this._roomList;
-				while(_g1 < _g2.length) {
-					var room1 = _g2[_g1];
-					++_g1;
-					if(room1.id == d.roomId) {
-						this.onJoinViewer(session,room1,d);
-						return;
-					}
-				}
-			}
-			if(this._roomList.length == 0) {
-				session.ws.send(JSON.stringify({ type : "onError", data : "指定された部屋は存在しないか、中継が終了しています"}));
-				session.destroy();
-			} else this.onJoinViewer(session,this._roomList[0],d);
-			break;
-		case "requestStream":
-			if(d != null) session.connectStream(d);
+			this.joinPresentation(ws,d);
 			break;
 		case "leaveViewer":
-			session.destroy();
+			if(u.type != speech_abstracts_UserType.AUDIENCE) return;
+			this.leavePresentation(u);
+			break;
+		case "updateSlide":
+			if(u.type != speech_abstracts_UserType.PRESENTER) return;
+			this.updateSlideUrl(u,d);
+			break;
+		case "startStream":
+			if(u.type != speech_abstracts_UserType.PRESENTER) return;
+			this.initStream(u,d.offer,d.target);
+			break;
+		case "stopStream":
+			if(u.type != speech_abstracts_UserType.PRESENTER) return;
+			this.finalizeStream(u);
+			break;
+		case "connectStream":
+			if(u.type != speech_abstracts_UserType.AUDIENCE) return;
+			this.connectStream(u,d);
 			break;
 		case "comment":
-			session.room.broadcast(speech_core_Response.COMMENT(d.name,d.text,d.slideUrl));
+			this.comment(u,{ type : d.type, text : d.text, pageUrl : d.pageUrl, userId : u.id, name : d.name, point : d.point});
 			break;
 		case "iceCandidate":
-			session.addIceCandidate(d);
+			this.addIceCandidate(u,d);
+			break;
+		case "requestLog":
+			if(u.type != speech_abstracts_UserType.PRESENTER) return;
+			this.makeLog(u);
 			break;
 		default:
-			haxe_Log.trace("ws throw",{ fileName : "Main.hx", lineNumber : 147, className : "speech.Main", methodName : "onWsMessage", customParams : [mes.type]});
+			haxe_Log.trace("ws throw",{ fileName : "Main.hx", lineNumber : 160, className : "speech.Main", methodName : "onMessage", customParams : [json.type]});
 		}
 	}
-	,onWsClose: function(session) {
-		haxe_Log.trace("close ws id: " + session.id,{ fileName : "Main.hx", lineNumber : 153, className : "speech.Main", methodName : "onWsClose"});
-		if(session.isPresenter()) {
-			HxOverrides.remove(this._roomList,session.room);
-			session.room.destroy();
+	,onClose: function(ws) {
+		var u = this._w.h[ws.__id__];
+		if(u != null) {
+			u.socket = null;
+			var _g = u.type;
+			switch(_g[1]) {
+			case 1:
+				if(!u.deleted) this.leavePresentation(u);
+				var p;
+				var key = u.presentationId.toInt();
+				p = this._p.h[key];
+				if(p != null) this.broadcast(p,"updateAudience",this.getNumAlive(p),true);
+				break;
+			case 0:
+				if(!u.deleted) this.finalizePresentation(u);
+				break;
+			}
 		}
-		session.destroy();
-		HxOverrides.remove(this._sessionList,session);
+		this._w.remove(ws);
 	}
-	,onWsError: function(session,error) {
-		haxe_Log.trace("ws error",{ fileName : "Main.hx", lineNumber : 164, className : "speech.Main", methodName : "onWsError", customParams : [error]});
+	,onError: function(ws,error) {
+		haxe_Log.trace("ws error",{ fileName : "Main.hx", lineNumber : 187, className : "speech.Main", methodName : "onError", customParams : [error]});
 	}
-	,onJoinViewer: function(viewer,room,data) {
-		room.viewerList.push(viewer);
-		viewer.room = room;
-		viewer.ws.send(JSON.stringify({ type : "accept", data : { title : room.title, description : room.description, slideUrl : room.slideUrl}, timestamp : new Date().getTime()}));
-		if(room.presenter.endpoint != null) {
-			if(data != null && data.sdpOffer != null) viewer.connectStream(data.sdpOffer); else viewer.ws.send(JSON.stringify({ type : "canStartStream", timestamp : new Date().getTime()}));
+	,initPresentation: function(ws,title,url,name) {
+		var urldata = js_node_Url.parse(url);
+		if(urldata.protocol != "http:" && urldata.protocol != "https:") {
+			haxe_Log.trace("無効なURLが指定された: " + url,{ fileName : "Main.hx", lineNumber : 203, className : "speech.Main", methodName : "initPresentation"});
+			return;
 		}
+		var p = new speech_abstracts_Presentation();
+		var k = p.id.toInt();
+		this._p.h[k] = p;
+		p;
+		var u = new speech_abstracts_Presenter(p.id,ws);
+		u.name = name;
+		var k1 = u.id.toInt();
+		this._u.h[k1] = u;
+		u;
+		{
+			this._w.set(ws,u);
+			u;
+		}
+		p.presenterId = u.id;
+		p.title = title;
+		p.slideUrls.push(url);
+		p.activities.push(new speech_abstracts_Activity(speech_abstracts_ActivityType.INITIALIZE));
+		ws.send(speech_abstracts_Message.generate("acceptPresenter",p.shortId));
+	}
+	,finalizePresentation: function(u) {
+		var p;
+		var key = u.presentationId.toInt();
+		p = this._p.h[key];
+		if(u.stream != null) this.finalizeStream(u);
+		u.deleted = true;
+		if(u.socket != null) {
+			u.socket.send(speech_abstracts_Message.generate("finish"));
+			u.socket.close();
+			u.socket = null;
+		}
+		var _g = 0;
+		var _g1 = p.audienceIds;
+		while(_g < _g1.length) {
+			var aid = _g1[_g];
+			++_g;
+			var a;
+			var key1 = aid.toInt();
+			a = this._u.h[key1];
+			a.deleted = true;
+			if(a.socket != null) {
+				a.socket.send(speech_abstracts_Message.generate("finish"));
+				a.socket.close();
+				a.socket = null;
+			}
+		}
+		var key2 = p.presenterId.toInt();
+		this._u.remove(key2);
+		var _g2 = 0;
+		var _g11 = p.audienceIds;
+		while(_g2 < _g11.length) {
+			var aid1 = _g11[_g2];
+			++_g2;
+			var key3 = aid1.toInt();
+			this._u.remove(key3);
+		}
+		var key4 = p.id.toInt();
+		this._p.remove(key4);
+	}
+	,joinPresentation: function(ws,shortId) {
+		var p = null;
+		if(shortId != null) {
+			var $it0 = this._p.iterator();
+			while( $it0.hasNext() ) {
+				var temp = $it0.next();
+				if(temp.shortId == shortId) {
+					p = temp;
+					break;
+				}
+			}
+			if(p == null) {
+				ws.send(JSON.stringify({ type : "onError", data : "発表が存在しません"}));
+				return;
+			}
+		} else {
+			if(p == null) {
+				var $it1 = this._p.iterator();
+				while( $it1.hasNext() ) {
+					var temp1 = $it1.next();
+					p = temp1;
+					break;
+				}
+			}
+			if(p == null) {
+				ws.send(JSON.stringify({ type : "onError", data : "現在発表は行われていません"}));
+				return;
+			}
+		}
+		var a = new speech_abstracts_Audience(p.id,ws);
+		var k = a.id.toInt();
+		this._u.h[k] = a;
+		a;
+		{
+			this._w.set(ws,a);
+			a;
+		}
+		p.audienceIds.push(a.id);
+		p.activities.push(new speech_abstracts_Activity(speech_abstracts_ActivityType.JOIN(p.audienceIds.length - 1)));
+		ws.send(speech_abstracts_Message.generate("acceptAudience",{ title : p.title, slideUrl : p.slideUrls[p.slideUrls.length - 1]}));
+		var u;
+		var key = p.presenterId.toInt();
+		u = this._u.h[key];
+		if(u.endpoint != null) a.socket.send(speech_abstracts_Message.generate("canConnectStream"));
+		this.broadcast(p,"updateAudience",this.getNumAlive(p),true);
+	}
+	,leavePresentation: function(a) {
+		var p;
+		var key = a.presentationId.toInt();
+		p = this._p.h[key];
+		if(a.endpoint != null) this.disconnectStream(a);
+		if(a.socket != null) {
+			a.deleted = true;
+			a.socket.close();
+			a.socket = null;
+		}
+		var index = HxOverrides.indexOf(p.audienceIds,a.id,0);
+		p.activities.push(new speech_abstracts_Activity(speech_abstracts_ActivityType.LEAVE(index)));
+	}
+	,updateSlideUrl: function(u,url) {
+		var urldata = js_node_Url.parse(url);
+		if(urldata.protocol != "http:" && urldata.protocol != "https:") {
+			haxe_Log.trace("無効なURLが指定された: " + url,{ fileName : "Main.hx", lineNumber : 377, className : "speech.Main", methodName : "updateSlideUrl"});
+			return;
+		}
+		var p;
+		var key = u.presentationId.toInt();
+		p = this._p.h[key];
+		var index = HxOverrides.indexOf(p.slideUrls,url,0);
+		if(index < 0) {
+			p.slideUrls.push(url);
+			index = p.slideUrls.length - 1;
+		}
+		p.activities.push(new speech_abstracts_Activity(speech_abstracts_ActivityType.UPDATE_SLIDE(index)));
+		this.broadcast(p,"onUpdateSlide",url == null?"null":"" + url);
+	}
+	,initStream: function(u,sdpOffer,target) {
+		var _g = this;
+		var p;
+		var key = u.presentationId.toInt();
+		p = this._p.h[key];
+		u.candidatesQueue = [];
+		kurento.getSingleton("ws://kurento.seibe.jp:8888/kurento").then(function(client) {
+			if(u.socket == null || client == null) return Promise.reject();
+			return client.create("MediaPipeline");
+		})["catch"](function(error) {
+			haxe_Log.trace(error,{ fileName : "Main.hx", lineNumber : 421, className : "speech.Main", methodName : "initStream"});
+			if(u.socket != null) u.socket.send(speech_abstracts_Message.generate("onError",error));
+			_g.finalizeStream(u);
+			return null;
+		}).then(function(pipeline) {
+			if(u.socket == null || pipeline == null) return Promise.reject();
+			u.pipeline = pipeline;
+			var p1 = pipeline.create("WebRtcEndpoint");
+			u.stream = new speech_abstracts_Stream(target);
+			var p2 = pipeline.create("RecorderEndpoint",{ uri : js_node_Path.join("file:///var/www/kurento.seibe.jp/record",u.stream.filename)});
+			return Promise.all([p1,p2]);
+		}).then(function(endpoints) {
+			if(u.socket == null || u.pipeline == null) return Promise.reject();
+			u.endpoint = endpoints[0];
+			u.recorder = endpoints[1];
+			if(u.endpoint == null || u.recorder == null) return Promise.reject();
+			return u.endpoint.connect(u.recorder);
+		}).then(function(dummy) {
+			if(u.socket == null || u.pipeline == null) return Promise.reject();
+			if(u.endpoint == null || u.recorder == null) return Promise.reject();
+			u.recorder.record();
+			_g.exchangeCandidates(u);
+			var p11 = u.endpoint.processOffer(sdpOffer);
+			var p21 = u.endpoint.gatherCandidates();
+			return Promise.all([p11,p21]);
+		}).then(function(results) {
+			if(u.socket == null || u.pipeline == null) return Promise.reject();
+			var sdpAnswer = results[0];
+			p.streams.push(u.stream);
+			p.activities.push(new speech_abstracts_Activity(speech_abstracts_ActivityType.STREAM_BEGIN(p.streams.length - 1)));
+			u.socket.send(speech_abstracts_Message.generate("acceptStream",sdpAnswer));
+			_g.broadcast(p,"canConnectStream");
+			return null;
+		})["catch"](function(error1) {
+			haxe_Log.trace(error1,{ fileName : "Main.hx", lineNumber : 473, className : "speech.Main", methodName : "initStream"});
+			if(u.socket != null) u.socket.send(speech_abstracts_Message.generate("onError",error1));
+			_g.finalizeStream(u);
+			return null;
+		});
+	}
+	,finalizeStream: function(u) {
+		var p;
+		var key = u.presentationId.toInt();
+		p = this._p.h[key];
+		this.broadcast(p,"willStopStream",null,true);
+		var index = HxOverrides.indexOf(p.streams,u.stream,0);
+		p.activities.push(new speech_abstracts_Activity(speech_abstracts_ActivityType.STREAM_END(index)));
+		try {
+			if(u.recorder != null) {
+				u.recorder.stop();
+				u.recorder.release();
+			}
+			if(u.pipeline != null) u.pipeline.release();
+			if(u.endpoint != null) u.endpoint.release();
+		} catch( e ) {
+			if (e instanceof js__$Boot_HaxeError) e = e.val;
+			if( js_Boot.__instanceof(e,Error) ) {
+				haxe_Log.trace(e,{ fileName : "Main.hx", lineNumber : 507, className : "speech.Main", methodName : "finalizeStream"});
+			} else throw(e);
+		}
+		u.stream = null;
+		u.candidatesQueue = null;
+		u.recorder = null;
+		u.pipeline = null;
+		u.endpoint = null;
+		u.socket.send(speech_abstracts_Message.generate("onStopStream"));
+		var _g = 0;
+		var _g1 = p.audienceIds;
+		while(_g < _g1.length) {
+			var aid = _g1[_g];
+			++_g;
+			var a;
+			var key1 = aid.toInt();
+			a = this._u.h[key1];
+			this.disconnectStream(a);
+		}
+	}
+	,connectStream: function(a,sdpOffer) {
+		var _g = this;
+		var p;
+		var key = a.presentationId.toInt();
+		p = this._p.h[key];
+		var u;
+		var key1 = p.presenterId.toInt();
+		u = this._u.h[key1];
+		if(u.endpoint == null || u.pipeline == null) {
+			a.socket.send(speech_abstracts_Message.generate("onError","映像配信がないです"));
+			return;
+		}
+		var sdpAnswer = null;
+		a.pipeline = u.pipeline;
+		a.pipeline.create("WebRtcEndpoint").then(function(endpoint) {
+			if(a.socket == null || a.pipeline == null) return Promise.reject();
+			a.endpoint = endpoint;
+			_g.exchangeCandidates(u);
+			return endpoint.processOffer(sdpOffer);
+		}).then(function(answer) {
+			if(a.socket == null || a.pipeline == null) return Promise.reject();
+			sdpAnswer = answer;
+			return u.endpoint.connect(a.endpoint);
+		}).then(function(dummy) {
+			if(a.socket == null || a.pipeline == null) return Promise.reject();
+			return a.endpoint.gatherCandidates();
+		}).then(function(dummy1) {
+			if(a.socket == null || a.pipeline == null) return Promise.reject();
+			a.socket.send(speech_abstracts_Message.generate("acceptStream",sdpAnswer));
+			return null;
+		})["catch"](function(error) {
+			haxe_Log.trace(error,{ fileName : "Main.hx", lineNumber : 570, className : "speech.Main", methodName : "connectStream"});
+			a.socket.send(speech_abstracts_Message.generate("onError",error));
+		});
+	}
+	,disconnectStream: function(a) {
+		try {
+			if(a.endpoint != null) a.endpoint.release();
+		} catch( e ) {
+			if (e instanceof js__$Boot_HaxeError) e = e.val;
+			if( js_Boot.__instanceof(e,Error) ) {
+				haxe_Log.trace(e,{ fileName : "Main.hx", lineNumber : 585, className : "speech.Main", methodName : "disconnectStream"});
+			} else throw(e);
+		}
+		a.candidatesQueue = null;
+		a.pipeline = null;
+		a.endpoint = null;
+		if(a.socket != null) a.socket.send(speech_abstracts_Message.generate("onStopStream"));
+	}
+	,comment: function(u,d) {
+		var p;
+		var key = u.presentationId.toInt();
+		p = this._p.h[key];
+		p.activities.push(new speech_abstracts_Activity(speech_abstracts_ActivityType.COMMENT(d)));
+		this.broadcast(p,"onComment",d,true);
+	}
+	,makeLog: function(u) {
+		var p;
+		var key = u.presentationId.toInt();
+		p = this._p.h[key];
+		if(u.stream != null) this.finalizeStream(u);
+		p.activities.push(new speech_abstracts_Activity(speech_abstracts_ActivityType.FINALIZE));
+		var log = { title : p.title, time_begin : p.activities[0].time, time_end : p.activities[p.activities.length - 1].time, presenter : { name : u.name}, audience : [], slide : [], attachment : [], activity : []};
+		var _g1 = 0;
+		var _g = p.audienceIds.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var a;
+			var key1 = p.audienceIds[i].toInt();
+			a = this._u.h[key1];
+			log.audience.push({ index : i, name : a.name});
+		}
+		var _g11 = 0;
+		var _g2 = p.slideUrls.length;
+		while(_g11 < _g2) {
+			var i1 = _g11++;
+			var url = Std.string(p.slideUrls[i1]);
+			log.slide.push({ index : i1, url : url});
+		}
+		var _g12 = 0;
+		var _g3 = p.streams.length;
+		while(_g12 < _g3) {
+			var i2 = _g12++;
+			var url1 = js_node_Path.join("https://kurento.seibe.jp/record",p.streams[i2].filename);
+			log.attachment.push({ index : i2, type : "video/webm", url : url1, name : p.streams[i2].target});
+		}
+		var _g13 = 0;
+		var _g4 = p.activities.length;
+		while(_g13 < _g4) {
+			var i3 = _g13++;
+			var act = p.activities[i3];
+			{
+				var _g21 = act.type;
+				switch(_g21[1]) {
+				case 0:
+					log.activity.push({ index : i3, time : act.time, type : "begin"});
+					break;
+				case 1:
+					log.activity.push({ index : i3, time : act.time, type : "end"});
+					break;
+				case 2:
+					var index = _g21[2];
+					log.activity.push({ index : i3, time : act.time, type : "join", audience_index : index});
+					break;
+				case 3:
+					var index1 = _g21[2];
+					log.activity.push({ index : i3, time : act.time, type : "leave", audience_index : index1});
+					break;
+				case 4:
+					var index2 = _g21[2];
+					log.activity.push({ index : i3, time : act.time, type : "update_slide", slide_index : index2});
+					break;
+				case 5:
+					var index3 = _g21[2];
+					log.activity.push({ index : i3, time : act.time, type : "begin_stream", attachment_index : index3});
+					break;
+				case 6:
+					var index4 = _g21[2];
+					log.activity.push({ index : i3, time : act.time, type : "end_stream", attachment_index : index4});
+					break;
+				case 7:
+					var data = _g21[2];
+					var slideIndex = HxOverrides.indexOf(p.slideUrls,data.pageUrl,0);
+					var audienceIndex = HxOverrides.indexOf(p.audienceIds,data.userId,0);
+					log.activity.push({ index : i3, time : act.time, type : "comment", slide_index : slideIndex, comment : { text : data.text, user_name : data.name, comment_type : Std.string(data.type)}, point : data.point, audience_index : audienceIndex});
+					break;
+				}
+			}
+		}
+		var filename = shortId_ShortId.generate() + ".json";
+		var filepath = js_node_Path.join("/var/www/seibe.jp/speech/log",filename);
+		js_node_Fs.appendFileSync(filepath,JSON.stringify(log));
+		if(u.socket != null) {
+			var url2 = js_node_Path.join("https://seibe.jp/speech/log",filename);
+			u.socket.send(speech_abstracts_Message.generate("onCreateLog",url2));
+		}
+	}
+	,addIceCandidate: function(u,candidate) {
+		candidate = kurento.register.complexTypes.IceCandidate(candidate);
+		if(u.endpoint != null) u.endpoint.addIceCandidate(candidate); else {
+			if(u.candidatesQueue == null) u.candidatesQueue = [];
+			u.candidatesQueue.push(candidate);
+		}
+	}
+	,exchangeCandidates: function(u) {
+		while(u.candidatesQueue.length > 0) {
+			var candidate = u.candidatesQueue.shift();
+			u.endpoint.addIceCandidate(candidate);
+		}
+		u.endpoint.on("OnIceCandidate",function(e) {
+			var candidate1 = kurento.register.complexTypes.IceCandidate(e.candidate);
+			u.socket.send(speech_abstracts_Message.generate("iceCandidate",candidate1));
+		});
+	}
+	,broadcast: function(p,type,data,withPresenter) {
+		if(withPresenter == null) withPresenter = false;
+		if(withPresenter) {
+			var u;
+			var key = p.presenterId.toInt();
+			u = this._u.h[key];
+			if(u.socket != null) u.socket.send(speech_abstracts_Message.generate(type,data));
+		}
+		var _g = 0;
+		var _g1 = p.audienceIds;
+		while(_g < _g1.length) {
+			var aid = _g1[_g];
+			++_g;
+			var a;
+			var key1 = aid.toInt();
+			a = this._u.h[key1];
+			if(a.socket != null) a.socket.send(speech_abstracts_Message.generate(type,data));
+		}
+	}
+	,getNumAlive: function(p) {
+		var num = 0;
+		var _g = 0;
+		var _g1 = p.audienceIds;
+		while(_g < _g1.length) {
+			var aid = _g1[_g];
+			++_g;
+			var a;
+			var key = aid.toInt();
+			a = this._u.h[key];
+			if(a.socket != null) num++;
+		}
+		return num;
 	}
 	,__class__: speech_Main
 };
-var speech_core_Response = { __ename__ : true, __constructs__ : ["ENTER","LEAVE","END","UPDATE_SLIDE","COMMENT","CAN_START_STREAM","STOP_STREAM","ERROR"] };
-speech_core_Response.ENTER = function(userId,totalNum) { var $x = ["ENTER",0,userId,totalNum]; $x.__enum__ = speech_core_Response; $x.toString = $estr; return $x; };
-speech_core_Response.LEAVE = function(userId) { var $x = ["LEAVE",1,userId]; $x.__enum__ = speech_core_Response; $x.toString = $estr; return $x; };
-speech_core_Response.END = ["END",2];
-speech_core_Response.END.toString = $estr;
-speech_core_Response.END.__enum__ = speech_core_Response;
-speech_core_Response.UPDATE_SLIDE = function(slideUrl) { var $x = ["UPDATE_SLIDE",3,slideUrl]; $x.__enum__ = speech_core_Response; $x.toString = $estr; return $x; };
-speech_core_Response.COMMENT = function(name,text,slideUrl) { var $x = ["COMMENT",4,name,text,slideUrl]; $x.__enum__ = speech_core_Response; $x.toString = $estr; return $x; };
-speech_core_Response.CAN_START_STREAM = ["CAN_START_STREAM",5];
-speech_core_Response.CAN_START_STREAM.toString = $estr;
-speech_core_Response.CAN_START_STREAM.__enum__ = speech_core_Response;
-speech_core_Response.STOP_STREAM = ["STOP_STREAM",6];
-speech_core_Response.STOP_STREAM.toString = $estr;
-speech_core_Response.STOP_STREAM.__enum__ = speech_core_Response;
-speech_core_Response.ERROR = function(error) { var $x = ["ERROR",7,error]; $x.__enum__ = speech_core_Response; $x.toString = $estr; return $x; };
-var speech_core_Room = function(title,desc,presenter,slideUrl) {
-	this.title = title;
-	if(desc == null) this.description = ""; else this.description = desc;
-	this.presenter = presenter;
-	this.presenter.room = this;
-	this.slideUrl = slideUrl;
-	this.id = shortId_ShortId.generate();
-	this.viewerList = [];
-	var timestamp = Std.string(new Date().getTime());
-	js_node_Fs.writeFile(__dirname + "/file/" + this.id + ".txt",timestamp + ",create,\r\n",$bind(this,this.onSave));
+var speech_abstracts_Activity = function(actType) {
+	this.time = new Date().getTime();
+	this.type = actType;
 };
-speech_core_Room.__name__ = true;
-speech_core_Room.prototype = {
-	broadcast: function(resp) {
-		var obj = { };
-		switch(resp[1]) {
-		case 3:
-			var slideUrl = resp[2];
-			obj.type = "onUpdateSlide";
-			obj.data = slideUrl;
-			this.save("change",slideUrl);
-			break;
-		case 4:
-			var url = resp[4];
-			var text = resp[3];
-			var name = resp[2];
-			obj.type = "onComment";
-			obj.data = { name : name, text : text, slideUrl : url};
-			this.save("comment",JSON.stringify(obj.data));
-			break;
-		case 5:
-			obj.type = "canStartStream";
-			this.save("startStream",this.presenter.recordPath);
-			break;
-		case 6:
-			obj.type = "onStopStream";
-			this.save("stopStream");
-			break;
-		default:
-			haxe_Log.trace("broadcast error",{ fileName : "Room.hx", lineNumber : 73, className : "speech.core.Room", methodName : "broadcast", customParams : [resp]});
-		}
-		obj.timestamp = new Date().getTime();
-		var data = JSON.stringify(obj);
-		this.presenter.ws.send(data);
-		var _g = 0;
-		var _g1 = this.viewerList;
-		while(_g < _g1.length) {
-			var viewer = _g1[_g];
-			++_g;
-			viewer.ws.send(data);
-		}
-	}
-	,destroy: function() {
-		if(this.id == null) return;
-		this.save("close");
-		this.id = null;
-		if(this.presenter != null) this.presenter.destroy();
-		this.presenter = null;
-		if(this.viewerList != null) {
-			var _g = 0;
-			var _g1 = this.viewerList;
-			while(_g < _g1.length) {
-				var viewer = _g1[_g];
-				++_g;
-				viewer.destroy();
-			}
-		}
-		this.viewerList = null;
-		this.title = null;
-		this.presenter = null;
-		this.slideUrl = null;
-	}
-	,save: function(cmd,notes) {
-		if(notes == null) notes = "";
-		var path = __dirname + "/file/" + this.id + ".txt";
-		var timestamp = Std.string(new Date().getTime());
-		var data = timestamp + "," + cmd + "," + notes;
-		js_node_Fs.appendFile(path,timestamp + "," + data + "\r\n",$bind(this,this.onSave));
-	}
-	,onSave: function(err) {
-		if(err != null) haxe_Log.trace("save error",{ fileName : "Room.hx", lineNumber : 113, className : "speech.core.Room", methodName : "onSave", customParams : [err]});
-	}
-	,__class__: speech_core_Room
+speech_abstracts_Activity.__name__ = true;
+speech_abstracts_Activity.prototype = {
+	__class__: speech_abstracts_Activity
 };
-var speech_core_Session = function(socket) {
-	this.id = speech_core_Session.getNextId();
-	this.ws = socket;
-	this.room = null;
-	this.endpoint = null;
+var speech_abstracts_ActivityType = { __ename__ : true, __constructs__ : ["INITIALIZE","FINALIZE","JOIN","LEAVE","UPDATE_SLIDE","STREAM_BEGIN","STREAM_END","COMMENT"] };
+speech_abstracts_ActivityType.INITIALIZE = ["INITIALIZE",0];
+speech_abstracts_ActivityType.INITIALIZE.toString = $estr;
+speech_abstracts_ActivityType.INITIALIZE.__enum__ = speech_abstracts_ActivityType;
+speech_abstracts_ActivityType.FINALIZE = ["FINALIZE",1];
+speech_abstracts_ActivityType.FINALIZE.toString = $estr;
+speech_abstracts_ActivityType.FINALIZE.__enum__ = speech_abstracts_ActivityType;
+speech_abstracts_ActivityType.JOIN = function(index) { var $x = ["JOIN",2,index]; $x.__enum__ = speech_abstracts_ActivityType; $x.toString = $estr; return $x; };
+speech_abstracts_ActivityType.LEAVE = function(index) { var $x = ["LEAVE",3,index]; $x.__enum__ = speech_abstracts_ActivityType; $x.toString = $estr; return $x; };
+speech_abstracts_ActivityType.UPDATE_SLIDE = function(index) { var $x = ["UPDATE_SLIDE",4,index]; $x.__enum__ = speech_abstracts_ActivityType; $x.toString = $estr; return $x; };
+speech_abstracts_ActivityType.STREAM_BEGIN = function(index) { var $x = ["STREAM_BEGIN",5,index]; $x.__enum__ = speech_abstracts_ActivityType; $x.toString = $estr; return $x; };
+speech_abstracts_ActivityType.STREAM_END = function(index) { var $x = ["STREAM_END",6,index]; $x.__enum__ = speech_abstracts_ActivityType; $x.toString = $estr; return $x; };
+speech_abstracts_ActivityType.COMMENT = function(data) { var $x = ["COMMENT",7,data]; $x.__enum__ = speech_abstracts_ActivityType; $x.toString = $estr; return $x; };
+var speech_abstracts_User = function(utype,pid,ws) {
+	this.id = speech_abstracts_Uuid.generate();
+	this.presentationId = pid;
+	this.type = utype;
+	this.deleted = false;
+	this.name = null;
+	this.socket = ws;
+	this.candidatesQueue = null;
 	this.pipeline = null;
+	this.endpoint = null;
+};
+speech_abstracts_User.__name__ = true;
+speech_abstracts_User.prototype = {
+	__class__: speech_abstracts_User
+};
+var speech_abstracts_Audience = function(pid,ws) {
+	speech_abstracts_User.call(this,speech_abstracts_UserType.AUDIENCE,pid,ws);
+};
+speech_abstracts_Audience.__name__ = true;
+speech_abstracts_Audience.__super__ = speech_abstracts_User;
+speech_abstracts_Audience.prototype = $extend(speech_abstracts_User.prototype,{
+	__class__: speech_abstracts_Audience
+});
+var speech_abstracts_Message = function() { };
+speech_abstracts_Message.__name__ = true;
+speech_abstracts_Message.generate = function(type,data) {
+	return JSON.stringify({ type : type, data : data, timestamp : new Date().getTime()});
+};
+var speech_abstracts_Presentation = function() {
+	this.id = speech_abstracts_Uuid.generate();
+	this.shortId = shortId_ShortId.generate();
+	this.presenterId = null;
+	this.audienceIds = [];
+	this.title = null;
+	this.slideUrls = [];
+	this.streams = [];
+	this.activities = [];
+};
+speech_abstracts_Presentation.__name__ = true;
+speech_abstracts_Presentation.prototype = {
+	__class__: speech_abstracts_Presentation
+};
+var speech_abstracts_Presenter = function(pid,ws) {
+	speech_abstracts_User.call(this,speech_abstracts_UserType.PRESENTER,pid,ws);
 	this.recorder = null;
-	this.recordPath = null;
-	this.clearCandidatesQueue();
+	this.stream = null;
 };
-speech_core_Session.__name__ = true;
-speech_core_Session.getNextId = function() {
-	speech_core_Session._idCounter++;
-	return Std.string(speech_core_Session._idCounter);
+speech_abstracts_Presenter.__name__ = true;
+speech_abstracts_Presenter.__super__ = speech_abstracts_User;
+speech_abstracts_Presenter.prototype = $extend(speech_abstracts_User.prototype,{
+	__class__: speech_abstracts_Presenter
+});
+var speech_abstracts_Stream = function(target) {
+	this.target = target;
+	this.filename = shortId_ShortId.generate() + ".webm";
 };
-speech_core_Session.prototype = {
-	isPresenter: function() {
-		return this.room != null && this.room.presenter != null && this.room.presenter == this;
+speech_abstracts_Stream.__name__ = true;
+speech_abstracts_Stream.prototype = {
+	__class__: speech_abstracts_Stream
+};
+var speech_abstracts_UserType = { __ename__ : true, __constructs__ : ["PRESENTER","AUDIENCE"] };
+speech_abstracts_UserType.PRESENTER = ["PRESENTER",0];
+speech_abstracts_UserType.PRESENTER.toString = $estr;
+speech_abstracts_UserType.PRESENTER.__enum__ = speech_abstracts_UserType;
+speech_abstracts_UserType.AUDIENCE = ["AUDIENCE",1];
+speech_abstracts_UserType.AUDIENCE.toString = $estr;
+speech_abstracts_UserType.AUDIENCE.__enum__ = speech_abstracts_UserType;
+var speech_abstracts_Uuid = function(value) {
+	this._id = value;
+};
+speech_abstracts_Uuid.__name__ = true;
+speech_abstracts_Uuid.generate = function() {
+	var temp = new speech_abstracts_Uuid(speech_abstracts_Uuid._nextId);
+	speech_abstracts_Uuid._nextId++;
+	return temp;
+};
+speech_abstracts_Uuid.prototype = {
+	toInt: function() {
+		return this._id;
 	}
-	,startStream: function(kurentoUrl,recordDir,sdpOffer) {
-		var _g = this;
-		this.clearCandidatesQueue();
-		if(!this.isPresenter()) return;
-		kurento.getSingleton(kurentoUrl).then(function(client) {
-			return client.create("MediaPipeline");
-		})["catch"](function(error) {
-			haxe_Log.trace(error,{ fileName : "Session.hx", lineNumber : 69, className : "speech.core.Session", methodName : "startStream"});
-			_g.ws.send(JSON.stringify({ type : "onStopStream", data : error}));
-			return null;
-		}).then(function(pipe) {
-			_g.pipeline = pipe;
-			var p1 = _g.pipeline.create("WebRtcEndpoint");
-			_g.recordPath = js_node_Path.join(recordDir,shortId_ShortId.generate() + ".webm");
-			var p2 = _g.pipeline.create("RecorderEndpoint",{ uri : _g.recordPath});
-			return Promise.all([p1,p2]);
-		}).then(function(endpoints) {
-			_g.endpoint = endpoints[0];
-			_g.recorder = endpoints[1];
-			return _g.endpoint.connect(_g.recorder);
-		}).then(function(dummy) {
-			_g.recorder.record();
-			_g.exchangeCandidates();
-			var p11 = _g.endpoint.processOffer(sdpOffer);
-			var p21 = _g.endpoint.gatherCandidates();
-			return Promise.all([p11,p21]);
-		}).then(function(results) {
-			var sdpAnswer = results[0];
-			_g.ws.send(JSON.stringify({ type : "acceptStream", data : sdpAnswer}));
-			_g.room.broadcast(speech_core_Response.CAN_START_STREAM);
-			return null;
-		})["catch"](function(error1) {
-			haxe_Log.trace(error1,{ fileName : "Session.hx", lineNumber : 111, className : "speech.core.Session", methodName : "startStream"});
-			_g.stopStream();
-			return null;
-		});
+	,toString: function() {
+		return "" + this._id;
 	}
-	,connectStream: function(sdpOffer) {
-		var _g = this;
-		haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 119, className : "speech.core.Session", methodName : "connectStream", customParams : [1]});
-		if(this.room == null || this.room.presenter == null || this.room.presenter.pipeline == null) return;
-		haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 121, className : "speech.core.Session", methodName : "connectStream", customParams : [2]});
-		this.pipeline = this.room.presenter.pipeline;
-		var sdpAnswer = null;
-		this.pipeline.create("WebRtcEndpoint").then(function(endpoint) {
-			haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 129, className : "speech.core.Session", methodName : "connectStream", customParams : [3]});
-			_g.endpoint = endpoint;
-			_g.exchangeCandidates();
-			return endpoint.processOffer(sdpOffer);
-		}).then(function(answer) {
-			haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 136, className : "speech.core.Session", methodName : "connectStream", customParams : [4]});
-			sdpAnswer = answer;
-			return _g.room.presenter.endpoint.connect(_g.endpoint);
-		}).then(function(dummy) {
-			haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 142, className : "speech.core.Session", methodName : "connectStream", customParams : [5]});
-			return _g.endpoint.gatherCandidates();
-		}).then(function(dummy1) {
-			haxe_Log.trace("startStream",{ fileName : "Session.hx", lineNumber : 148, className : "speech.core.Session", methodName : "connectStream"});
-			_g.ws.send(JSON.stringify({ type : "startStream", data : sdpAnswer}));
-			return null;
-		})["catch"](function(error) {
-			haxe_Log.trace("connctStream",{ fileName : "Session.hx", lineNumber : 156, className : "speech.core.Session", methodName : "connectStream", customParams : [-1]});
-			haxe_Log.trace(error,{ fileName : "Session.hx", lineNumber : 158, className : "speech.core.Session", methodName : "connectStream"});
-			_g.stopStream();
-		});
-	}
-	,stopStream: function() {
-		if(this.isPresenter()) {
-			this.room.broadcast(speech_core_Response.STOP_STREAM);
-			if(this.recorder != null) {
-				this.recorder.stop();
-				this.recorder.release();
-				this.recorder = null;
-				haxe_Log.trace("stop recording",{ fileName : "Session.hx", lineNumber : 172, className : "speech.core.Session", methodName : "stopStream"});
-			}
-			if(this.pipeline != null) this.pipeline.release();
-		}
-		this.pipeline = null;
-		if(this.endpoint != null) this.endpoint.release();
-		this.endpoint = null;
-		this.clearCandidatesQueue();
-	}
-	,addIceCandidate: function(ic) {
-		ic = kurento.register.complexTypes.IceCandidate(ic);
-		if(this.endpoint != null) this.endpoint.addIceCandidate(ic); else this._candidatesQueue.push(ic);
-	}
-	,exchangeCandidates: function() {
-		var _g = this;
-		while(this._candidatesQueue.length > 0) {
-			var candidate = this._candidatesQueue.shift();
-			this.endpoint.addIceCandidate(candidate);
-		}
-		this.endpoint.on("OnIceCandidate",function(event) {
-			var candidate1 = kurento.register.complexTypes.IceCandidate(event.candidate);
-			_g.ws.send(JSON.stringify({ type : "iceCandidate", data : candidate1}));
-		});
-	}
-	,clearCandidatesQueue: function() {
-		this._candidatesQueue = [];
-	}
-	,destroy: function() {
-		if(this.id == null) return;
-		this.id = null;
-		if(this.ws != null) this.ws.close();
-		this.ws = null;
-		if(this.room != null) {
-			if(this.isPresenter()) this.room.destroy(); else HxOverrides.remove(this.room.viewerList,this);
-		}
-		this.room = null;
-		if(this.recorder != null && this.isPresenter()) {
-			this.recorder.stop();
-			this.recorder.release();
-		}
-		this.recorder = null;
-		this.recordPath == null;
-		if(this.pipeline != null && this.isPresenter()) this.pipeline.release();
-		this.pipeline = null;
-		if(this.endpoint != null) this.endpoint.release();
-		this.endpoint = null;
-		this._candidatesQueue = null;
-	}
-	,__class__: speech_core_Session
+	,__class__: speech_abstracts_Uuid
 };
 var ws_WsServer = require("ws").Server;
 var $_, $fid = 0;
@@ -830,6 +1156,7 @@ var ArrayBuffer = $global.ArrayBuffer || js_html_compat_ArrayBuffer;
 if(ArrayBuffer.prototype.slice == null) ArrayBuffer.prototype.slice = js_html_compat_ArrayBuffer.sliceImpl;
 var DataView = $global.DataView || js_html_compat_DataView;
 var Uint8Array = $global.Uint8Array || js_html_compat_Uint8Array._new;
+haxe_ds_ObjectMap.count = 0;
 haxe_io_FPHelper.i64tmp = (function($this) {
 	var $r;
 	var x = new haxe__$Int64__$_$_$Int64(0,0);
@@ -838,11 +1165,17 @@ haxe_io_FPHelper.i64tmp = (function($this) {
 }(this));
 js_Boot.__toStr = {}.toString;
 js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
-speech_Main.MS_URI = "ws://localhost:8888/kurento";
-speech_Main.MV_DIR = "file:///var/www/example.com/record";
-speech_Main.TLS_KEY = "/etc/letsencrypt/live/example.com/privkey.pem";
-speech_Main.TLS_CERT = "/etc/letsencrypt/live/example.com/cert.pem";
-speech_core_Session._idCounter = 0;
+speech_Main.IS_DEBUG = false;
+speech_Main.WS_PORT = 8081;
+speech_Main.WS_PATH = "/speech";
+speech_Main.MS_URI = "ws://kurento.seibe.jp:8888/kurento";
+speech_Main.MV_DIR = "file:///var/www/kurento.seibe.jp/record";
+speech_Main.MV_URI = "https://kurento.seibe.jp/record";
+speech_Main.LOG_DIR = "/var/www/seibe.jp/speech/log";
+speech_Main.LOG_URI = "https://seibe.jp/speech/log";
+speech_Main.TLS_KEY = "/etc/letsencrypt/live/seibe.jp/privkey.pem";
+speech_Main.TLS_CERT = "/etc/letsencrypt/live/seibe.jp/cert.pem";
+speech_abstracts_Uuid._nextId = 0;
 speech_Main.main();
 })(typeof console != "undefined" ? console : {log:function(){}}, typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
 

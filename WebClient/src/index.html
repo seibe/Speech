@@ -7,180 +7,87 @@
 	<link rel="stylesheet" href="css/sanitize.min.css" />
 	<link rel="stylesheet" href="style.css" />
 	<script src="js/kurento-utils.js"></script>
-	<script src="script.js"></script>
-    <script src="https://use.typekit.net/itl7jwg.js"></script>
-    <script>try{Typekit.load({ async: true });}catch(e){}</script>
+	<!--<script src="script.js"></script>-->
 </head>
 <body>
-    <header class="header">
-        <div class="header-content">
-            <h1 class="header-content-h1" id="title">Speech</h1>
-            <p class="header-content-p">Let's broadcast your presentation now!</p>
-            <div class="header-content-action">
-                <div class="header-content-action-item"><a href="#">はじめての方へ</a></div>
-                <div class="header-content-action-item button"><a href="#">ログイン</a></div>
-            </div>
-        </div>
-    </header>
-    
-	<main class="main">
+    <main class="main">
         <div class="main-visual">
             
-            <section class="player">
-                <iframe class="player-main" id="slide"></iframe>
-				<div class="player-blank">
-                    <p>現在、配信中のプレゼンテーションはありません。</p>
-                    <div class="player-blank-action">
-                        <button class="button player-blank-action-button" id="button-retry-join-viewer">リロード</button><!--　<button class="button player-blank-action-button" id="button-begin-setup">新しく配信する</button>-->
+            <section class="live">
+                <div class="live-left">
+                    <div class="live-header">
+                        <div class="live-header-logo"><img alt="Speech" src="img/logo.png" /></div>
+                        <p class="live-header-title">発表タイトル発表タイトル発表タイトル発表タイトル</p>
+                        <p class="live-header-time">経過時間<span id="live-elapsed-time">04:48</span></p>
+                    </div>
+                    
+                    <iframe class="live-slide" id="live-slide"></iframe>
+
+                    <div class="live-footer">
+                        <video class="live-footer-video" id="live-video" autoplay></video>
+                        
+                        <div class="live-footer-tool">
+                            <div class="live-footer-tool-form">
+                                <input type="text" class="live-footer-tool-form-input" placeholder="ここにコメントを入力できます" />
+                                <input type="radio" class="live-footer-tool-form-radio" name="radio-comment" id="live-comment-type-normal" checked />
+                                <label class="live-footer-tool-form-submit" for="live-comment-type-normal" id="live-comment-send-normal">送信</label>
+                                <input type="radio" class="live-footer-tool-form-radio" name="radio-comment" id="live-comment-type-question" />
+                                <label class="live-footer-tool-form-submit" for="live-comment-type-question" id="live-comment-send-question">質問</label>
+                            </div>
+                            
+                            <ul class="live-footer-tool-action live-footer-tool-audience">
+                                <li><button id="live-action-comment">ここにコメントする</button></li>
+                                <li><button id="live-action-question">ここに質問する</button></li>
+                                <li><button id="live-action-acount">アカウント設定</button></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
                 
-                <video class="player-video" id="video" autoplay></video>
-                
-                <div class="player-aside">
-                    
-                    <div class="player-aside-group player-aside-default show" id="pane-default">
-                        <p class="player-aside-group-h1">Speech (スピーチ)</p>
-                        <p>Speech は、プレゼンテーションをWEBでリアルタイムに配信・録画できるシステムです。</p>
-                        <p><a href="https://github.com/seibe/Speech/blob/master/Poster/Speech_poster.jpg"><img alt="#" src="img/thumb_poster.jpg" /></a></p>
-                    </div>
-                    
-                    <div class="player-aside-group player-aside-create" id="pane-create">
-                        <p class="player-aside-group-h1">発表情報の入力 <span data-help="これから始めるプレゼンテーションの設定をします" class="tooltip">？</span></p>
-                        <div class="create-item">
-                            <span class="create-item-label">スライドURL</span>
-                            <input type="url" class="create-item-input" id="input-slide-url" placeholder="http://" />
-                        </div>
-                        <div class="create-item">
-                            <span class="create-item-label">タイトル</span>
-                            <input type="text" class="create-item-input" id="input-title" placeholder="製品発表会2015" />
-                        </div>
-                        <div class="create-item">
-                            <span class="create-item-label">紹介文</span>
-                            <textarea class="create-item-input" id="input-description"></textarea>
-                        </div>
-                        <div class="create-item">
-                            <span class="create-item-label">カメラ接続</span>
-                            <select class="create-item-input" id="select-camera">
-                                <option value="none">なし</option>
-                            </select>
-                        </div>
-                        <p class="create-error" id="output-setup-error"></p>
-                        <div class="create-submit">
-                            <button class="button" id="button-complete-setup">配信を始める</button>
+                <div class="live-right" id="live-aside">
+                    <div class="live-discus" id="pane-discuss">
+                        
+                        <input class="live-discus-radio" id="live-discus-all" type="radio" name="radio-discus" checked />
+                        <input class="live-discus-radio" id="live-discus-question" type="radio" name="radio-discus" />
+                        
+                        <div class="live-discus-wrapper">
+                            <label class="live-discus-tab" for="live-discus-all" id="live-discus-all-tab">全てのコメント</label>
+                            <label class="live-discus-tab" for="live-discus-question" id="live-discus-question-tab">質問<span>11</span></label>
+
+                            <ul class="live-discus-group live-discus-all-comment" id="live-comment-list">
+                                <li class="discuss-comment new">
+                                    <img class="discuss-comment-image" src="img/avatar.jpg" width="48" height="48">
+                                    <div class="discuss-comment-body">
+                                        <strong>seibe</strong>
+                                        <p>ここに視聴者のコメントが表示されます。あなたもプレゼンテーションの感想を呟いてみましょう</p>
+                                    </div>
+                                </li>
+                            </ul>
+                            
+                            <ul class="live-discus-group live-discus-question-comment" id="live-question-list">
+                                <li class="discuss-comment new">
+                                    <img class="discuss-comment-image" src="img/avatar.jpg" width="48" height="48">
+                                    <div class="discuss-comment-body">
+                                        <strong>seibe</strong>
+                                        <p>ここに視聴者の質問が表示されます。あなたも発表者に対して質問してみましょう</p>
+                                    </div>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                     
-                    <div class="player-aside-group player-aside-info" id="pane-info">
-                        <h1 class="player-aside-group-h1" id="label-title">Presentation title</h1>
-                        <p id="label-description">Presentation description</p>
+                    <div class="live-atmos" id="live-atmos">
+                        <div class="live-atmos-count">現在<span id="live-num-audience">0</span>人</div>
+                        <img class="live-atmos-stamp" alt="+1" src="img/icon_plus.png" style="left: 40%" />
+                        <img class="live-atmos-stamp" alt="?" src="img/icon_hatena.png" style="left: 52.5%" />
+                        <img class="live-atmos-stamp" alt="拍手" src="img/icon_clap.png" style="left: 65%" />
+                        <img class="live-atmos-stamp" alt="笑い" src="img/icon_www.png" style="left: 77.5%" />
                     </div>
                     
-                    <div class="player-aside-group player-aside-discuss" id="pane-discuss">
-						<!--<button class="button" id="button-leave-presenter">終了する</button>-->
-                        <div class="discuss-input">
-                            <input type="text" class="discuss-input-text" id="input-comment" maxlength="140" />
-                            <button class="discuss-input-submit" id="button-submit-comment">Send</button>
-                        </div>
-                        <ul class="discuss-comment-list" id="comment-list">
-                            <li class="discuss-comment new">
-                                <img class="discuss-comment-image" src="img/avatar.jpg" width="32" height="32">
-                                <div class="discuss-comment-body">
-                                    <strong>ヒント</strong>
-                                    <p>ここに視聴者のコメントが表示されます。あなたもプレゼンテーションの感想を呟いてみましょう</p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
                 </div>
-            </section>
-            
-        </div>
-        <div class="main-content">
-            
-            <section class="main-content-section">
-                <h1 class="main-content-section-h1">最近のプレゼンテーション</h1>
-                <ul class="grid">
-                    <li class="grid-cell">
-                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
-                        <div class="grid-cell-body">
-                            <strong>Presentation Title</strong>
-                            <p>1992.12.10</p>
-                        </div>
-                    </li>
-                    <li class="grid-cell">
-                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
-                        <div class="grid-cell-body">
-                            <strong>Presentation Title</strong>
-                            <p>1992.12.10</p>
-                        </div>
-                    </li>
-                    <li class="grid-cell">
-                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
-                        <div class="grid-cell-body">
-                            <strong>Presentation Title</strong>
-                            <p>1992.12.10</p>
-                        </div>
-                    </li>
-                    <li class="grid-cell">
-                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
-                        <div class="grid-cell-body">
-                            <strong>Presentation Title</strong>
-                            <p>1992.12.10</p>
-                        </div>
-                    </li>
-                    <li class="grid-cell">
-                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
-                        <div class="grid-cell-body">
-                            <strong>Presentation Title</strong>
-                            <p>1992.12.10</p>
-                        </div>
-                    </li>
-                    <li class="grid-cell">
-                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
-                        <div class="grid-cell-body">
-                            <strong>Presentation Title</strong>
-                            <p>1992.12.10</p>
-                        </div>
-                    </li>
-                    <li class="grid-cell">
-                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
-                        <div class="grid-cell-body">
-                            <strong>Presentation Title</strong>
-                            <p>1992.12.10</p>
-                        </div>
-                    </li>
-                    <li class="grid-cell">
-                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
-                        <div class="grid-cell-body">
-                            <strong>Presentation Title</strong>
-                            <p>1992.12.10</p>
-                        </div>
-                    </li>
-                    <li class="grid-cell">
-                        <img class="grid-cell-image" src="img/avatar.jpg" width="32" height="32">
-                        <div class="grid-cell-body">
-                            <strong>Presentation Title</strong>
-                            <p>1992.12.10</p>
-                        </div>
-                    </li>
-                </ul>
-                <p class="button more"><a href="#">過去のプレゼンテーションの一覧</a></p>
-            </section>
-            
-            <section class="main-content-section">
-                <h1 class="main-content-section-h1">プレゼンを配信するには</h1>
-                <p>専用のアプリをお使いください。Windows および OS X、Linux に対応しています。</p>
-                <div class="button download">
-                    <li class="button"><a href="#">ダウンロード (Windows)</a></li>
-                    <li class="button"><a href="#">ダウンロード (OS X)</a></li>
-                    <li class="button"><a href="#">ダウンロード (Linux)</a></li>
             </section>
             
         </div>
 	</main>
-    <footer class="footer">
-        (C)2015 Seibe TAKAHASHI.
-    </footer>
 </body>
 </html>

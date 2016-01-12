@@ -1,5 +1,13 @@
 (function (console) { "use strict";
 var $estr = function() { return js_Boot.__string_rec(this,''); };
+var DateTools = function() { };
+DateTools.__name__ = true;
+DateTools.parse = function(t) {
+	var s = t / 1000;
+	var m = s / 60;
+	var h = m / 60;
+	return { ms : t % 1000, seconds : s % 60 | 0, minutes : m % 60 | 0, hours : h % 24 | 0, days : h / 24 | 0};
+};
 var EReg = function(r,opt) {
 	opt = opt.split("u").join("");
 	this.r = new RegExp(r,opt);
@@ -23,6 +31,11 @@ HxOverrides.iter = function(a) {
 	}};
 };
 Math.__name__ = true;
+var Std = function() { };
+Std.__name__ = true;
+Std.string = function(s) {
+	return js_Boot.__string_rec(s,"");
+};
 var StringTools = function() { };
 StringTools.__name__ = true;
 StringTools.htmlEscape = function(s,quotes) {
@@ -287,38 +300,44 @@ speech_manager_MediaManager.prototype = {
 		window.navigator.webkitGetUserMedia({ video : { optional : [{ sourceId : videoId}]}, audio : true},success,error);
 	}
 };
-var speech_renderer_State = { __ename__ : true, __constructs__ : ["SETUP","LIVE_STARTING","LIVE","LIVE_WITH_VIDEO"] };
+var speech_renderer_State = { __ename__ : true, __constructs__ : ["SETUP","LIVE_BEFORE","LIVE","LIVE_AFTER"] };
 speech_renderer_State.SETUP = ["SETUP",0];
 speech_renderer_State.SETUP.toString = $estr;
 speech_renderer_State.SETUP.__enum__ = speech_renderer_State;
-speech_renderer_State.LIVE_STARTING = ["LIVE_STARTING",1];
-speech_renderer_State.LIVE_STARTING.toString = $estr;
-speech_renderer_State.LIVE_STARTING.__enum__ = speech_renderer_State;
+speech_renderer_State.LIVE_BEFORE = ["LIVE_BEFORE",1];
+speech_renderer_State.LIVE_BEFORE.toString = $estr;
+speech_renderer_State.LIVE_BEFORE.__enum__ = speech_renderer_State;
 speech_renderer_State.LIVE = ["LIVE",2];
 speech_renderer_State.LIVE.toString = $estr;
 speech_renderer_State.LIVE.__enum__ = speech_renderer_State;
-speech_renderer_State.LIVE_WITH_VIDEO = ["LIVE_WITH_VIDEO",3];
-speech_renderer_State.LIVE_WITH_VIDEO.toString = $estr;
-speech_renderer_State.LIVE_WITH_VIDEO.__enum__ = speech_renderer_State;
-var speech_renderer_Request = { __ename__ : true, __constructs__ : ["JOIN_PRESENTER","LEAVE_PRESENTER","UPDATE_SLIDE","START_STREAM","STOP_STREAM","ICE_CANDIDATE"] };
+speech_renderer_State.LIVE_AFTER = ["LIVE_AFTER",3];
+speech_renderer_State.LIVE_AFTER.toString = $estr;
+speech_renderer_State.LIVE_AFTER.__enum__ = speech_renderer_State;
+var speech_renderer_Request = { __ename__ : true, __constructs__ : ["JOIN_PRESENTER","LEAVE_PRESENTER","UPDATE_SLIDE","START_STREAM","STOP_STREAM","MAKE_LOG","ICE_CANDIDATE"] };
 speech_renderer_Request.JOIN_PRESENTER = function(option) { var $x = ["JOIN_PRESENTER",0,option]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
 speech_renderer_Request.LEAVE_PRESENTER = ["LEAVE_PRESENTER",1];
 speech_renderer_Request.LEAVE_PRESENTER.toString = $estr;
 speech_renderer_Request.LEAVE_PRESENTER.__enum__ = speech_renderer_Request;
 speech_renderer_Request.UPDATE_SLIDE = function(slideUrl) { var $x = ["UPDATE_SLIDE",2,slideUrl]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
-speech_renderer_Request.START_STREAM = function(offer) { var $x = ["START_STREAM",3,offer]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
+speech_renderer_Request.START_STREAM = function(offer,target) { var $x = ["START_STREAM",3,offer,target]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
 speech_renderer_Request.STOP_STREAM = ["STOP_STREAM",4];
 speech_renderer_Request.STOP_STREAM.toString = $estr;
 speech_renderer_Request.STOP_STREAM.__enum__ = speech_renderer_Request;
-speech_renderer_Request.ICE_CANDIDATE = function(ice) { var $x = ["ICE_CANDIDATE",5,ice]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
+speech_renderer_Request.MAKE_LOG = ["MAKE_LOG",5];
+speech_renderer_Request.MAKE_LOG.toString = $estr;
+speech_renderer_Request.MAKE_LOG.__enum__ = speech_renderer_Request;
+speech_renderer_Request.ICE_CANDIDATE = function(ice) { var $x = ["ICE_CANDIDATE",6,ice]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
 var speech_renderer_Index = function() {
-	this.WS_URL = "wss://localhost:8081/speech";
+	this.WS_URL = "wss://seibe.jp:8081/speech";
 	var _g = this;
 	window.onload = function() {
 		_g._state = null;
+		_g._timer = null;
+		_g._beginTime = -1;
 		_g._prevUrl = "";
+		_g._numQuestion = 0;
 		_g._title = null;
-		_g._description = null;
+		_g._username = null;
 		_g._slideUrl = null;
 		_g._videoSourceId = null;
 		_g._reqCount = 0;
@@ -339,13 +358,12 @@ speech_renderer_Index.prototype = {
 	setState: function(nextState) {
 		var _g = this;
 		if(this._state == nextState) return;
-		var temp = new haxe_ds_StringMap();
 		var _g1 = this._state;
 		if(_g1 == null) {
 		} else switch(_g1[1]) {
 		case 0:
 			this._title = this._dom.getInput("title","setup").value;
-			this._description = this._dom.getInput("description","setup").value;
+			this._username = this._dom.getInput("presenter","setup").value;
 			this._slideUrl = this._dom.getInput("slide-url","setup").value;
 			this._videoSourceId = this._dom.getSelect("video","setup").value;
 			this._dom.getButton("submit").addEventListener("click",$bind(this,this.onClickButtonStart));
@@ -354,39 +372,31 @@ speech_renderer_Index.prototype = {
 			this._dom.getDialog("loading").close();
 			break;
 		case 2:
-			if(nextState != speech_renderer_State.LIVE_WITH_VIDEO) {
-				this._dom.get("controller","live").classList.add("hide");
-				if(this._webRtcPeer != null) {
-					this.send(speech_renderer_Request.STOP_STREAM);
-					this._webRtcPeer.dispose();
-					this._webRtcPeer = null;
-				}
-				this.send(speech_renderer_Request.LEAVE_PRESENTER);
+			if(this._webRtcPeer != null) {
+				this.send(speech_renderer_Request.STOP_STREAM);
+				this._webRtcPeer.dispose();
+				this._webRtcPeer = null;
+			}
+			this.send(speech_renderer_Request.LEAVE_PRESENTER);
+			if(this._timer != null) this._timer.stop();
+			this._timer = null;
+			window.removeEventListener("resize",$bind(this,this.onResize));
+			window.removeEventListener("keydown",$bind(this,this.onKeyDown));
+			this._slideview.removeEventListener("keydown",$bind(this,this.onChangeSlide));
+			this._slideview.removeEventListener("wheel",$bind(this,this.onChangeSlide));
+			this._slideview.removeEventListener("mouseup",$bind(this,this.onChangeSlide));
+			this._slideview.removeEventListener("focus",$bind(this,this.onFocusSlide));
+			this._slideview.removeEventListener("blur",$bind(this,this.onBlurSlide));
+			if(nextState == speech_renderer_State.SETUP) {
 				this._ws.close();
 				this._ws = null;
-				window.removeEventListener("resize",$bind(this,this.onResize));
-				this._slideview.removeEventListener("keydown",$bind(this,this.onChangeSlide));
-				this._slideview.removeEventListener("wheel",$bind(this,this.onChangeSlide));
-				this._slideview.removeEventListener("mouseup",$bind(this,this.onChangeSlide));
 			}
 			break;
 		case 3:
-			if(nextState != speech_renderer_State.LIVE) {
-				this._dom.get("controller","live").classList.add("hide");
-				if(this._webRtcPeer != null) {
-					this.send(speech_renderer_Request.STOP_STREAM);
-					this._webRtcPeer.dispose();
-					this._webRtcPeer = null;
-				}
-				this.send(speech_renderer_Request.LEAVE_PRESENTER);
+			if(this._ws != null) {
 				this._ws.close();
 				this._ws = null;
-				window.removeEventListener("resize",$bind(this,this.onResize));
-				this._slideview.removeEventListener("keydown",$bind(this,this.onChangeSlide));
-				this._slideview.removeEventListener("wheel",$bind(this,this.onChangeSlide));
-				this._slideview.removeEventListener("mouseup",$bind(this,this.onChangeSlide));
 			}
-			this._dom.get("video").classList.remove("show");
 			break;
 		}
 		switch(nextState[1]) {
@@ -408,7 +418,7 @@ speech_renderer_Index.prototype = {
 						audioList.push(track);
 						break;
 					default:
-						haxe_Log.trace(track,{ fileName : "Index.hx", lineNumber : 174, className : "speech.renderer.Index", methodName : "setState"});
+						haxe_Log.trace(track,{ fileName : "Index.hx", lineNumber : 170, className : "speech.renderer.Index", methodName : "setState"});
 					}
 				}
 				_g._dom.setMediaSource("video",videoList);
@@ -424,38 +434,34 @@ speech_renderer_Index.prototype = {
 			this._ws.addEventListener("error",$bind(this,this.onWsError));
 			this._slideview = this._dom.initPlayer(this._slideUrl);
 			this._prevUrl = this._slideUrl;
+			this._numQuestion = 0;
+			this._dom.get("comment-list","live").innerHTML = "";
+			this._dom.get("question-list","live").innerHTML = "";
+			this._dom.get("num-question","live").innerText = "0";
+			this._dom.get("num-audience","live").innerText = "0";
 			break;
 		case 2:
+			this._beginTime = new Date().getTime();
+			if(this._timer != null) this._timer.stop();
+			this._timer = new haxe_Timer(1000);
+			this._timer.run = $bind(this,this.onUpdate);
 			this._dom.changeScene("live");
-			this._dom.get("controller").classList.remove("hide");
-			this._dom.get("url").innerText = this._roomId;
-			this._dom.get("title").innerText = StringTools.htmlEscape(this._title);
+			this._slideview.focus();
 			window.addEventListener("resize",$bind(this,this.onResize));
 			this.onResize();
 			this._slideview.addEventListener("keydown",$bind(this,this.onChangeSlide));
 			this._slideview.addEventListener("wheel",$bind(this,this.onChangeSlide));
 			this._slideview.addEventListener("mouseup",$bind(this,this.onChangeSlide));
+			this._slideview.addEventListener("focus",$bind(this,this.onFocusSlide));
+			this._slideview.addEventListener("blur",$bind(this,this.onBlurSlide));
 			this._dom.getButton("finish").addEventListener("click",$bind(this,this.onClickButtonFinish));
 			break;
 		case 3:
-			if(this._state != speech_renderer_State.LIVE) {
-				this._dom.changeScene("live");
-				this._dom.get("controller").classList.remove("hide");
-				this._dom.get("url").innerText = this._roomId;
-				this._dom.get("title").innerText = StringTools.htmlEscape(this._title);
-				window.addEventListener("resize",$bind(this,this.onResize));
-				this.onResize();
-				this._slideview.addEventListener("keydown",$bind(this,this.onChangeSlide));
-				this._slideview.addEventListener("wheel",$bind(this,this.onChangeSlide));
-				this._slideview.addEventListener("mouseup",$bind(this,this.onChangeSlide));
-				this._dom.getButton("finish").addEventListener("click",$bind(this,this.onClickButtonFinish));
-			}
-			this._dom.get("video").classList.add("show");
 			break;
 		}
 		this._state = nextState;
 	}
-	,onChangeSlide: function() {
+	,onChangeSlide: function(e) {
 		var _g = this;
 		if(this._state != speech_renderer_State.LIVE) return;
 		haxe_Timer.delay(function() {
@@ -466,19 +472,33 @@ speech_renderer_Index.prototype = {
 			}
 		},250);
 	}
+	,onFocusSlide: function() {
+		window.removeEventListener("keydown",$bind(this,this.onKeyDown));
+	}
+	,onBlurSlide: function() {
+		window.addEventListener("keydown",$bind(this,this.onKeyDown));
+	}
 	,onResize: function() {
-		var playerHeight = window.innerHeight - 144;
+		var playerHeight = window.innerHeight - 272;
 		this._slideview.style.height = (playerHeight == null?"null":"" + playerHeight) + "px";
-		this._dom.get("aside","live").style.height = (playerHeight == null?"null":"" + playerHeight) + "px";
+	}
+	,onKeyDown: function() {
+		this._slideview.focus();
+	}
+	,onUpdate: function() {
+		var elapsedTime = DateTools.parse(new Date().getTime() - this._beginTime);
+		var min = elapsedTime.hours * 60 + elapsedTime.minutes;
+		var sec = elapsedTime.seconds;
+		this._dom.get("elapsed-time","live").innerText = (min < 10?"0" + min:"" + min) + ":" + (sec < 10?"0" + sec:"" + sec);
 	}
 	,onClickButtonStart: function() {
 		var slideUrl = this._dom.getInput("slide-url").value;
 		var title = this._dom.getInput("title").value;
 		var urlChecker = new EReg("https?://.+","");
-		if(slideUrl.length == 0 || title.length == 0 || !urlChecker.match(slideUrl)) this._dom.getInput("slide-url").focus(); else this.setState(speech_renderer_State.LIVE_STARTING);
+		if(slideUrl.length == 0 || title.length == 0 || !urlChecker.match(slideUrl)) this._dom.getInput("slide-url").focus(); else this.setState(speech_renderer_State.LIVE_BEFORE);
 	}
 	,onClickButtonFinish: function() {
-		this.setState(speech_renderer_State.SETUP);
+		this.send(speech_renderer_Request.MAKE_LOG);
 	}
 	,send: function(req) {
 		var obj = { };
@@ -497,14 +517,18 @@ speech_renderer_Index.prototype = {
 			obj.data = slideUrl;
 			break;
 		case 3:
+			var streamTarget = req[3];
 			var offerSdp = req[2];
 			obj.type = "startStream";
-			obj.data = offerSdp;
+			obj.data = { offer : offerSdp, target : streamTarget};
 			break;
 		case 4:
 			obj.type = "stopStream";
 			break;
 		case 5:
+			obj.type = "requestLog";
+			break;
+		case 6:
 			var candidate = req[2];
 			obj.type = "iceCandidate";
 			obj.data = candidate;
@@ -512,13 +536,13 @@ speech_renderer_Index.prototype = {
 		}
 		obj.timestamp = new Date().getTime();
 		obj.requestId = this._reqCount++;
-		haxe_Log.trace("send",{ fileName : "Index.hx", lineNumber : 304, className : "speech.renderer.Index", methodName : "send", customParams : [obj.type]});
+		haxe_Log.trace("send",{ fileName : "Index.hx", lineNumber : 325, className : "speech.renderer.Index", methodName : "send", customParams : [obj.type]});
 		this._ws.send(JSON.stringify(obj));
 		return this._reqCount;
 	}
 	,onWsConnect: function(e) {
 		var _g = this;
-		this.send(speech_renderer_Request.JOIN_PRESENTER({ title : this._title, description : this._description, slideUrl : this._slideUrl}));
+		this.send(speech_renderer_Request.JOIN_PRESENTER({ title : this._title, slideUrl : this._slideUrl, name : this._username}));
 		if(this._videoSourceId != null && this._videoSourceId.length > 0) {
 			var videoElem = this._dom.get("video","live");
 			this._media.getUserVideo(this._videoSourceId,function(lms) {
@@ -527,7 +551,7 @@ speech_renderer_Index.prototype = {
 					_g._webRtcPeer.generateOffer($bind(_g,_g.onOffer));
 				});
 			},function(err1) {
-				haxe_Log.trace("error getUserVideo",{ fileName : "Index.hx", lineNumber : 335, className : "speech.renderer.Index", methodName : "onWsConnect"});
+				haxe_Log.trace("error getUserVideo",{ fileName : "Index.hx", lineNumber : 356, className : "speech.renderer.Index", methodName : "onWsConnect"});
 			});
 		}
 	}
@@ -536,38 +560,102 @@ speech_renderer_Index.prototype = {
 	}
 	,onWsMessage: function(e) {
 		var resp = JSON.parse(e.data);
-		haxe_Log.trace(resp.type,{ fileName : "Index.hx", lineNumber : 348, className : "speech.renderer.Index", methodName : "onWsMessage"});
-		var _g = resp.type;
-		switch(_g) {
-		case "accept":
-			this._roomId = resp.data;
-			this.setState(speech_renderer_State.LIVE);
-			break;
+		var type = resp.type;
+		var d = resp.data;
+		switch(type) {
 		case "acceptStream":
-			this._webRtcPeer.processAnswer(resp.data);
+			var sdpAnswer = d;
+			this._webRtcPeer.processAnswer(sdpAnswer);
 			break;
-		case "onStopStream":
-			this._webRtcPeer.dispose();
-			this._webRtcPeer = null;
-			break;
-		case "onComment":
-			var name = StringTools.htmlEscape(resp.data.name);
-			var text = StringTools.htmlEscape(resp.data.text);
-			this._dom.get("comment-list","live").insertAdjacentHTML("afterbegin","<li class=\"discuss-comment new\"><img class=\"discuss-comment-image\" src=\"img/avatar.jpg\" width=\"32\" height=\"32\"><div class=\"discuss-comment-body\"><strong>" + name + "</strong><p>" + text + "</p></div></li>");
+		case "updateAudience":
+			var numAudience = d;
+			this._dom.get("num-audience","live").innerText = "" + numAudience;
 			break;
 		case "iceCandidate":
-			this._webRtcPeer.addIceCandidate(resp.data);
+			this._webRtcPeer.addIceCandidate(d);
+			break;
+		case "onComment":
+			var comment = d;
+			var name;
+			if(comment.name != null) name = StringTools.htmlEscape(comment.name); else name = "nanashi";
+			var text = StringTools.htmlEscape(comment.text);
+			var _g = comment.type;
+			switch(_g) {
+			case "normal":
+				this._dom.get("comment-list","live").insertAdjacentHTML("afterbegin","<li class=\"discuss-comment new\"><img class=\"discuss-comment-image\" src=\"img/avatar.jpg\" width=\"32\" height=\"32\"><div class=\"discuss-comment-body\"><strong>" + name + "</strong><p>" + text + "</p></div></li>");
+				break;
+			case "question":
+				this._dom.get("comment-list","live").insertAdjacentHTML("afterbegin","<li class=\"discuss-comment new\"><img class=\"discuss-comment-image\" src=\"img/avatar.jpg\" width=\"32\" height=\"32\"><div class=\"discuss-comment-body\"><strong>" + name + "</strong><p>" + text + "</p></div></li>");
+				this._dom.get("question-list","live").insertAdjacentHTML("afterbegin","<li class=\"discuss-comment new\"><img class=\"discuss-comment-image\" src=\"img/avatar.jpg\" width=\"32\" height=\"32\"><div class=\"discuss-comment-body\"><strong>" + name + "</strong><p>" + text + "</p></div></li>");
+				this._numQuestion++;
+				this._dom.get("num-question","live").innerText = Std.string(this._numQuestion);
+				break;
+			case "stamp_clap":
+				var left = 40 + Math.floor(Math.random() * 38);
+				this._dom.get("atmos","live").insertAdjacentHTML("afterbegin","<img class=\"live-atmos-stamp\" alt=\"拍手\" src=\"img/icon_clap.png\" style=\"left: " + left + "%\" />");
+				haxe_Timer.delay(function() {
+					var stamps = window.document.getElementsByClassName("live-atmos-stamp");
+					if(stamps != null && stamps.length > 0) stamps.item(0).remove();
+				},4000);
+				break;
+			case "stamp_hatena":
+				var left1 = 40 + Math.floor(Math.random() * 38);
+				this._dom.get("atmos","live").insertAdjacentHTML("afterbegin","<img class=\"live-atmos-stamp\" alt=\"?\" src=\"img/icon_hatena.png\" style=\"left: " + left1 + "%\" />");
+				haxe_Timer.delay(function() {
+					var stamps1 = window.document.getElementsByClassName("live-atmos-stamp");
+					if(stamps1 != null && stamps1.length > 0) stamps1.item(0).remove();
+				},4000);
+				break;
+			case "stamp_plus":
+				var left2 = 40 + Math.floor(Math.random() * 38);
+				this._dom.get("atmos","live").insertAdjacentHTML("afterbegin","<img class=\"live-atmos-stamp\" alt=\"+1\" src=\"img/icon_plus.png\" style=\"left: " + left2 + "%\" />");
+				haxe_Timer.delay(function() {
+					var stamps2 = window.document.getElementsByClassName("live-atmos-stamp");
+					if(stamps2 != null && stamps2.length > 0) stamps2.item(0).remove();
+				},4000);
+				break;
+			case "stamp_warai":
+				var left3 = 40 + Math.floor(Math.random() * 38);
+				this._dom.get("atmos","live").insertAdjacentHTML("afterbegin","<img class=\"live-atmos-stamp\" alt=\"笑い\" src=\"img/icon_warai.png\" style=\"left: " + left3 + "%\" />");
+				haxe_Timer.delay(function() {
+					var stamps3 = window.document.getElementsByClassName("live-atmos-stamp");
+					if(stamps3 != null && stamps3.length > 0) stamps3.item(0).remove();
+				},4000);
+				break;
+			}
+			break;
+		case "onError":
+			haxe_Log.trace("server error",{ fileName : "Index.hx", lineNumber : 443, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [d]});
+			break;
+		case "finish":
+			this.setState(speech_renderer_State.SETUP);
+			break;
+		case "willStopStream":
+			break;
+		case "onStopStream":
+			if(this._webRtcPeer != null) {
+				this._webRtcPeer.dispose();
+				this._webRtcPeer = null;
+			}
+			break;
+		case "acceptPresenter":
+			this._presentationShortId = d;
+			this.setState(speech_renderer_State.LIVE);
+			break;
+		case "onCreateLog":
+			haxe_Log.trace("log URL",{ fileName : "Index.hx", lineNumber : 466, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [d]});
+			this.setState(speech_renderer_State.LIVE_AFTER);
 			break;
 		default:
-			haxe_Log.trace("unknown ws",{ fileName : "Index.hx", lineNumber : 372, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [resp]});
+			haxe_Log.trace("unknown ws",{ fileName : "Index.hx", lineNumber : 470, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [resp]});
 		}
 	}
 	,onWsError: function(error) {
-		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 378, className : "speech.renderer.Index", methodName : "onWsError", customParams : [error]});
+		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 476, className : "speech.renderer.Index", methodName : "onWsError", customParams : [error]});
 		this.setState(speech_renderer_State.SETUP);
 	}
 	,onOffer: function(error,offerSdp) {
-		this.send(speech_renderer_Request.START_STREAM(offerSdp));
+		this.send(speech_renderer_Request.START_STREAM(offerSdp,"webcam"));
 	}
 	,onIcecandidate: function(candidate) {
 		this.send(speech_renderer_Request.ICE_CANDIDATE(candidate));

@@ -28,6 +28,7 @@ class Main
 			'title-bar-style': 'hidden'
 		});
 		
+		win.setMenuBarVisibility(false);
 		win.loadUrl('file://' + Node.__dirname + '/index.html');
 		//win.openDevTools();
 		

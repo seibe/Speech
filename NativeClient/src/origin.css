@@ -1,13 +1,17 @@
 
-body {
+html {
+    font-size: 62.5%;
     font-family: Avenir, "Open Sans", "Helvetica Neue", Helvetica, Arial, Verdana, Roboto, "游ゴシック", "Yu Gothic", "游ゴシック体", "YuGothic", "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "Meiryo UI", "メイリオ", Meiryo, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
 }
 body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    font-size: 1rem;
     background: #f6f6f6;
     overflow-y: hidden;
+    user-select: none;
+    font-family: Avenir, "Open Sans", "Helvetica Neue", Helvetica, Arial, Verdana, Roboto, "游ゴシック", "Yu Gothic", "游ゴシック体", "YuGothic", "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "Meiryo UI", "メイリオ", Meiryo, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
 }
 body::-webkit-scrollbar {
     width: 0;
@@ -18,136 +22,14 @@ body::-webkit-scrollbar {
     display: none !important;
 }
 
-
-/* ------------------------
- * ANCHOR & BUTTON
- * --------------------- */
-
 button {
     outline: none;
     cursor: pointer;
 }
-a,
-button span {
-    color: #000;
-}
-.button a:hover,
-button.button :hover span {
-    margin: -1px;
-    border: 1px solid #fcc800;
-}
-.button a {
+.button {
+    border: 1px solid #fff;
     padding: 0.5em 1em;
-    background: #fcc800;
-    display: inline-block;
-    line-height: 1.5;
-}
-button.button span {
-    padding: 0.5em 1em;
-    font-size: 1rem;
-    line-height: 2em;
-    background: #fcc800;
-}
-.button a:hover:active,
-button.button:hover:active {
-    transform: translateY(1px);
-}
-.more {
-    text-align: right;
-}
-
-
-/* ------------------------
- * TOOLTIP
- * --------------------- */
-
-.tooltip {
-    width: 16px;
-    height: 16px;
-    transform: translateY(-6px);
-    font-size: 0.75rem;
-    line-height: 16px;
-    text-align: center;
-    background: #455765;
-    border-radius: 100%;
-    display: inline-block;
-    position: relative;
-}
-.tooltip:hover {
-    cursor: pointer;
-}
-.tooltip:hover:after {
-    content: attr(data-help);
-    width: 12em;
-    padding: 5px 15px;
-    text-align: left;
     color: #fff;
-    background: rgba(0,0,0,.8);
-    border-radius: 5px;
-    z-index: 98;
-    position: absolute;
-    left: 1em;
-    top: 1em;
-}
-
-
-/* ------------------------
- * CORE LAYOUT
- * --------------------- */
-
-.header {
-    padding: 8px 24px;
-    background: #fff;
-}
-.header-content {
-    width: 100%;
-    height: 48px;
-    margin: 0 auto;
-    display: flex;
-}
-.header-content-h1 {
-    margin: 0 auto;
-    font-size: 1.5rem;
-    /*font-family: "co-headline",sans-serif;*/
-    line-height: 4vh;
-}
-.header-content-p,
-.header-content-action {
-    display: none;
-}
-@media (min-width: 480px) {
-    .header-content {
-        height: 48px;
-    }
-    .header-content-h1 {
-        width: 140px;
-        font-size: 2rem;
-        margin-left: 0;
-        line-height: 40px;
-    }
-    .header-content-p {
-        font-size: 1rem;
-        font-family: "co-headline",sans-serif;
-        line-height: 45px;
-        flex: 1;
-        display: block;
-    }
-    .header-content-action {
-        display: flex;
-        flex-direction: row;
-        align-content: flex-end;
-    }
-    .header-content-action-item {
-        font-size: 0.9rem;
-        line-height: 48px;
-    }
-    .header-content-action-item + .header-content-action-item {
-        margin-left: 1em;
-    }
-    .header-content-action-item a {
-        padding: 0.5em 1em;
-        color: #000;
-    }
 }
 
 .main {
@@ -159,134 +41,318 @@ button.button:hover:active {
     flex: 1;
     background: #222;
     display: flex;
-    justify-content: flex-end;
-    background: url(img/top.jpg) no-repeat center top;
-}
-.main-content {
-    width: 100%;
-    max-width: calc(1280px + 3em);
-    margin: 0 auto;
-    padding: 3vh 1.5em;
-    display: flex;
-    flex-direction: column;
-}
-.main-content-section {
-    width: 100%;
-    margin: 3vh 0;
-}
-.main-content-section-h1 {
-    margin-bottom: 1em;
-    font-size: 1.5rem;
-    font-weight: normal;
+    justify-content: center;
+    background: linear-gradient(70deg, #bfb770, #ec8856);
 }
 
-.footer {
-    height: 2.5em;
-    font-size: 0.7em;
-    line-height: 2.5em;
-    text-align: center;
-}
 
 /* ------------------------
- * PLAYER
+ * LIVE
  * --------------------- */
 
-.player {
+.live {
     flex: 1;
-    width: 100%;
-    margin: 0 auto;
+    padding: 25px;
+    display: flex;
+}
+.live-left {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    position: relative;
 }
-.player-main {
-	display: none;
+.live-right {
+    width: 401px;
+    margin-left: 30px;
+    display: flex;
+    flex-direction: column;
 }
-.player-main.show {
-	display: block;
-    background: #000;
+
+.live-header {
+    height: 41px;
+    display: flex;
+    align-items: flex-end;
 }
-.player-blank {
-	padding: 1em;
-	color: #fff;
-	background: #000;
-	display: flex;
-    flex-flow: column;
-	align-items: center;
-	justify-content: center;
+.live-header-logo {
+    width: 144px;
+    margin-right: auto;
 }
-.show + .player-blank {
-	display: none;
-}
-.player-blank-action {
-    margin: 1em 0;
-}
-.player-video {
-    height: 7.5vh;
-    background: #fff;
-    position: absolute;
-    left: 0;
-    top: 24vh;
-    display: none;
-}
-.player-video.show {
-    display: block;
-}
-.player-aside {
+.live-header-title {
+    margin-left: 30px;
     flex: 1;
+    font-size: 1.4rem;
+    font-weight: bold;
+    text-overflow: ellipsis;
+    line-height: 1;
     color: #fff;
-    background: rgba(0,0,0,0.5);
-    overflow-y: auto;
-    scrollbar-base-color: #fcc800;
 }
-.player-aside::-webkit-scrollbar {
+.live-header-finish {
+    box-shadow: 0 0 15px rgba(102,102,51,0.15);
+}
+.live-header-finish:hover {
+    opacity: 0.9;
+}
+.live-header-finish:hover:active {
+    opacity: 0.7;
+}
+.live-header-time {
+    margin-left: 26px;
+    font-family: "游ゴシック", "Yu Gothic", "游ゴシック体", "YuGothic", "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "Meiryo UI", "メイリオ", Meiryo, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+    text-align: right;
+    line-height: 0.8;
+    color: #fff;
+}
+.live-header-time > span {
+    margin-left: 13px;
+    font-size: 36px;
+}
+
+.live-slide {
+    flex: 1;
+    margin: 18px 0 25px;
+    background: #000;
+    box-shadow: 0 0 15px rgba(102,102,51,0.15);
+}
+
+.live-footer {
+    height: 138px;
+    display: flex;
+}
+.live-footer-video {
+    width: 184px;
+    border-radius: 4px;
+    background: #000;
+    box-shadow: 0 0 15px rgba(102,102,51,0.15);
+}
+.live-footer-tool {
+    flex: 1;
+    margin-left: 30px;
+}
+.live-footer-tool-info,
+.live-footer-tool-form {
+    height: 49px;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background: rgba(255,255,255,0.75);
+    box-shadow: 0 0 15px rgba(102,102,51,0.15);
+    position: relative;
+    display: flex;
+}
+.live-footer-tool-info::after,
+.live-footer-tool-form-radio:checked + .live-footer-tool-form-submit::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 9px;
+    left: -4px;
+    width: 34px;
+    height: 31px;
+    background: url(img/icon_info.png);
+    pointer-events: none;
+}
+.live-footer-tool-info > p,
+.live-footer-tool-form-input {
+    flex: 1;
+    max-width: 100%;
+    height: 49px;
+    padding: 5px 5px 5px 40px;
+    font-size: 1rem;
+    line-height: 39px;
+    color: #897765;
+    overflow: auto;
+}
+.live-footer-tool-info > p::-webkit-scrollbar {
     width: 3px;
     height: auto;
 }
-.player-aside::-webkit-scrollbar-track {
+.live-footer-tool-info > p::-webkit-scrollbar-track {
     background: #455765;
     box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
 }
-.player-aside::-webkit-scrollbar-thumb {
-    background:#fcc800;
+.live-footer-tool-info > p::-webkit-scrollbar-thumb {
+    background:#6699cc;
 }
-.player-aside-group {
-    padding: 2em 1.5em 0;
-    font-size: 0.75rem;
+.live-footer-tool-form-radio,
+.live-footer-tool-form-submit {
     display: none;
 }
-.player-aside-group.show {
+.live-footer-tool-form-radio:checked + .live-footer-tool-form-submit {
+    width: 94px;
+    border-radius: 0 4px 4px 0;
+    font-weight: bold;
+    line-height: 49px;
+    text-align: center;
+    color: #fff;
+    background: #776b5e;
+    display: block;
+    cursor: pointer;
+}
+.live-footer-tool-form-submit:hover {
+    opacity: 0.9;
+}
+.live-footer-tool-form-submit:active:hover {
+    opacity: 0.75;
+}
+#live-comment-send-normal::after {
+    background: url(img/icon_comment.png);
+}
+#live-comment-send-question {
+    background: #e45c39;
+}
+#live-comment-send-question::after {
+    background: url(img/icon_question.png);
+}
+.live-footer-tool-action {
+    height: 72px;
+    margin-top: 17px;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 0 15px rgba(102,102,51,0.15);
+    display: flex;
+    list-style-type: none;
+    overflow: hidden;
+}
+.live-footer-tool-action > li {
+    flex: 1;
+}
+.live-footer-tool-action > li + li {
+    border-left: 2px solid #eee;
+}
+.live-footer-tool-action > li > button {
+    width: 100%;
+    height: 72px;
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+.live-footer-tool-action > li > button:hover {
+    background: #f6f6f6;
+}
+.live-footer-tool-action > li > button:active:hover {
+    background: #eee;
+}
+
+.live-discus {
+    flex: 1;
+    display: flex;
+    box-shadow: 0 0 15px rgba(102,102,51,0.15);
+}
+.live-discus-radio {
+    display: none;
+}
+.live-discus-wrapper {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+}
+.live-discus-tab {
+    width: 196px;
+    height: 59px;
+    margin-left: 9px;
+    border: 1px solid #fff;
+    border-bottom: 0;
+    border-radius: 4px 4px 0 0;
+    text-align: center;
+    font-weight: bold;
+    line-height: 59px;
+    color: #fff;
+    cursor: pointer;
+    display: inline-block;
+    flex-grow: 1;
+}
+.live-discus-tab:hover {
+    border-width: 2px;
+}
+.live-discus-tab:first-of-type {
+    margin-left: 0;
+}
+.live-discus-tab > span {
+    margin: 0 0.5rem;
+    padding: 0.4rem 0.5rem;
+    border: 1px #fff solid;
+    border-radius: 50%;
+}
+.live-discus-group {
+	width: 100%;
+    height: calc(100vh - 269px);
+    padding: 20px 25px;
+    background: #fff;
+    flex-basis: auto;
+    display: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    order: 1;
+    scrollbar-base-color: #66cca4;
+}
+.live-discus-group::-webkit-scrollbar {
+    width: 3px;
+    height: auto;
+}
+.live-discus-group::-webkit-scrollbar-track {
+    background: #455765;
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
+}
+.live-discus-group::-webkit-scrollbar-thumb {
+    background: #66cca4;
+}
+#live-discus-all:checked ~ .live-discus-wrapper #live-discus-all-tab,
+#live-discus-question:checked ~ .live-discus-wrapper #live-discus-question-tab {
+    border-width: 1px;
+    color: #333;
+    background: #fff;
+    cursor: default;
+}
+#live-discus-all:checked ~ .live-discus-wrapper #live-comment-list,
+#live-discus-question:checked ~ .live-discus-wrapper #live-question-list {
     display: block;
 }
-.player-aside-group-h1 {
-    font-size: 1rem;
-    margin-bottom: 1em;
+
+.live-atmos {
+    height: 160px;
+    border-radius: 0 0 4px 4px;
+    background: #ebc85e;
+    position: relative;
+    box-shadow: 0 0 15px rgba(102,102,51,0.15);
+    overflow: hidden;
 }
-.player-aside-group img {
-    max-width: 100%;
+.live-atmos::after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: 0;
+    right: 13px;
+    width: 244px;
+    height: 70px;
+    background: url("img/stamp_front.png") no-repeat;
 }
-.player-aside-group p + p {
-    margin-top: 1em;
+.live-atmos-count {
+    position: absolute;
+    bottom:10px;
+    left: 25px;
+    color: #fff;
 }
-@media (min-width: 480px) {
-    .player {
-        flex-direction: row;
+.live-atmos-count > span {
+    margin: 0.3rem;
+    font-family: "游ゴシック", "Yu Gothic", "游ゴシック体", "YuGothic", "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "Meiryo UI", "メイリオ", Meiryo, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+    font-size: 2.2rem;
+}
+.live-atmos-stamp {
+    position: absolute;
+    bottom: 20px;
+    left: 40%;
+    opacity: 0;
+    animation: stamp-animation 4s ease-in forwards;
+}
+@keyframes stamp-animation {
+    25% {
+        opacity: 1;
     }
-	.player-blank,
-    .player-main.show {
-        flex: 1;
-    }
-    .player-video {
-        max-width: 15%;
-        height: auto;
-        top: auto;
-        bottom: 22.5%;
-    }
-    .player-aside {
-        width: 320px;
-        flex: none;
+    100% {
+        opacity: 0.8;
+        bottom: 200px;
     }
 }
+
 
 /* ------------------------
  * CREATE FORM
@@ -340,46 +406,26 @@ button.button:hover:active {
  * COMMENT LIST
  * --------------------- */
 
-.discuss-input {
-    margin: 1.5rem 0;
-    display: flex;
-    color: #000;
-    font-size: 0.75rem;
-}
-.discuss-input-text {
-    flex: 1;
-    border: 1px solid rgba(64,64,64,0.5);
-    border-radius: 2px 0 0 2px;
-    padding: 0.5em 0.75em;
-    background: rgba(255,255,255,0.9);
-}
-.discuss-input-submit {
-    border: 1px solid rgba(64,64,64,0.5);
-    border-radius: 0 2px 2px 0;
-    border-left: 0;
-    padding: 0.5em 0.75em;
-    background: #ccc;
-}
-.discuss-comment-list {
-    margin: 1.5em 0;
-}
 .discuss-comment {
     display: flex;
     overflow: hidden;
 }
 .discuss-comment + .discuss-comment {
-    margin-top: 10px;
-    border-top: 1px dotted #444;
-    padding-top: 10px;
+    margin-top: 12px;
+    border-top: 1px dotted #eee;
+    padding-top: 12px;
 }
 .discuss-comment-image {
-    width: 40px;
-    height: 40px;
-    margin-right: 10px;
+    width: 48px;
+    height: 48px;
+    margin-right: 20px;
     border-radius: 50%;
+    background: #333;
 }
 .discuss-comment-body {
-    font-size: 0.8rem;
+    font-size: 1rem;
+    user-select: auto;
+    cursor: text;
 }
 .discuss-comment.new {
     height: 0;
@@ -397,67 +443,6 @@ button.button:hover:active {
         opacity: 1;
         transform: translateX(0);
     }
-}
-
-
-/* ------------------------
- * CONTROLLER
- * --------------------- */
-
-.controller {
-    height: 80px;
-    display: flex;
-    justify-content: center;
-}
-.controller-button {
-    margin: 0.5em;
-}
-
-#button-live-finish span {
-    background-color: #f40;
-}
-
-
-
-/* ------------------------
- * GRID
- * --------------------- */
-
-.grid {
-    width: calc(100% + 1em);
-    margin-left: -1em;
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: flex-start;
-}
-.grid-cell {
-    flex: 0 0 16.66%;
-    min-width: 150px;
-    padding: 1em;
-    list-style: none;
-    display: block;
-}
-.grid-cell-image {
-    width: 100%;
-    height: auto;
-    margin-bottom: 1em;
-}
-.grid-cell-body {
-    font-size: 0.8rem;
-}
-
-/* ------------------------
- * DOWNLOAD
- * --------------------- */
-
-.download {
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: center;
-    list-style: none;
-}
-.download > * {
-    margin: 1.5em 1em 0.5em;
 }
 
 
