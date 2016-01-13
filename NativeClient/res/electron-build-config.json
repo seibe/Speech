@@ -1,8 +1,8 @@
 {
   "osx" : {
     "title": "Speech",
-    "background": "res/app.png",
-    "icon": "res/app.icns",
+    "background": "app.png",
+    "icon": "app.icns",
     "icon-size": 80,
     "contents": [
       { "x": 438, "y": 344, "type": "link", "path": "/Applications" },
