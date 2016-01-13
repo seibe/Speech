@@ -5,13 +5,14 @@ import electron.MediaStreamTrack;
 import haxe.Json;
 import haxe.Timer;
 import js.Browser;
+import js.html.AnimationEvent;
 import js.html.Element;
 import js.html.LocalMediaStream;
 import js.html.rtc.IceCandidate;
 import js.html.rtc.SessionDescription;
 import js.html.WebSocket;
 import kurentoUtils.WebRtcPeer;
-import speech.abstracts.CommentData;
+import speech.abstracts.common.CommentData;
 import speech.abstracts.common.CommentType;
 import speech.abstracts.common.MessageType.ClientMessageType;
 import speech.abstracts.common.MessageType.ServerMessageType;
@@ -110,7 +111,7 @@ class Index
 				_videoSourceId = _dom.getSelect("video", "setup").value;
 				
 				// イベントリスナー解除
-				_dom.getButton("submit").addEventListener("click", onClickButtonStart);
+				_dom.getButton("submit").removeEventListener("click", onClickButtonStart);
 				
 			case State.LIVE_BEFORE:
 				//
@@ -328,6 +329,38 @@ class Index
 		return _reqCount;
 	}
 	
+	private function addComment(text:String, name:String):Void
+	{
+		_dom.get("comment-list", "live").insertAdjacentHTML("afterbegin", '<li class="discuss-comment new"><img class="discuss-comment-image" src="img/avatar.png"><div class="discuss-comment-body"><strong>$name</strong><p>$text</p></div></li>');
+		_dom.query(".discuss-comment.new").addEventListener("animationend", function(e:AnimationEvent):Void {
+			trace("animation end");
+			if (e.animationName == "comment-move-in") {
+				var elem:Element = cast e.target;
+				elem.classList.remove("new");
+			}
+		});
+	}
+	
+	private function addQuestion(text:String, name:String):Void
+	{
+		_dom.get("question-list", "live").insertAdjacentHTML("beforeend", '<li class="discuss-comment"><img class="discuss-comment-image" src="img/avatar.png"><div class="discuss-comment-body"><strong>$name</strong><p>$text</p></div></li>');
+		
+		_numQuestion++;
+		_dom.get("num-question", "live").innerText = Std.string(_numQuestion);
+	}
+	
+	private function addStamp(src:String, alt:String):Void
+	{
+		for (i in 0...3) {
+			Timer.delay(function():Void {
+				var left = i * 5 + 40 + Math.floor(Math.random() * 28);
+				_dom.get("atmos", "live").insertAdjacentHTML("afterbegin", '<img class="live-atmos-stamp" alt="${alt}" src="${src}" style="left: ${left}%" />');
+				var stamp = Browser.document.getElementsByClassName("live-atmos-stamp").item(0);
+				Timer.delay(function():Void { stamp.remove(); }, 4000);
+			}, 500 * i);
+		}
+	}
+	
 	private function onWsConnect(e:Dynamic):Void
 	{
 		// 部屋を作成する
@@ -393,50 +426,32 @@ class Index
 				switch (comment.type) {
 					case CommentType.NORMAL:
 						// 通常コメント
-						_dom.get("comment-list", "live").insertAdjacentHTML("afterbegin", '<li class="discuss-comment new"><img class="discuss-comment-image" src="img/avatar.jpg" width="32" height="32"><div class="discuss-comment-body"><strong>$name</strong><p>$text</p></div></li>');
+						addComment(text, name);
 						
 					case CommentType.QUESTION:
 						// 質問コメント
-						_dom.get("comment-list", "live").insertAdjacentHTML("afterbegin", '<li class="discuss-comment new"><img class="discuss-comment-image" src="img/avatar.jpg" width="32" height="32"><div class="discuss-comment-body"><strong>$name</strong><p>$text</p></div></li>');
-						_dom.get("question-list", "live").insertAdjacentHTML("afterbegin", '<li class="discuss-comment new"><img class="discuss-comment-image" src="img/avatar.jpg" width="32" height="32"><div class="discuss-comment-body"><strong>$name</strong><p>$text</p></div></li>');
-						_numQuestion++;
-						_dom.get("num-question", "live").innerText = Std.string(_numQuestion);
+						addComment(text, name);
+						addQuestion(text, name);
 						
 					case CommentType.STAMP_CLAP:
 						// 拍手スタンプ
-						var left = 40 + Math.floor(Math.random() * 38);
-						_dom.get("atmos", "live").insertAdjacentHTML("afterbegin", '<img class="live-atmos-stamp" alt="拍手" src="img/icon_clap.png" style="left: ${left}%" />');
-						Timer.delay(function():Void {
-							var stamps = Browser.document.getElementsByClassName("live-atmos-stamp");
-							if (stamps != null && stamps.length > 0) stamps.item(0).remove();
-						}, 4000);
+						addComment(text, name);
+						addStamp("img/icon_clap.png", "拍手");
 						
 					case CommentType.STAMP_HATENA:
 						// ？スタンプ
-						var left = 40 + Math.floor(Math.random() * 38);
-						_dom.get("atmos", "live").insertAdjacentHTML("afterbegin", '<img class="live-atmos-stamp" alt="?" src="img/icon_hatena.png" style="left: ${left}%" />');
-						Timer.delay(function():Void {
-							var stamps = Browser.document.getElementsByClassName("live-atmos-stamp");
-							if (stamps != null && stamps.length > 0) stamps.item(0).remove();
-						}, 4000);
+						addComment(text, name);
+						addStamp("img/icon_hatena.png", "?");
 						
 					case CommentType.STAMP_PLUS:
 						// +1スタンプ
-						var left = 40 + Math.floor(Math.random() * 38);
-						_dom.get("atmos", "live").insertAdjacentHTML("afterbegin", '<img class="live-atmos-stamp" alt="+1" src="img/icon_plus.png" style="left: ${left}%" />');
-						Timer.delay(function():Void {
-							var stamps = Browser.document.getElementsByClassName("live-atmos-stamp");
-							if (stamps != null && stamps.length > 0) stamps.item(0).remove();
-						}, 4000);
+						addComment(text, name);
+						addStamp("img/icon_plus.png", "+1");
 						
 					case CommentType.STAMP_WARAI:
 						// 笑スタンプ
-						var left = 40 + Math.floor(Math.random() * 38);
-						_dom.get("atmos", "live").insertAdjacentHTML("afterbegin", '<img class="live-atmos-stamp" alt="笑い" src="img/icon_warai.png" style="left: ${left}%" />');
-						Timer.delay(function():Void {
-							var stamps = Browser.document.getElementsByClassName("live-atmos-stamp");
-							if (stamps != null && stamps.length > 0) stamps.item(0).remove();
-						}, 4000);
+						addComment(text, name);
+						addStamp("img/icon_www.png", "笑い");
 				}
 				
 			case ServerMessageType.ERROR:

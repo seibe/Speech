@@ -50,6 +50,11 @@ class User
 	public var name:String;
 	
 	/**
+	 * ユーザーの接続IPアドレス
+	 */
+	public var ipaddr:String;
+	
+	/**
 	 * ユーザーと接続するWSセッション
 	 * 切断後はnullとなる
 	 */

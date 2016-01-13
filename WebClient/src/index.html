@@ -7,38 +7,49 @@
 	<link rel="stylesheet" href="css/sanitize.min.css" />
 	<link rel="stylesheet" href="style.css" />
 	<script src="js/kurento-utils.js"></script>
-	<!--<script src="script.js"></script>-->
+	<script src="script.js"></script>
 </head>
 <body>
     <main class="main">
         <div class="main-visual">
+			
+			<section class="scene create" id="scene-setup">
+                <h1 class="create-h1">参加者情報の入力</h1>
+                <div class="create-item">
+                    <span class="create-item-label">お名前</span>
+                    <input type="text" class="create-item-input" id="input-setup-viewer" placeholder="ももたろう" />
+                </div>
+                <p class="create-error" id="output-setup-error"></p>
+                <div class="create-submit">
+                    <button class="button" id="button-setup-submit"><span>参加する</span></button>
+                </div>
+            </section>
             
-            <section class="live">
+            <section class="scene live hide" id="scene-live">
                 <div class="live-left">
                     <div class="live-header">
                         <div class="live-header-logo"><img alt="Speech" src="img/logo.png" /></div>
-                        <p class="live-header-title">発表タイトル発表タイトル発表タイトル発表タイトル</p>
-                        <p class="live-header-time">経過時間<span id="live-elapsed-time">04:48</span></p>
+                        <p class="live-header-title" id="live-title">発表タイトル発表タイトル発表タイトル発表タイトル</p>
                     </div>
                     
-                    <iframe class="live-slide" id="live-slide"></iframe>
-
+                    <iframe class="live-slide readonly" id="live-slide"></iframe>
+					
                     <div class="live-footer">
                         <video class="live-footer-video" id="live-video" autoplay></video>
                         
                         <div class="live-footer-tool">
                             <div class="live-footer-tool-form">
-                                <input type="text" class="live-footer-tool-form-input" placeholder="ここにコメントを入力できます" />
-                                <input type="radio" class="live-footer-tool-form-radio" name="radio-comment" id="live-comment-type-normal" checked />
+                                <input type="text" class="live-footer-tool-form-input" id="input-live-comment" placeholder="ここにコメントを入力できます" />
+                                <input type="radio" class="live-footer-tool-form-radio" name="radio-comment" id="input-live-comment-type-normal" checked />
                                 <label class="live-footer-tool-form-submit" for="live-comment-type-normal" id="live-comment-send-normal">送信</label>
-                                <input type="radio" class="live-footer-tool-form-radio" name="radio-comment" id="live-comment-type-question" />
+                                <input type="radio" class="live-footer-tool-form-radio" name="radio-comment" id="input-live-comment-type-question" />
                                 <label class="live-footer-tool-form-submit" for="live-comment-type-question" id="live-comment-send-question">質問</label>
                             </div>
                             
                             <ul class="live-footer-tool-action live-footer-tool-audience">
                                 <li><button id="live-action-comment">ここにコメントする</button></li>
                                 <li><button id="live-action-question">ここに質問する</button></li>
-                                <li><button id="live-action-acount">アカウント設定</button></li>
+                                <li><button id="live-action-setting">アカウント設定</button></li>
                             </ul>
                         </div>
                     </div>
@@ -52,8 +63,8 @@
                         
                         <div class="live-discus-wrapper">
                             <label class="live-discus-tab" for="live-discus-all" id="live-discus-all-tab">全てのコメント</label>
-                            <label class="live-discus-tab" for="live-discus-question" id="live-discus-question-tab">質問<span>11</span></label>
-
+                            <label class="live-discus-tab" for="live-discus-question" id="live-discus-question-tab">質問<span id="live-num-question">11</span></label>
+							
                             <ul class="live-discus-group live-discus-all-comment" id="live-comment-list">
                                 <li class="discuss-comment new">
                                     <img class="discuss-comment-image" src="img/avatar.jpg" width="48" height="48">
@@ -78,10 +89,6 @@
                     
                     <div class="live-atmos" id="live-atmos">
                         <div class="live-atmos-count">現在<span id="live-num-audience">0</span>人</div>
-                        <img class="live-atmos-stamp" alt="+1" src="img/icon_plus.png" style="left: 40%" />
-                        <img class="live-atmos-stamp" alt="?" src="img/icon_hatena.png" style="left: 52.5%" />
-                        <img class="live-atmos-stamp" alt="拍手" src="img/icon_clap.png" style="left: 65%" />
-                        <img class="live-atmos-stamp" alt="笑い" src="img/icon_www.png" style="left: 77.5%" />
                     </div>
                     
                 </div>
@@ -89,5 +96,11 @@
             
         </div>
 	</main>
+    
+    <dialog class="dialog" id="dialog-loading">
+        <div class="dialog-center">
+            <div class="loader">please wait</div>
+        </div>
+    </dialog>
 </body>
 </html>

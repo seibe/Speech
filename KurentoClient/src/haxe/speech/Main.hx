@@ -136,6 +136,11 @@ class Main
 				if (u.type != UserType.AUDIENCE) return;
 				connectStream(cast u, d);
 				
+			case ClientMessageType.DISCONNECT_STREAM:
+				// 聴衆の映像配信の受信停止
+				if (u.type != UserType.AUDIENCE) return;
+				disconnectStream(cast u);
+				
 			case ClientMessageType.COMMENT:
 				// コメントする
 				comment(u, {
@@ -210,6 +215,7 @@ class Main
 		
 		// 発表者の作成
 		var u = new Presenter(p.id, ws);
+		u.ipaddr = ws.upgradeReq.connection.remoteAddress;
 		u.name = name;
 		_u[u.id.toInt()] = u;
 		_w[ws] = u;
@@ -289,10 +295,8 @@ class Main
 			}
 			if (p == null) {
 				// 希望のプレゼンテーションがない
-				ws.send(Json.stringify({
-					type: ServerMessageType.ERROR,
-					data: "発表が存在しません"
-				}));
+				ws.send(Message.generate(ServerMessageType.ERROR, "発表が存在しません"));
+				ws.close();
 				return;
 			}
 		} else {
@@ -305,16 +309,15 @@ class Main
 			}
 			if (p == null) {
 				// プレゼンテーションがひとつもない
-				ws.send(Json.stringify({
-					type: ServerMessageType.ERROR,
-					data: "現在発表は行われていません"
-				}));
+				ws.send(Message.generate(ServerMessageType.ERROR, "現在発表は行われていません"));
+				ws.close();
 				return;
 			}
 		}
 		
 		// 聴衆の作成
 		var a = new Audience(p.id, ws);
+		a.ipaddr = ws.upgradeReq.connection.remoteAddress;
 		_u[a.id.toInt()] = a;
 		_w[ws] = a;
 		
@@ -392,7 +395,7 @@ class Main
 		p.activities.push(new Activity(ActivityType.UPDATE_SLIDE(index)));
 		
 		// 聴衆へのURL通知
-		broadcast(p, ServerMessageType.UPDATE_SLIDE, Std.string(url));
+		broadcast(p, ServerMessageType.UPDATE_SLIDE, url);
 	}
 	
 	/**
@@ -631,7 +634,7 @@ class Main
 			title: p.title,
 			time_begin: p.activities[0].time,
 			time_end: p.activities[p.activities.length - 1].time,
-			presenter: { name: u.name },
+			presenter: { ipaddr: u.ipaddr, name: u.name },
 			audience: [],
 			slide: [],
 			attachment: [],
@@ -639,7 +642,7 @@ class Main
 		};
 		for (i in 0...p.audienceIds.length) {
 			var a = _u[p.audienceIds[i].toInt()];
-			log.audience.push( { index: i, name: a.name } );
+			log.audience.push( { index: i, ipaddr: a.ipaddr , name: a.name } );
 		}
 		for (i in 0...p.slideUrls.length) {
 			var url = Std.string(p.slideUrls[i]);

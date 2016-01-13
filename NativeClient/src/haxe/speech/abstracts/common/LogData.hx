@@ -1,6 +1,7 @@
 package speech.abstracts.common;
 
 typedef LogDataPresenter = {
+	ipaddr:String,
 	name:String,
 	?twitter:String,
 	?google:String,
@@ -8,7 +9,8 @@ typedef LogDataPresenter = {
 }
 typedef LogDataAudience = {
 	index:Int,
-	name:String,
+	ipaddr:String,
+	?name:String,
 	?twitter:String,
 }
 typedef LogDataUrl = {

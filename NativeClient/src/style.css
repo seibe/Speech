@@ -22,6 +22,9 @@ body::-webkit-scrollbar {
 .hide {
     display: none !important;
 }
+.readonly {
+	pointer-events: none;
+}
 
 button {
     outline: none;
@@ -275,6 +278,7 @@ button {
 }
 .live-discus-group {
 	width: 100%;
+	max-width: 401px;
     height: calc(100vh - 269px);
     padding: 20px 25px;
     background: #fff;
@@ -393,9 +397,16 @@ button {
 }
 .create-error {
     margin: 1em 0;
+	border: 1px dashed #f00;
+	padding: 1em;
     font-size: 0.8em;
+	font-weight: bold;
     text-align: center;
     color: #ff4400;
+	background: rgba(255,255,255,0.25);
+}
+.create-error:empty {
+	display: none;
 }
 .create-submit {
     margin: 1em 0;
@@ -410,6 +421,8 @@ button {
 .discuss-comment {
     display: flex;
     overflow: hidden;
+	word-break: break-all;
+	word-wrap: break-word;
 }
 .discuss-comment + .discuss-comment {
     margin-top: 12px;

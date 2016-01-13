@@ -1,4 +1,4 @@
-package speech.abstracts;
+package speech.abstracts.common;
 import js.html.URL;
 import speech.abstracts.common.CommentType;
 

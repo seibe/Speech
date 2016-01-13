@@ -11,6 +11,7 @@ body {
     background: #f6f6f6;
     overflow-y: hidden;
     user-select: none;
+    font-family: Avenir, "Open Sans", "Helvetica Neue", Helvetica, Arial, Verdana, Roboto, "游ゴシック", "Yu Gothic", "游ゴシック体", "YuGothic", "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "Meiryo UI", "メイリオ", Meiryo, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
 }
 body::-webkit-scrollbar {
     width: 0;
@@ -20,10 +21,18 @@ body::-webkit-scrollbar {
 .hide {
     display: none !important;
 }
+.readonly {
+	pointer-events: none;
+}
 
 button {
     outline: none;
     cursor: pointer;
+}
+.button {
+    border: 1px solid #fff;
+    padding: 0.5em 1em;
+    color: #fff;
 }
 
 .main {
@@ -35,8 +44,8 @@ button {
     flex: 1;
     background: #222;
     display: flex;
-    justify-content: flex-end;
-    background: url(img/top.jpg) no-repeat center top;
+    justify-content: center;
+    background: linear-gradient(70deg, #bfb770, #ec8856);
 }
 
 
@@ -47,7 +56,6 @@ button {
 .live {
     flex: 1;
     padding: 25px;
-    background: linear-gradient(70deg, #bfb770, #ec8856);
     display: flex;
 }
 .live-left {
@@ -268,6 +276,8 @@ button {
     border-radius: 50%;
 }
 .live-discus-group {
+	width: 100%;
+	max-width: 401px;
     height: calc(100vh - 269px);
     padding: 20px 25px;
     background: #fff;
@@ -386,9 +396,16 @@ button {
 }
 .create-error {
     margin: 1em 0;
+	border: 1px dashed #f00;
+	padding: 1em;
     font-size: 0.8em;
+	font-weight: bold;
     text-align: center;
     color: #ff4400;
+	background: rgba(255,255,255,0.25);
+}
+.create-error:empty {
+	display: none;
 }
 .create-submit {
     margin: 1em 0;
@@ -403,6 +420,8 @@ button {
 .discuss-comment {
     display: flex;
     overflow: hidden;
+	word-break: break-all;
+	word-wrap: break-word;
 }
 .discuss-comment + .discuss-comment {
     margin-top: 12px;

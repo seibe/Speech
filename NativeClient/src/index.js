@@ -230,6 +230,9 @@ speech_manager_DomManager.prototype = {
 	,getScene: function(id) {
 		return this._idMap.get("scene-" + id);
 	}
+	,query: function(selectors) {
+		return window.document.querySelector(selectors);
+	}
 	,changeScene: function(id,callback) {
 		if(this._sceneMap.get(id) == null) return;
 		this._nowScene = id;
@@ -366,7 +369,7 @@ speech_renderer_Index.prototype = {
 			this._username = this._dom.getInput("presenter","setup").value;
 			this._slideUrl = this._dom.getInput("slide-url","setup").value;
 			this._videoSourceId = this._dom.getSelect("video","setup").value;
-			this._dom.getButton("submit").addEventListener("click",$bind(this,this.onClickButtonStart));
+			this._dom.getButton("submit").removeEventListener("click",$bind(this,this.onClickButtonStart));
 			break;
 		case 1:
 			this._dom.getDialog("loading").close();
@@ -418,7 +421,7 @@ speech_renderer_Index.prototype = {
 						audioList.push(track);
 						break;
 					default:
-						haxe_Log.trace(track,{ fileName : "Index.hx", lineNumber : 170, className : "speech.renderer.Index", methodName : "setState"});
+						haxe_Log.trace(track,{ fileName : "Index.hx", lineNumber : 171, className : "speech.renderer.Index", methodName : "setState"});
 					}
 				}
 				_g._dom.setMediaSource("video",videoList);
@@ -536,9 +539,43 @@ speech_renderer_Index.prototype = {
 		}
 		obj.timestamp = new Date().getTime();
 		obj.requestId = this._reqCount++;
-		haxe_Log.trace("send",{ fileName : "Index.hx", lineNumber : 325, className : "speech.renderer.Index", methodName : "send", customParams : [obj.type]});
+		haxe_Log.trace("send",{ fileName : "Index.hx", lineNumber : 326, className : "speech.renderer.Index", methodName : "send", customParams : [obj.type]});
 		this._ws.send(JSON.stringify(obj));
 		return this._reqCount;
+	}
+	,addComment: function(text,name) {
+		this._dom.get("comment-list","live").insertAdjacentHTML("afterbegin","<li class=\"discuss-comment new\"><img class=\"discuss-comment-image\" src=\"img/avatar.png\"><div class=\"discuss-comment-body\"><strong>" + name + "</strong><p>" + text + "</p></div></li>");
+		this._dom.query(".discuss-comment.new").addEventListener("animationend",function(e) {
+			haxe_Log.trace("animation end",{ fileName : "Index.hx", lineNumber : 336, className : "speech.renderer.Index", methodName : "addComment"});
+			if(e.animationName == "comment-move-in") {
+				var elem = e.target;
+				elem.classList.remove("new");
+			}
+		});
+	}
+	,addQuestion: function(text,name) {
+		this._dom.get("question-list","live").insertAdjacentHTML("beforeend","<li class=\"discuss-comment\"><img class=\"discuss-comment-image\" src=\"img/avatar.png\"><div class=\"discuss-comment-body\"><strong>" + name + "</strong><p>" + text + "</p></div></li>");
+		this._numQuestion++;
+		this._dom.get("num-question","live").innerText = Std.string(this._numQuestion);
+	}
+	,addStamp: function(src,alt) {
+		var _g1 = this;
+		var _g = 0;
+		while(_g < 3) {
+			var i = [_g++];
+			haxe_Timer.delay((function(i) {
+				return function() {
+					var left = i[0] * 5 + 40 + Math.floor(Math.random() * 28);
+					_g1._dom.get("atmos","live").insertAdjacentHTML("afterbegin","<img class=\"live-atmos-stamp\" alt=\"" + alt + "\" src=\"" + src + "\" style=\"left: " + left + "%\" />");
+					var stamp = window.document.getElementsByClassName("live-atmos-stamp").item(0);
+					haxe_Timer.delay((function() {
+						return function() {
+							stamp.remove();
+						};
+					})(),4000);
+				};
+			})(i),500 * i[0]);
+		}
 	}
 	,onWsConnect: function(e) {
 		var _g = this;
@@ -551,7 +588,7 @@ speech_renderer_Index.prototype = {
 					_g._webRtcPeer.generateOffer($bind(_g,_g.onOffer));
 				});
 			},function(err1) {
-				haxe_Log.trace("error getUserVideo",{ fileName : "Index.hx", lineNumber : 356, className : "speech.renderer.Index", methodName : "onWsConnect"});
+				haxe_Log.trace("error getUserVideo",{ fileName : "Index.hx", lineNumber : 389, className : "speech.renderer.Index", methodName : "onWsConnect"});
 			});
 		}
 	}
@@ -582,50 +619,32 @@ speech_renderer_Index.prototype = {
 			var _g = comment.type;
 			switch(_g) {
 			case "normal":
-				this._dom.get("comment-list","live").insertAdjacentHTML("afterbegin","<li class=\"discuss-comment new\"><img class=\"discuss-comment-image\" src=\"img/avatar.jpg\" width=\"32\" height=\"32\"><div class=\"discuss-comment-body\"><strong>" + name + "</strong><p>" + text + "</p></div></li>");
+				this.addComment(text,name);
 				break;
 			case "question":
-				this._dom.get("comment-list","live").insertAdjacentHTML("afterbegin","<li class=\"discuss-comment new\"><img class=\"discuss-comment-image\" src=\"img/avatar.jpg\" width=\"32\" height=\"32\"><div class=\"discuss-comment-body\"><strong>" + name + "</strong><p>" + text + "</p></div></li>");
-				this._dom.get("question-list","live").insertAdjacentHTML("afterbegin","<li class=\"discuss-comment new\"><img class=\"discuss-comment-image\" src=\"img/avatar.jpg\" width=\"32\" height=\"32\"><div class=\"discuss-comment-body\"><strong>" + name + "</strong><p>" + text + "</p></div></li>");
-				this._numQuestion++;
-				this._dom.get("num-question","live").innerText = Std.string(this._numQuestion);
+				this.addComment(text,name);
+				this.addQuestion(text,name);
 				break;
 			case "stamp_clap":
-				var left = 40 + Math.floor(Math.random() * 38);
-				this._dom.get("atmos","live").insertAdjacentHTML("afterbegin","<img class=\"live-atmos-stamp\" alt=\"拍手\" src=\"img/icon_clap.png\" style=\"left: " + left + "%\" />");
-				haxe_Timer.delay(function() {
-					var stamps = window.document.getElementsByClassName("live-atmos-stamp");
-					if(stamps != null && stamps.length > 0) stamps.item(0).remove();
-				},4000);
+				this.addComment(text,name);
+				this.addStamp("img/icon_clap.png","拍手");
 				break;
 			case "stamp_hatena":
-				var left1 = 40 + Math.floor(Math.random() * 38);
-				this._dom.get("atmos","live").insertAdjacentHTML("afterbegin","<img class=\"live-atmos-stamp\" alt=\"?\" src=\"img/icon_hatena.png\" style=\"left: " + left1 + "%\" />");
-				haxe_Timer.delay(function() {
-					var stamps1 = window.document.getElementsByClassName("live-atmos-stamp");
-					if(stamps1 != null && stamps1.length > 0) stamps1.item(0).remove();
-				},4000);
+				this.addComment(text,name);
+				this.addStamp("img/icon_hatena.png","?");
 				break;
 			case "stamp_plus":
-				var left2 = 40 + Math.floor(Math.random() * 38);
-				this._dom.get("atmos","live").insertAdjacentHTML("afterbegin","<img class=\"live-atmos-stamp\" alt=\"+1\" src=\"img/icon_plus.png\" style=\"left: " + left2 + "%\" />");
-				haxe_Timer.delay(function() {
-					var stamps2 = window.document.getElementsByClassName("live-atmos-stamp");
-					if(stamps2 != null && stamps2.length > 0) stamps2.item(0).remove();
-				},4000);
+				this.addComment(text,name);
+				this.addStamp("img/icon_plus.png","+1");
 				break;
 			case "stamp_warai":
-				var left3 = 40 + Math.floor(Math.random() * 38);
-				this._dom.get("atmos","live").insertAdjacentHTML("afterbegin","<img class=\"live-atmos-stamp\" alt=\"笑い\" src=\"img/icon_warai.png\" style=\"left: " + left3 + "%\" />");
-				haxe_Timer.delay(function() {
-					var stamps3 = window.document.getElementsByClassName("live-atmos-stamp");
-					if(stamps3 != null && stamps3.length > 0) stamps3.item(0).remove();
-				},4000);
+				this.addComment(text,name);
+				this.addStamp("img/icon_www.png","笑い");
 				break;
 			}
 			break;
 		case "onError":
-			haxe_Log.trace("server error",{ fileName : "Index.hx", lineNumber : 443, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [d]});
+			haxe_Log.trace("server error",{ fileName : "Index.hx", lineNumber : 458, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [d]});
 			break;
 		case "finish":
 			this.setState(speech_renderer_State.SETUP);
@@ -643,15 +662,15 @@ speech_renderer_Index.prototype = {
 			this.setState(speech_renderer_State.LIVE);
 			break;
 		case "onCreateLog":
-			haxe_Log.trace("log URL",{ fileName : "Index.hx", lineNumber : 466, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [d]});
+			haxe_Log.trace("log URL",{ fileName : "Index.hx", lineNumber : 481, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [d]});
 			this.setState(speech_renderer_State.LIVE_AFTER);
 			break;
 		default:
-			haxe_Log.trace("unknown ws",{ fileName : "Index.hx", lineNumber : 470, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [resp]});
+			haxe_Log.trace("unknown ws",{ fileName : "Index.hx", lineNumber : 485, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [resp]});
 		}
 	}
 	,onWsError: function(error) {
-		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 476, className : "speech.renderer.Index", methodName : "onWsError", customParams : [error]});
+		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 491, className : "speech.renderer.Index", methodName : "onWsError", customParams : [error]});
 		this.setState(speech_renderer_State.SETUP);
 	}
 	,onOffer: function(error,offerSdp) {

@@ -50,5 +50,6 @@ abstract ClientMessageType(String) to String from String
 	var JOIN_VIEWER		= "joinViewer";
 	var LEAVE_VIEWER	= "leaveViewer";
 	var CONNECT_STREAM	= "connectStream";
+	var DISCONNECT_STREAM = "disconnectStream";
 	var COMMENT			= "comment";
 }
