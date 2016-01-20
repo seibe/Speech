@@ -22,12 +22,10 @@ digraph sample1 {
 		fontsize = 12;
 
 		login0[label="ログイン先選択"; group=1];
-		login1[label="OAuth認証"; group=1];
-		login2[label="Twitter\nGithub\nGoogle"; shape=plaintext];
-		login3[label="アカウント情報受取"; group=1];
+		login1[label="PINコード入力\n認証待機"; shape=plaintext];
 
-		login2->login1[dir=none; style=dotted];
-		{rank=same; login1; login2}
+		login1->login0[dir=none; style=dotted];
+		{rank=same; login0; login1}
 	};
 	
 	subgraph cluster1 {
@@ -35,7 +33,7 @@ digraph sample1 {
 		fontsize = 12;
 
 		setup0[label="発表設定"; group=1];
-		setup1[label="スライド選択\n発表情報入力\n録画設定"; shape=plaintext];
+		setup1[label="スライド選択\n配信告知"; shape=plaintext];
 
 		setup1->setup0[dir=none; style=dotted];
 		{rank=same; setup0; setup1}
@@ -45,27 +43,23 @@ digraph sample1 {
 		label = "配信画面";
 		fontsize = 12;
 
-		cast0[label="配信待機"; group=1];
-		cast1[label="配信告知\nアンケート作成"; shape=plaintext];
-		cast2[label="配信"; group=1];
-		cast3[label="スライド操作\nポインター操作\nデスクトップ録画\nアンケート収集"; shape=plaintext];
+		cast0[label="配信"; group=1];
+		cast1[label="ポインター操作\nデスクトップ録画\nアンケート作成\nアンケート結果"; shape=plaintext];
 
 		cast1->cast0[dir=none; style=dotted];
-		cast3->cast2[dir=none; style=dotted];
 		{rank=same; cast0; cast1}
-		{rank=same; cast2; cast3}
 	}
 
 	subgraph cluster3 {
 		label = "配信後画面";
 		fontsize = 12;
 
-		result0[label="記録保存・投稿"; group=1];
-		result1[label="Gistに投稿\nローカルに保存"; shape=plaintext];
+		result0[label="記録表示・保存"; group=1];
+		result1[label="保存先選択"; shape=plaintext];
 
 		result1->result0[dir=none; style=dotted];
 		{rank=same; result0; result1}
 	}
 
-	start->login0->login1->login3->setup0->cast0->cast2->result0->end[weight=999];
+	start->login0->setup0->cast0->result0->end[weight=999];
 }
