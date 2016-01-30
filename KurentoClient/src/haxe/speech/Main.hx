@@ -131,6 +131,15 @@ class Main
 				if (u.type != UserType.PRESENTER) return;
 				finalizeStream(cast u);
 				
+			case ClientMessageType.START_POINTER:
+				// ポインター配信を始める
+				
+			case ClientMessageType.UPDATE_POINTER:
+				// ポインター一の更新
+				
+			case ClientMessageType.STOP_POINTER:
+				// ポインター配信を終える
+				
 			case ClientMessageType.CONNECT_STREAM:
 				// 聴衆の映像配信への接続
 				if (u.type != UserType.AUDIENCE) return;
@@ -612,6 +621,27 @@ class Main
 		
 		// コメントのブロードキャスト
 		broadcast(p, ServerMessageType.COMMENT, d, true);
+	}
+	
+	private function startPointer(u:Presenter):Void
+	{
+		var p = _p[u.presentationId.toInt()];
+		
+		broadcast(p, ServerMessageType.START_POINTER);
+	}
+	
+	private function updatePointer(u:Presenter, d:{x:Float, y:Float}):Void
+	{
+		var p = _p[u.presentationId.toInt()];
+		
+		broadcast(p, ServerMessageType.UPDATE_POINTER, d);
+	}
+	
+	private function stopPointer(u:Presenter):Void
+	{
+		var p = _p[u.presentationId.toInt()];
+		
+		broadcast(p, ServerMessageType.STOP_POINTER);
 	}
 	
 	/**

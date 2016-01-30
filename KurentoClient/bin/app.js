@@ -570,6 +570,12 @@ speech_Main.prototype = {
 			if(u.type != speech_abstracts_UserType.PRESENTER) return;
 			this.finalizeStream(u);
 			break;
+		case "startPointer":
+			break;
+		case "updatePointer":
+			break;
+		case "stopPointer":
+			break;
 		case "connectStream":
 			if(u.type != speech_abstracts_UserType.AUDIENCE) return;
 			this.connectStream(u,d);
@@ -589,7 +595,7 @@ speech_Main.prototype = {
 			this.makeLog(u);
 			break;
 		default:
-			haxe_Log.trace("ws throw",{ fileName : "Main.hx", lineNumber : 165, className : "speech.Main", methodName : "onMessage", customParams : [json.type]});
+			haxe_Log.trace("ws throw",{ fileName : "Main.hx", lineNumber : 174, className : "speech.Main", methodName : "onMessage", customParams : [json.type]});
 		}
 	}
 	,onClose: function(ws) {
@@ -613,12 +619,12 @@ speech_Main.prototype = {
 		this._w.remove(ws);
 	}
 	,onError: function(ws,error) {
-		haxe_Log.trace("ws error",{ fileName : "Main.hx", lineNumber : 192, className : "speech.Main", methodName : "onError", customParams : [error]});
+		haxe_Log.trace("ws error",{ fileName : "Main.hx", lineNumber : 201, className : "speech.Main", methodName : "onError", customParams : [error]});
 	}
 	,initPresentation: function(ws,title,url,name) {
 		var urldata = js_node_Url.parse(url);
 		if(urldata.protocol != "http:" && urldata.protocol != "https:") {
-			haxe_Log.trace("無効なURLが指定された: " + url,{ fileName : "Main.hx", lineNumber : 208, className : "speech.Main", methodName : "initPresentation"});
+			haxe_Log.trace("無効なURLが指定された: " + url,{ fileName : "Main.hx", lineNumber : 217, className : "speech.Main", methodName : "initPresentation"});
 			return;
 		}
 		var p = new speech_abstracts_Presentation();
@@ -745,7 +751,7 @@ speech_Main.prototype = {
 	,updateSlideUrl: function(u,url) {
 		var urldata = js_node_Url.parse(url);
 		if(urldata.protocol != "http:" && urldata.protocol != "https:") {
-			haxe_Log.trace("無効なURLが指定された: " + url,{ fileName : "Main.hx", lineNumber : 380, className : "speech.Main", methodName : "updateSlideUrl"});
+			haxe_Log.trace("無効なURLが指定された: " + url,{ fileName : "Main.hx", lineNumber : 389, className : "speech.Main", methodName : "updateSlideUrl"});
 			return;
 		}
 		var p;
@@ -769,7 +775,7 @@ speech_Main.prototype = {
 			if(u.socket == null || client == null) return Promise.reject();
 			return client.create("MediaPipeline");
 		})["catch"](function(error) {
-			haxe_Log.trace(error,{ fileName : "Main.hx", lineNumber : 424, className : "speech.Main", methodName : "initStream"});
+			haxe_Log.trace(error,{ fileName : "Main.hx", lineNumber : 433, className : "speech.Main", methodName : "initStream"});
 			if(u.socket != null) u.socket.send(speech_abstracts_Message.generate("onError",error));
 			_g.finalizeStream(u);
 			return null;
@@ -803,7 +809,7 @@ speech_Main.prototype = {
 			_g.broadcast(p,"canConnectStream");
 			return null;
 		})["catch"](function(error1) {
-			haxe_Log.trace(error1,{ fileName : "Main.hx", lineNumber : 476, className : "speech.Main", methodName : "initStream"});
+			haxe_Log.trace(error1,{ fileName : "Main.hx", lineNumber : 485, className : "speech.Main", methodName : "initStream"});
 			if(u.socket != null) u.socket.send(speech_abstracts_Message.generate("onError",error1));
 			_g.finalizeStream(u);
 			return null;
@@ -826,7 +832,7 @@ speech_Main.prototype = {
 		} catch( e ) {
 			if (e instanceof js__$Boot_HaxeError) e = e.val;
 			if( js_Boot.__instanceof(e,Error) ) {
-				haxe_Log.trace(e,{ fileName : "Main.hx", lineNumber : 510, className : "speech.Main", methodName : "finalizeStream"});
+				haxe_Log.trace(e,{ fileName : "Main.hx", lineNumber : 519, className : "speech.Main", methodName : "finalizeStream"});
 			} else throw(e);
 		}
 		u.stream = null;
@@ -877,7 +883,7 @@ speech_Main.prototype = {
 			a.socket.send(speech_abstracts_Message.generate("acceptStream",sdpAnswer));
 			return null;
 		})["catch"](function(error) {
-			haxe_Log.trace(error,{ fileName : "Main.hx", lineNumber : 573, className : "speech.Main", methodName : "connectStream"});
+			haxe_Log.trace(error,{ fileName : "Main.hx", lineNumber : 582, className : "speech.Main", methodName : "connectStream"});
 			a.socket.send(speech_abstracts_Message.generate("onError",error));
 		});
 	}
@@ -887,7 +893,7 @@ speech_Main.prototype = {
 		} catch( e ) {
 			if (e instanceof js__$Boot_HaxeError) e = e.val;
 			if( js_Boot.__instanceof(e,Error) ) {
-				haxe_Log.trace(e,{ fileName : "Main.hx", lineNumber : 588, className : "speech.Main", methodName : "disconnectStream"});
+				haxe_Log.trace(e,{ fileName : "Main.hx", lineNumber : 597, className : "speech.Main", methodName : "disconnectStream"});
 			} else throw(e);
 		}
 		a.candidatesQueue = null;
@@ -901,6 +907,24 @@ speech_Main.prototype = {
 		p = this._p.h[key];
 		p.activities.push(new speech_abstracts_Activity(speech_abstracts_ActivityType.COMMENT(d)));
 		this.broadcast(p,"onComment",d,true);
+	}
+	,startPointer: function(u) {
+		var p;
+		var key = u.presentationId.toInt();
+		p = this._p.h[key];
+		this.broadcast(p,"startPointer");
+	}
+	,updatePointer: function(u,d) {
+		var p;
+		var key = u.presentationId.toInt();
+		p = this._p.h[key];
+		this.broadcast(p,"updatePointer",d);
+	}
+	,stopPointer: function(u) {
+		var p;
+		var key = u.presentationId.toInt();
+		p = this._p.h[key];
+		this.broadcast(p,"stopPointer");
 	}
 	,makeLog: function(u) {
 		var p;
