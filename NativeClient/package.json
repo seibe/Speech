@@ -26,6 +26,7 @@
     "release:installer-osx": "electron-builder dist/bin/Speech-darwin-x64/Speech.app --platform=osx --out=dist/bin/Speech-darwin-x64-installer --config=res/electron-build-config.json",
     "release:installer": "npm run release:installer-win",
     "release:win": "npm run release:build && npm run release:pack-win && npm run release:installer-win",
+    "release:osx": "npm run release:build && npm run release:pack-osx && npm run release:installer-osx",
     "release": "npm run release:win"
   },
   "repository": {
@@ -39,18 +40,18 @@
   },
   "homepage": "https://github.com/seibe/Speech#readme",
   "devDependencies": {
-    "autoprefixer": "^6.1.0",
-    "browser-sync": "^2.10.0",
-    "clean-css": "^3.4.8",
+    "autoprefixer": "^6.2.3",
+    "browser-sync": "^2.11.0",
+    "clean-css": "^3.4.9",
     "concurrently": "^0.1.1",
     "cpx": "^1.2.1",
-    "electron-builder": "^2.1.1",
-    "electron-packager": "^5.1.1",
-    "electron-prebuilt": "^0.35.2",
+    "electron-builder": "^2.6.0",
+    "electron-packager": "^5.2.0",
+    "electron-prebuilt": "^0.36.3",
     "mkdirp": "^0.5.1",
     "node-inspector": "^0.12.3",
-    "npm-run-all": "^1.2.13",
-    "postcss-cli": "^2.3.2",
+    "npm-run-all": "^1.4.0",
+    "postcss-cli": "^2.3.3npm",
     "trash-cli": "^1.2.0",
     "watch": "^0.16.0"
   }

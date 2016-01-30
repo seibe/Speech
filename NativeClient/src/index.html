@@ -6,6 +6,7 @@
     <title>Speech NativeClient</title>
     <link rel="stylesheet" href="css/sanitize.min.css" />
     <link rel="stylesheet" href="style.css" />
+    <script src="js/adapter.js"></script>
     <script src="js/kurento-utils.js"></script>
     <script src="index.js"></script>
 </head>
@@ -60,9 +61,9 @@
                             </div>
                             
                             <ul class="live-footer-tool-action live-footer-tool-presenter">
-                                <li><button id="live-action-desktop">デスクトップ配信</button></li>
-                                <li><button id="live-action-pointer">レーザーポインタ</button></li>
-                                <li><button id="live-action-question">アンケート</button></li>
+                                <li><button id="button-live-action-desktop">デスクトップ配信</button></li>
+                                <li><button id="button-live-action-pointer">レーザーポインタ</button></li>
+                                <li><button id="button-live-action-question">アンケート</button></li>
                             </ul>
                         </div>
                     </div>
@@ -109,15 +110,7 @@
             </section>
             
         </div>
-<!--
-        <footer class="controller" id="live-controller">
-            <button class="button controller-button" id="button-live-add"><span>メディア追加</span></button>
-            <button class="button controller-button" id="button-live-switch"><span>主画面切替</span></button>
-            <button class="button controller-button" id="button-live-pointer"><span>ポインター</span></button>
-            <button class="button controller-button" id="button-live-quest"><span>アンケート</span></button>
-            <button class="button controller-button" id="button-live-finish"><span>配信終了</span></button>
-        </footer>
--->
+		
 	</main>
     
     <dialog class="dialog" id="dialog-loading">

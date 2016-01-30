@@ -316,7 +316,7 @@ speech_renderer_State.LIVE.__enum__ = speech_renderer_State;
 speech_renderer_State.LIVE_AFTER = ["LIVE_AFTER",3];
 speech_renderer_State.LIVE_AFTER.toString = $estr;
 speech_renderer_State.LIVE_AFTER.__enum__ = speech_renderer_State;
-var speech_renderer_Request = { __ename__ : true, __constructs__ : ["JOIN_PRESENTER","LEAVE_PRESENTER","UPDATE_SLIDE","START_STREAM","STOP_STREAM","MAKE_LOG","ICE_CANDIDATE"] };
+var speech_renderer_Request = { __ename__ : true, __constructs__ : ["JOIN_PRESENTER","LEAVE_PRESENTER","UPDATE_SLIDE","START_STREAM","STOP_STREAM","START_POINTER","UPDATE_POINTER","STOP_POINTER","MAKE_LOG","ICE_CANDIDATE"] };
 speech_renderer_Request.JOIN_PRESENTER = function(option) { var $x = ["JOIN_PRESENTER",0,option]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
 speech_renderer_Request.LEAVE_PRESENTER = ["LEAVE_PRESENTER",1];
 speech_renderer_Request.LEAVE_PRESENTER.toString = $estr;
@@ -326,10 +326,17 @@ speech_renderer_Request.START_STREAM = function(offer,target) { var $x = ["START
 speech_renderer_Request.STOP_STREAM = ["STOP_STREAM",4];
 speech_renderer_Request.STOP_STREAM.toString = $estr;
 speech_renderer_Request.STOP_STREAM.__enum__ = speech_renderer_Request;
-speech_renderer_Request.MAKE_LOG = ["MAKE_LOG",5];
+speech_renderer_Request.START_POINTER = ["START_POINTER",5];
+speech_renderer_Request.START_POINTER.toString = $estr;
+speech_renderer_Request.START_POINTER.__enum__ = speech_renderer_Request;
+speech_renderer_Request.UPDATE_POINTER = function(x,y) { var $x = ["UPDATE_POINTER",6,x,y]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
+speech_renderer_Request.STOP_POINTER = ["STOP_POINTER",7];
+speech_renderer_Request.STOP_POINTER.toString = $estr;
+speech_renderer_Request.STOP_POINTER.__enum__ = speech_renderer_Request;
+speech_renderer_Request.MAKE_LOG = ["MAKE_LOG",8];
 speech_renderer_Request.MAKE_LOG.toString = $estr;
 speech_renderer_Request.MAKE_LOG.__enum__ = speech_renderer_Request;
-speech_renderer_Request.ICE_CANDIDATE = function(ice) { var $x = ["ICE_CANDIDATE",6,ice]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
+speech_renderer_Request.ICE_CANDIDATE = function(ice) { var $x = ["ICE_CANDIDATE",9,ice]; $x.__enum__ = speech_renderer_Request; $x.toString = $estr; return $x; };
 var speech_renderer_Index = function() {
 	this.WS_URL = "wss://seibe.jp:8081/speech";
 	var _g = this;
@@ -375,6 +382,7 @@ speech_renderer_Index.prototype = {
 			this._dom.getDialog("loading").close();
 			break;
 		case 2:
+			this.stopPointerCapture();
 			if(this._webRtcPeer != null) {
 				this.send(speech_renderer_Request.STOP_STREAM);
 				this._webRtcPeer.dispose();
@@ -421,7 +429,7 @@ speech_renderer_Index.prototype = {
 						audioList.push(track);
 						break;
 					default:
-						haxe_Log.trace(track,{ fileName : "Index.hx", lineNumber : 171, className : "speech.renderer.Index", methodName : "setState"});
+						haxe_Log.trace(track,{ fileName : "Index.hx", lineNumber : 176, className : "speech.renderer.Index", methodName : "setState"});
 					}
 				}
 				_g._dom.setMediaSource("video",videoList);
@@ -503,6 +511,15 @@ speech_renderer_Index.prototype = {
 	,onClickButtonFinish: function() {
 		this.send(speech_renderer_Request.MAKE_LOG);
 	}
+	,onMovePointer: function(e) {
+		var ax = e.clientX - this._slideview.clientLeft;
+		var ay = e.clientY - this._slideview.clientTop;
+		if(ax < 0 || ay < 0) return;
+		var rx = ax / this._slideview.clientWidth;
+		var ry = ay / this._slideview.clientHeight;
+		if(rx > 1 || ry > 1) return;
+		this.send(speech_renderer_Request.UPDATE_POINTER(rx,ry));
+	}
 	,send: function(req) {
 		var obj = { };
 		switch(req[1]) {
@@ -529,9 +546,21 @@ speech_renderer_Index.prototype = {
 			obj.type = "stopStream";
 			break;
 		case 5:
-			obj.type = "requestLog";
+			obj.type = "startPointer";
 			break;
 		case 6:
+			var y = req[3];
+			var x = req[2];
+			obj.type = "updatePointer";
+			obj.data = { x : x, y : y};
+			break;
+		case 7:
+			obj.type = "stopPointer";
+			break;
+		case 8:
+			obj.type = "requestLog";
+			break;
+		case 9:
 			var candidate = req[2];
 			obj.type = "iceCandidate";
 			obj.data = candidate;
@@ -539,14 +568,24 @@ speech_renderer_Index.prototype = {
 		}
 		obj.timestamp = new Date().getTime();
 		obj.requestId = this._reqCount++;
-		haxe_Log.trace("send",{ fileName : "Index.hx", lineNumber : 326, className : "speech.renderer.Index", methodName : "send", customParams : [obj.type]});
+		haxe_Log.trace("send",{ fileName : "Index.hx", lineNumber : 372, className : "speech.renderer.Index", methodName : "send", customParams : [obj.type]});
 		this._ws.send(JSON.stringify(obj));
 		return this._reqCount;
+	}
+	,stopPointerCapture: function() {
+		var btn = this._dom.getButton("action-pointer","live");
+		if(btn.dataset.active != null) {
+			btn.innerText = "レーザーポインタ";
+			this._slideview.classList.remove("readonly");
+			window.removeEventListener("mousemove",$bind(this,this.onMovePointer));
+			btn.dataset.active = null;
+			this.send(speech_renderer_Request.STOP_POINTER);
+		}
 	}
 	,addComment: function(text,name) {
 		this._dom.get("comment-list","live").insertAdjacentHTML("afterbegin","<li class=\"discuss-comment new\"><img class=\"discuss-comment-image\" src=\"img/avatar.png\"><div class=\"discuss-comment-body\"><strong>" + name + "</strong><p>" + text + "</p></div></li>");
 		this._dom.query(".discuss-comment.new").addEventListener("animationend",function(e) {
-			haxe_Log.trace("animation end",{ fileName : "Index.hx", lineNumber : 336, className : "speech.renderer.Index", methodName : "addComment"});
+			haxe_Log.trace("animation end",{ fileName : "Index.hx", lineNumber : 394, className : "speech.renderer.Index", methodName : "addComment"});
 			if(e.animationName == "comment-move-in") {
 				var elem = e.target;
 				elem.classList.remove("new");
@@ -588,7 +627,7 @@ speech_renderer_Index.prototype = {
 					_g._webRtcPeer.generateOffer($bind(_g,_g.onOffer));
 				});
 			},function(err1) {
-				haxe_Log.trace("error getUserVideo",{ fileName : "Index.hx", lineNumber : 389, className : "speech.renderer.Index", methodName : "onWsConnect"});
+				haxe_Log.trace("error getUserVideo",{ fileName : "Index.hx", lineNumber : 447, className : "speech.renderer.Index", methodName : "onWsConnect"});
 			});
 		}
 	}
@@ -644,7 +683,7 @@ speech_renderer_Index.prototype = {
 			}
 			break;
 		case "onError":
-			haxe_Log.trace("server error",{ fileName : "Index.hx", lineNumber : 458, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [d]});
+			haxe_Log.trace("server error",{ fileName : "Index.hx", lineNumber : 516, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [d]});
 			break;
 		case "finish":
 			this.setState(speech_renderer_State.SETUP);
@@ -662,15 +701,15 @@ speech_renderer_Index.prototype = {
 			this.setState(speech_renderer_State.LIVE);
 			break;
 		case "onCreateLog":
-			haxe_Log.trace("log URL",{ fileName : "Index.hx", lineNumber : 481, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [d]});
+			haxe_Log.trace("log URL",{ fileName : "Index.hx", lineNumber : 539, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [d]});
 			this.setState(speech_renderer_State.LIVE_AFTER);
 			break;
 		default:
-			haxe_Log.trace("unknown ws",{ fileName : "Index.hx", lineNumber : 485, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [resp]});
+			haxe_Log.trace("unknown ws",{ fileName : "Index.hx", lineNumber : 543, className : "speech.renderer.Index", methodName : "onWsMessage", customParams : [resp]});
 		}
 	}
 	,onWsError: function(error) {
-		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 491, className : "speech.renderer.Index", methodName : "onWsError", customParams : [error]});
+		haxe_Log.trace("error",{ fileName : "Index.hx", lineNumber : 549, className : "speech.renderer.Index", methodName : "onWsError", customParams : [error]});
 		this.setState(speech_renderer_State.SETUP);
 	}
 	,onOffer: function(error,offerSdp) {

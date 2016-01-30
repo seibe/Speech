@@ -1,5 +1,6 @@
 package electron;
 
+import electron.Electron.ElectronDesktopCaptureConfig;
 import haxe.extern.Rest;
 
 /* Process object .............................. */
@@ -405,9 +406,29 @@ typedef ElectronShell =
 }
 
 
+/* desktopCapture module ....................... */
+
+typedef ElectronDesktopCaptureSource =
+{
+	var id:String;
+	var name:String;
+	var thumbnail:ElectronNativeImage;
+}
+typedef ElectronDesktopCaptureConfig =
+{
+	var types:Array<String>;
+	@:optional var thumbnailSize: { width:Int, height:Int };
+}
+typedef ElectronDesktopCapture = 
+{
+	function getSources(options:ElectronDesktopCaptureConfig, callback:ElectronError->Array<ElectronDesktopCaptureSource>):Void;
+}
+
+
 /* others ...................................... */
 
 typedef ElectronFunction = Dynamic;
+typedef ElectronError = Dynamic;
 typedef ElectronAccelerator = String;
 typedef ElectronEventEmitter = {
 	function addListener(event:String, fn:ElectronFunction):Dynamic;
@@ -431,6 +452,7 @@ class Electron
 	public static var app(get, null):ElectronApp;
 	public static var autoUpdater(get, null):ElectronAutoUpdater;
 	public static var contentTracing(get, null):ElectronContentTracing;
+	public static var desktopCapture(get, null):ElectronDesktopCapture;
 	public static var dialog(get, null):ElectronDialog;
 	public static var globalShortcut(get, null):ElectronGlobalShortcut;
 	public static var ipc(get, null):ElectronIpc;
@@ -466,6 +488,7 @@ class Electron
 	static inline function get_app():ElectronApp return require("app");
 	static inline function get_autoUpdater():ElectronAutoUpdater return require("auto-updater");
 	static inline function get_contentTracing():ElectronContentTracing return require("content-tracing");
+	static inline function get_desktopCapture():ElectronDesktopCapture return require("desktop-capture");
 	static inline function get_dialog():ElectronDialog return require("dialog");
 	static inline function get_globalShortcut():ElectronGlobalShortcut return require("global-shortcut");
 	static inline function get_ipc():ElectronIpc return require("ipc");

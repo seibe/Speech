@@ -8,6 +8,7 @@ import js.Browser;
 import js.html.AnimationEvent;
 import js.html.Element;
 import js.html.LocalMediaStream;
+import js.html.MouseEvent;
 import js.html.rtc.IceCandidate;
 import js.html.rtc.SessionDescription;
 import js.html.WebSocket;
@@ -34,6 +35,9 @@ enum Request {
 	UPDATE_SLIDE(slideUrl:String);
 	START_STREAM(offer:SessionDescription, target:StreamTarget);
 	STOP_STREAM;
+	START_POINTER;
+	UPDATE_POINTER(x:Float, y:Float);
+	STOP_POINTER;
 	MAKE_LOG;
 	
 	ICE_CANDIDATE(ice:IceCandidate);
@@ -119,6 +123,7 @@ class Index
 				
 			case State.LIVE:
 				// 配信の終了
+				stopPointerCapture();
 				if (_webRtcPeer != null) {
 					send(Request.STOP_STREAM);
 					_webRtcPeer.dispose();
@@ -290,6 +295,37 @@ class Index
 		//setState(State.SETUP);
 	}
 	
+	private function onClickButtonPointer():Void
+	{
+		var btn = _dom.getButton("action-pointer", "live");
+		
+		if (btn.dataset.active != null) {
+			// ポインタ配信を終える
+			stopPointerCapture();
+		} else {
+			// ポインタ配信を始める
+			btn.innerText = "ポインタ終了";
+			_slideview.classList.add("readonly");
+			send(Request.START_POINTER);
+			Browser.window.addEventListener("mousemove", onMovePointer);
+		}
+	}
+	
+	private function onMovePointer(e:MouseEvent):Void
+	{
+		// 絶対座標
+		var ax = e.clientX - _slideview.clientLeft;
+		var ay = e.clientY - _slideview.clientTop;
+		if (ax < 0 || ay < 0) return;
+		
+		// 相対座標
+		var rx = ax / _slideview.clientWidth;
+		var ry = ay / _slideview.clientHeight;
+		if (rx > 1 || ry > 1) return;
+		
+		send(Request.UPDATE_POINTER(rx, ry));
+	}
+	
 	private function send(req:Request):Int
 	{
 		var obj:Dynamic = {};
@@ -313,6 +349,16 @@ class Index
 			case Request.STOP_STREAM:
 				obj.type = ClientMessageType.STOP_STREAM;
 				
+			case Request.START_POINTER:
+				obj.type = ClientMessageType.START_POINTER;
+				
+			case Request.UPDATE_POINTER(x, y):
+				obj.type = ClientMessageType.UPDATE_POINTER;
+				obj.data = { x: x, y: y };
+				
+			case Request.STOP_POINTER:
+				obj.type = ClientMessageType.STOP_POINTER;
+				
 			case Request.MAKE_LOG:
 				obj.type = ClientMessageType.REQUEST_LOG;
 				
@@ -327,6 +373,18 @@ class Index
 		_ws.send( Json.stringify(obj) );
 		
 		return _reqCount;
+	}
+	
+	private function stopPointerCapture():Void
+	{
+		var btn = _dom.getButton("action-pointer", "live");
+		if (btn.dataset.active != null) {
+			btn.innerText = "レーザーポインタ";
+			_slideview.classList.remove("readonly");
+			Browser.window.removeEventListener("mousemove", onMovePointer);
+			btn.dataset.active = null;
+			send(Request.STOP_POINTER);
+		}
 	}
 	
 	private function addComment(text:String, name:String):Void
