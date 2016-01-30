@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "module": "amd",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "outFile": "src/index.js",
+        "sourceMap": true
+    },
+    "files": [
+        "./typings/main/ambient/es6-promise/es6-promise.d.ts",
+        "./typings/main/ambient/MediaStream/MediaStream.d.ts",
+        "./typings/main/ambient/RTCPeerConnection/RTCPeerConnection.d.ts",
+        "./src/ts/abstracts/Comment.ts",
+        "./src/ts/abstracts/Message.ts",
+        "./src/ts/renderer/DomManager.ts",
+        "./src/ts/renderer/Index.ts"
+    ]
+}

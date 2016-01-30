@@ -1,0 +1,11 @@
+{
+  "ambientDevDependencies": {
+    "github-electron": "github:DefinitelyTyped/DefinitelyTyped/github-electron/github-electron.d.ts#c4826e748ddfc4c3b96dfe9636d6bd1b062baf8b",
+    "node": "github:DefinitelyTyped/DefinitelyTyped/node/node.d.ts#1c56e368e17bb28ca57577250624ca5bd561aa81"
+  },
+  "ambientDependencies": {
+    "MediaStream": "github:DefinitelyTyped/DefinitelyTyped/webrtc/MediaStream.d.ts#b91489d6662a27ca5e57ff2e7b727e75d6dbbef7",
+    "RTCPeerConnection": "github:DefinitelyTyped/DefinitelyTyped/webrtc/RTCPeerConnection.d.ts#74c525a19a888eeff34759d1395f9ed243257504",
+    "es6-promise": "github:DefinitelyTyped/DefinitelyTyped/es6-promise/es6-promise.d.ts#5bff5f871a0ea58be885fb52146cb67b86bcc1ae"
+  }
+}

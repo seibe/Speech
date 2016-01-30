@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "outDir": "src",
+        "sourceMap": true
+    },
+    "files": [
+        "./src/ts/Main.ts"
+    ]
+}
