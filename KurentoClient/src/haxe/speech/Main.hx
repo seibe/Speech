@@ -164,6 +164,7 @@ class Main
 			case ClientMessageType.ICE_CANDIDATE:
 				// 経路情報を交換する
 				addIceCandidate(u, d);
+				trace("recieve candidate");
 				
 			case ClientMessageType.REQUEST_LOG:
 				// ログを生成する
@@ -556,7 +557,7 @@ class Main
 			.then(function(endpoint:WebRtcEndpoint):Promise<String> {
 				if (a.socket == null || a.pipeline == null) return Promise.reject();
 				a.endpoint = endpoint;
-				exchangeCandidates(u);
+				exchangeCandidates(a);
 				// 2. SDPオファー
 				return endpoint.processOffer(sdpOffer);
 			})
@@ -769,6 +770,7 @@ class Main
 		u.endpoint.on("OnIceCandidate", function(e:Dynamic):Void {
 			var candidate = untyped kurento.register.complexTypes.IceCandidate(e.candidate);
 			u.socket.send(Message.generate(ServerMessageType.ICE_CANDIDATE, candidate));
+			trace("send candidate");
 		});
 	}
 	
