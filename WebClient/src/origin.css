@@ -469,6 +469,11 @@ button {
 	background: rgba(0,0,0,0.85);
 	box-sizing: border-box;
 }
+@-moz-document url-prefix() {
+	.dialog {
+		display: none;
+	}
+}
 .dialog-center {
 	width: 100%;
 	height: 100%;

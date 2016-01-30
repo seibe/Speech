@@ -6,9 +6,7 @@ var uuid = require('uuid');
 var EventEmitter = require('events').EventEmitter;
 var recursive = require('merge').recursive.bind(undefined, true);
 try {
-    (function () {
-        throw new Error('Cannot find module \'kurento-browser-extensions\' from \'/var/lib/jenkins/workspace/kurento-js-build-project/lib\'');
-    }());
+    require('kurento-browser-extensions');
 } catch (error) {
     if (typeof getScreenConstraints === 'undefined') {
         console.warn('screen sharing is not available');
@@ -65,6 +63,35 @@ function bufferizeCandidates(pc, onerror) {
         }
     };
 }
+function removeFIDFromOffer(sdp) {
+    var n = sdp.indexOf('a=ssrc-group:FID');
+    if (n > 0) {
+        return sdp.slice(0, n);
+    } else {
+        return sdp;
+    }
+}
+function getSimulcastInfo(videoStream) {
+    var videoTracks = videoStream.getVideoTracks();
+    var lines = [
+            'a=x-google-flag:conference',
+            'a=ssrc-group:SIM 1 2 3',
+            'a=ssrc:1 cname:localVideo',
+            'a=ssrc:1 msid:' + videoStream.id + ' ' + videoTracks[0].id,
+            'a=ssrc:1 mslabel:' + videoStream.id,
+            'a=ssrc:1 label:' + videoTracks[0].id,
+            'a=ssrc:2 cname:localVideo',
+            'a=ssrc:2 msid:' + videoStream.id + ' ' + videoTracks[0].id,
+            'a=ssrc:2 mslabel:' + videoStream.id,
+            'a=ssrc:2 label:' + videoTracks[0].id,
+            'a=ssrc:3 cname:localVideo',
+            'a=ssrc:3 msid:' + videoStream.id + ' ' + videoTracks[0].id,
+            'a=ssrc:3 mslabel:' + videoStream.id,
+            'a=ssrc:3 label:' + videoTracks[0].id
+        ];
+    lines.push('');
+    return lines.join('\n');
+}
 function WebRtcPeer(mode, options, callback) {
     if (!(this instanceof WebRtcPeer)) {
         return new WebRtcPeer(mode, options, callback);
@@ -96,8 +123,8 @@ function WebRtcPeer(mode, options, callback) {
     if (oncandidategatheringdone) {
         this.on('candidategatheringdone', oncandidategatheringdone);
     }
-	var RTCPeerConnection = (window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection);
-    var RTCSessionDescription = (window.mozRTCSessionDescription || window.RTCSessionDescription);
+    var browser = parser.getBrowser();
+    var simulcast = options.simulcast;
     if (!pc)
         pc = new RTCPeerConnection(configuration);
     Object.defineProperties(this, {
@@ -149,6 +176,8 @@ function WebRtcPeer(mode, options, callback) {
                 candidategatheringdone = true;
         }
     });
+    pc.onaddstream = options.onaddstream;
+    pc.onnegotiationneeded = options.onnegotiationneeded;
     this.on('newListener', function (event, listener) {
         if (event === 'icecandidate' || event === 'candidategatheringdone') {
             while (candidatesQueueOut.length) {
@@ -168,14 +197,19 @@ function WebRtcPeer(mode, options, callback) {
     };
     this.generateOffer = function (callback) {
         callback = callback.bind(this);
-        var browser = parser.getBrowser();
+        var offerAudio = true;
+        var offerVideo = true;
+        if (mediaConstraints) {
+            offerAudio = typeof mediaConstraints.audio === 'boolean' ? mediaConstraints.audio : true;
+            offerVideo = typeof mediaConstraints.video === 'boolean' ? mediaConstraints.video : true;
+        }
         var browserDependantConstraints = browser.name === 'Firefox' && browser.version > 34 ? {
-                offerToReceiveAudio: mode !== 'sendonly',
-                offerToReceiveVideo: mode !== 'sendonly'
+                offerToReceiveAudio: mode !== 'sendonly' && offerAudio,
+                offerToReceiveVideo: mode !== 'sendonly' && offerVideo
             } : {
                 mandatory: {
-                    OfferToReceiveAudio: mode !== 'sendonly',
-                    OfferToReceiveVideo: mode !== 'sendonly'
+                    OfferToReceiveAudio: mode !== 'sendonly' && offerAudio,
+                    OfferToReceiveVideo: mode !== 'sendonly' && offerVideo
                 },
                 optional: [{ DtlsSrtpKeyAgreement: true }]
             };
@@ -183,6 +217,7 @@ function WebRtcPeer(mode, options, callback) {
         console.log('constraints: ' + JSON.stringify(constraints));
         pc.createOffer(function (offer) {
             console.log('Created SDP offer');
+            offer = mangleSdpToAddSimulcast(offer);
             pc.setLocalDescription(offer, function () {
                 console.log('Local description set', offer.sdp);
                 callback(null, offer.sdp, self.processAnswer.bind(self));
@@ -237,6 +272,7 @@ function WebRtcPeer(mode, options, callback) {
         pc.setRemoteDescription(offer, function () {
             setRemoteVideo();
             pc.createAnswer(function (answer) {
+                answer = mangleSdpToAddSimulcast(answer);
                 console.log('Created SDP answer');
                 pc.setLocalDescription(answer, function () {
                     console.log('Local description set', answer.sdp);
@@ -245,6 +281,20 @@ function WebRtcPeer(mode, options, callback) {
             }, callback);
         }, callback);
     };
+    function mangleSdpToAddSimulcast(answer) {
+        if (simulcast) {
+            if (browser.name === 'Chrome' || browser.name === 'Chromium') {
+                console.log('Adding multicast info');
+                answer = new RTCSessionDescription({
+                    'type': answer.type,
+                    'sdp': removeFIDFromOffer(answer.sdp) + getSimulcastInfo(videoStream)
+                });
+            } else {
+                console.warn('Simulcast is only available in Chrome browser.');
+            }
+        }
+        return answer;
+    }
     function streamEndedListener() {
         self.emit('streamended', this);
     }
@@ -365,11 +415,15 @@ WebRtcPeer.prototype.getRemoteStream = function (index) {
 WebRtcPeer.prototype.dispose = function () {
     console.log('Disposing WebRtcPeer');
     var pc = this.peerConnection;
-    if (pc) {
-        if (pc.signalingState === 'closed')
-            return;
-        pc.getLocalStreams().forEach(streamStop);
-        pc.close();
+    try {
+        if (pc) {
+            if (pc.signalingState === 'closed')
+                return;
+            pc.getLocalStreams().forEach(streamStop);
+            pc.close();
+        }
+    } catch (err) {
+        console.warn('Exception disposing webrtc peer ' + err);
     }
     this.emit('_dispose');
 };
@@ -398,7 +452,7 @@ exports.bufferizeCandidates = bufferizeCandidates;
 exports.WebRtcPeerRecvonly = WebRtcPeerRecvonly;
 exports.WebRtcPeerSendonly = WebRtcPeerSendonly;
 exports.WebRtcPeerSendrecv = WebRtcPeerSendrecv;
-},{"events":4,"freeice":5,"inherits":9,"merge":10,"ua-parser-js":11,"uuid":13}],2:[function(require,module,exports){
+},{"events":4,"freeice":5,"inherits":8,"kurento-browser-extensions":9,"merge":10,"ua-parser-js":12,"uuid":14}],2:[function(require,module,exports){
 if (window.addEventListener)
     module.exports = require('./index');
 },{"./index":3}],3:[function(require,module,exports){
@@ -814,69 +868,7 @@ var freeice = module.exports = function(opts) {
   return selected;
 };
 
-},{"./stun.json":7,"./turn.json":8,"normalice":6}],6:[function(require,module,exports){
-/**
-  # normalice
-
-  Normalize an ice server configuration object (or plain old string) into a format
-  that is usable in all browsers supporting WebRTC.  Primarily this module is designed
-  to help with the transition of the `url` attribute of the configuration object to
-  the `urls` attribute.
-
-  ## Example Usage
-
-  <<< examples/simple.js
-
-**/
-
-var protocols = [
-  'stun:',
-  'turn:'
-];
-
-module.exports = function(input) {
-  var url = (input || {}).url || input;
-  var protocol;
-  var parts;
-  var output = {};
-
-  // if we don't have a string url, then allow the input to passthrough
-  if (typeof url != 'string' && (! (url instanceof String))) {
-    return input;
-  }
-
-  // trim the url string, and convert to an array
-  url = url.trim();
-
-  // if the protocol is not known, then passthrough
-  protocol = protocols[protocols.indexOf(url.slice(0, 5))];
-  if (! protocol) {
-    return input;
-  }
-
-  // now let's attack the remaining url parts
-  url = url.slice(5);
-  parts = url.split('@');
-
-  output.username = input.username;
-  output.credential = input.credential;
-  // if we have an authentication part, then set the credentials
-  if (parts.length > 1) {
-    url = parts[1];
-    parts = parts[0].split(':');
-
-    // add the output credential and username
-    output.username = parts[0];
-    output.credential = (input || {}).credential || parts[1] || '';
-  }
-
-  output.url = protocol + url;
-  output.urls = [ output.url ];
-
-  return output;
-};
-
-},{}],7:[function(require,module,exports){
+},{"./stun.json":6,"./turn.json":7,"normalice":11}],6:[function(require,module,exports){
 module.exports=[
   "stun.l.google.com:19302",
   "stun1.l.google.com:19302",
@@ -894,10 +886,10 @@ module.exports=[
   "stun.services.mozilla.com"
 ]
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 module.exports=[]
 
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -921,6 +913,9 @@ if (typeof Object.create === 'function') {
     ctor.prototype.constructor = ctor
   }
 }
+
+},{}],9:[function(require,module,exports){
+// Does nothing at all.
 
 },{}],10:[function(require,module,exports){
 /*!
@@ -1100,7 +1095,69 @@ if (typeof Object.create === 'function') {
 })(typeof module === 'object' && module && typeof module.exports === 'object' && module.exports);
 },{}],11:[function(require,module,exports){
 /**
- * UAParser.js v0.7.9
+  # normalice
+
+  Normalize an ice server configuration object (or plain old string) into a format
+  that is usable in all browsers supporting WebRTC.  Primarily this module is designed
+  to help with the transition of the `url` attribute of the configuration object to
+  the `urls` attribute.
+
+  ## Example Usage
+
+  <<< examples/simple.js
+
+**/
+
+var protocols = [
+  'stun:',
+  'turn:'
+];
+
+module.exports = function(input) {
+  var url = (input || {}).url || input;
+  var protocol;
+  var parts;
+  var output = {};
+
+  // if we don't have a string url, then allow the input to passthrough
+  if (typeof url != 'string' && (! (url instanceof String))) {
+    return input;
+  }
+
+  // trim the url string, and convert to an array
+  url = url.trim();
+
+  // if the protocol is not known, then passthrough
+  protocol = protocols[protocols.indexOf(url.slice(0, 5))];
+  if (! protocol) {
+    return input;
+  }
+
+  // now let's attack the remaining url parts
+  url = url.slice(5);
+  parts = url.split('@');
+
+  output.username = input.username;
+  output.credential = input.credential;
+  // if we have an authentication part, then set the credentials
+  if (parts.length > 1) {
+    url = parts[1];
+    parts = parts[0].split(':');
+
+    // add the output credential and username
+    output.username = parts[0];
+    output.credential = (input || {}).credential || parts[1] || '';
+  }
+
+  output.url = protocol + url;
+  output.urls = [ output.url ];
+
+  return output;
+};
+
+},{}],12:[function(require,module,exports){
+/**
+ * UAParser.js v0.7.10
  * Lightweight JavaScript-based User-Agent string parser
  * https://github.com/faisalman/ua-parser-js
  *
@@ -1117,7 +1174,7 @@ if (typeof Object.create === 'function') {
     /////////////
 
 
-    var LIBVERSION  = '0.7.9',
+    var LIBVERSION  = '0.7.10',
         EMPTY       = '',
         UNKNOWN     = '?',
         FUNC_TYPE   = 'function',
@@ -1190,11 +1247,13 @@ if (typeof Object.create === 'function') {
                 if (typeof result === UNDEF_TYPE) {
                     result = {};
                     for (p in props) {
-                        q = props[p];
-                        if (typeof q === OBJ_TYPE) {
-                            result[q[0]] = undefined;
-                        } else {
-                            result[q] = undefined;
+                        if (props.hasOwnProperty(p)){
+                            q = props[p];
+                            if (typeof q === OBJ_TYPE) {
+                                result[q[0]] = undefined;
+                            } else {
+                                result[q] = undefined;
+                            }
                         }
                     }
                 }
@@ -1350,8 +1409,8 @@ if (typeof Object.create === 'function') {
 
             // Webkit/KHTML based
             /(rekonq)\/([\w\.]+)*/i,                                            // Rekonq
-            /(chromium|flock|rockmelt|midori|epiphany|silk|skyfire|ovibrowser|bolt|iron|vivaldi|iridium)\/([\w\.-]+)/i
-                                                                                // Chromium/Flock/RockMelt/Midori/Epiphany/Silk/Skyfire/Bolt/Iron/Iridium
+            /(chromium|flock|rockmelt|midori|epiphany|silk|skyfire|ovibrowser|bolt|iron|vivaldi|iridium|phantomjs)\/([\w\.-]+)/i
+                                                                                // Chromium/Flock/RockMelt/Midori/Epiphany/Silk/Skyfire/Bolt/Iron/Iridium/PhantomJS
             ], [NAME, VERSION], [
 
             /(trident).+rv[:\s]([\w\.]+).+like\sgecko/i                         // IE11
@@ -1368,9 +1427,15 @@ if (typeof Object.create === 'function') {
 
             /(chrome|omniweb|arora|[tizenoka]{5}\s?browser)\/v?([\w\.]+)/i,
                                                                                 // Chrome/OmniWeb/Arora/Tizen/Nokia
-            /(uc\s?browser|qqbrowser)[\/\s]?([\w\.]+)/i
-                                                                                // UCBrowser/QQBrowser
+            /(qqbrowser)[\/\s]?([\w\.]+)/i
+                                                                                // QQBrowser
             ], [NAME, VERSION], [
+
+            /(uc\s?browser)[\/\s]?([\w\.]+)/i,
+            /ucweb.+(ucbrowser)[\/\s]?([\w\.]+)/i,
+            /JUC.+(ucweb)[\/\s]?([\w\.]+)/i
+                                                                                // UCBrowser
+            ], [[NAME, 'UCBrowser'], VERSION], [
 
             /(dolfin)\/([\w\.]+)/i                                              // Dolphin
             ], [[NAME, 'Dolphin'], VERSION], [
@@ -1386,6 +1451,9 @@ if (typeof Object.create === 'function') {
 
             /FBAV\/([\w\.]+);/i                                                 // Facebook App for iOS
             ], [VERSION, [NAME, 'Facebook']], [
+
+            /fxios\/([\w\.-]+)/i                                                // Firefox for iOS
+            ], [VERSION, [NAME, 'Firefox']], [
 
             /version\/([\w\.]+).+?mobile\/\w+\s(safari)/i                       // Mobile Safari
             ], [VERSION, [NAME, 'Mobile Safari']], [
@@ -1403,8 +1471,6 @@ if (typeof Object.create === 'function') {
             // Gecko based
             /(navigator|netscape)\/([\w\.-]+)/i                                 // Netscape
             ], [[NAME, 'Netscape'], VERSION], [
-            /fxios\/([\w\.-]+)/i                                                // Firefox for iOS
-            ], [VERSION, [NAME, 'Firefox']], [
             /(swiftfox)/i,                                                      // Swiftfox
             /(icedragon|iceweasel|camino|chimera|fennec|maemo\sbrowser|minimo|conkeror)[\/\s]?([\w\.\+]+)/i,
                                                                                 // IceDragon/Iceweasel/Camino/Chimera/Fennec/Maemo/Minimo/Conkeror
@@ -1413,8 +1479,8 @@ if (typeof Object.create === 'function') {
             /(mozilla)\/([\w\.]+).+rv\:.+gecko\/\d+/i,                          // Mozilla
 
             // Other
-            /(polaris|lynx|dillo|icab|doris|amaya|w3m|netsurf)[\/\s]?([\w\.]+)/i,
-                                                                                // Polaris/Lynx/Dillo/iCab/Doris/Amaya/w3m/NetSurf
+            /(polaris|lynx|dillo|icab|doris|amaya|w3m|netsurf|sleipnir)[\/\s]?([\w\.]+)/i,
+                                                                                // Polaris/Lynx/Dillo/iCab/Doris/Amaya/w3m/NetSurf/Sleipnir
             /(links)\s\(([\w\.]+)/i,                                            // Links
             /(gobrowser)\/?([\w\.]+)*/i,                                        // GoBrowser
             /(ice\s?browser)\/v?([\w\._]+)/i,                                   // ICE Browser
@@ -1612,7 +1678,7 @@ if (typeof Object.create === 'function') {
             /android.+;\s(shield)\sbuild/i                                      // Nvidia
             ], [MODEL, [VENDOR, 'Nvidia'], [TYPE, CONSOLE]], [
 
-            /(playstation\s[3portablevi]+)/i                                    // Playstation
+            /(playstation\s[34portablevi]+)/i                                   // Playstation
             ], [MODEL, [VENDOR, 'Sony'], [TYPE, CONSOLE]], [
 
             /(sprint\s(\w+))/i                                                  // Sprint Phones
@@ -1638,7 +1704,8 @@ if (typeof Object.create === 'function') {
                                                                                 // Motorola
             /\s(milestone|droid(?:[2-4x]|\s(?:bionic|x2|pro|razr))?(:?\s4g)?)[\w\s]+build\//i,
             /mot[\s-]?(\w+)*/i,
-            /(XT\d{3,4}) build\//i
+            /(XT\d{3,4}) build\//i,
+            /(nexus\s[6])/i
             ], [MODEL, [VENDOR, 'Motorola'], [TYPE, MOBILE]], [
             /android.+\s(mz60\d|xoom[\s2]{0,2})\sbuild\//i
             ], [MODEL, [VENDOR, 'Motorola'], [TYPE, TABLET]], [
@@ -1690,7 +1757,8 @@ if (typeof Object.create === 'function') {
             /android.+(mi[\s\-_]*(?:one|one[\s_]plus)?[\s_]*(?:\d\w)?)\s+build/i    // Xiaomi Mi
             ], [[MODEL, /_/g, ' '], [VENDOR, 'Xiaomi'], [TYPE, MOBILE]], [
 
-            /(mobile|tablet);.+rv\:.+gecko\//i                                  // Unidentifiable
+            /\s(tablet)[;\/\s]/i,                                               // Unidentifiable Tablet
+            /\s(mobile)[;\/\s]/i                                                // Unidentifiable Mobile
             ], [[TYPE, util.lowerize], VENDOR, MODEL]
 
             /*//////////////////////////
@@ -1799,12 +1867,12 @@ if (typeof Object.create === 'function') {
             ], [[NAME, 'Firefox OS'], VERSION], [
 
             // Console
-            /(nintendo|playstation)\s([wids3portablevu]+)/i,                    // Nintendo/Playstation
+            /(nintendo|playstation)\s([wids34portablevu]+)/i,                   // Nintendo/Playstation
 
             // GNU/Linux based
             /(mint)[\/\s\(]?(\w+)*/i,                                           // Mint
             /(mageia|vectorlinux)[;\s]/i,                                       // Mageia/VectorLinux
-            /(joli|[kxln]?ubuntu|debian|[open]*suse|gentoo|arch|slackware|fedora|mandriva|centos|pclinuxos|redhat|zenwalk|linpus)[\/\s-]?([\w\.-]+)*/i,
+            /(joli|[kxln]?ubuntu|debian|[open]*suse|gentoo|(?=\s)arch|slackware|fedora|mandriva|centos|pclinuxos|redhat|zenwalk|linpus)[\/\s-]?([\w\.-]+)*/i,
                                                                                 // Joli/Ubuntu/Debian/SUSE/Gentoo/Arch/Slackware
                                                                                 // Fedora/Mandriva/CentOS/PCLinuxOS/RedHat/Zenwalk/Linpus
             /(hurd|linux)\s?([\w\.]+)*/i,                                       // Hurd/Linux
@@ -1822,7 +1890,7 @@ if (typeof Object.create === 'function') {
             /\s([frentopc-]{0,4}bsd|dragonfly)\s?([\w\.]+)*/i                   // FreeBSD/NetBSD/OpenBSD/PC-BSD/DragonFly
             ], [NAME, VERSION],[
 
-            /(ip[honead]+)(?:.*os\s*([\w]+)*\slike\smac|;\sopera)/i             // iOS
+            /(ip[honead]+)(?:.*os\s([\w]+)*\slike\smac|;\sopera)/i              // iOS
             ], [[NAME, 'iOS'], [VERSION, /_/g, '.']], [
 
             /(mac\sos\sx)\s?([\w\s\.]+\w)*/i,
@@ -1970,7 +2038,7 @@ if (typeof Object.create === 'function') {
 
 })(typeof window === 'object' ? window : this);
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 (function (global){
 
 var rng;
@@ -2005,7 +2073,7 @@ module.exports = rng;
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 //     uuid.js
 //
 //     Copyright (c) 2010-2012 Robert Kieffer
@@ -2190,5 +2258,5 @@ uuid.unparse = unparse;
 
 module.exports = uuid;
 
-},{"./rng":12}]},{},[2])(2)
+},{"./rng":13}]},{},[2])(2)
 });

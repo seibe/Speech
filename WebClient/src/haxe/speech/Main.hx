@@ -3,6 +3,7 @@ package speech;
 import haxe.Json;
 import haxe.Timer;
 import js.Browser;
+import js.Error;
 import js.html.AnimationEvent;
 import js.html.ButtonElement;
 import js.html.Element;
@@ -96,7 +97,11 @@ class Main
 				
 			case State.WATCH_BEFORE:
 				// ロードダイアログを閉じる
-				_dom.getDialog("loading").close();
+				try {
+					_dom.getDialog("loading").close();
+				} catch (e:Error) {
+					trace(e);
+				}
 				
 			case State.WATCH:
 				// 視聴を終える
@@ -135,7 +140,11 @@ class Main
 				
 			case State.WATCH_BEFORE:
 				// ロードダイアログの表示
-				_dom.getDialog("loading").showModal();
+				try {
+					_dom.getDialog("loading").showModal();
+				} catch (e:Error) {
+					trace(e);
+				}
 				
 				// WebSocketサーバーに接続する
 				_ws = new WebSocket(WS_URL);
@@ -328,7 +337,9 @@ class Main
 		{
 			case ServerMessageType.ACCEPT_STREAM:
 				// メディアサーバーへの接続完了
-				_webRtcPeer.processAnswer(d);
+				_webRtcPeer.processAnswer(d, function(e) {
+					trace(e);
+				});
 				
 			case ServerMessageType.UPDATE_AUDIENCE:
 				// 参加人数の更新
@@ -402,6 +413,15 @@ class Main
 			case ServerMessageType.UPDATE_SLIDE:
 				// スライド資料のURL更新通知
 				_dom.getSlide().src = d;
+				
+			case ServerMessageType.START_POINTER:
+				// ToDo
+				
+			case ServerMessageType.UPDATE_POINTER:
+				// ToDo
+				
+			case ServerMessageType.STOP_POINTER:
+				// ToDo
 				
 			default:
 				trace("unknown message", mes);

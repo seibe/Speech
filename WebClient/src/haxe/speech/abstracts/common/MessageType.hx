@@ -24,6 +24,9 @@ abstract ServerMessageType(String) to String from String
 	var ACCEPT_AUDIENCE	= "acceptAudience";
 	var CAN_CONNECT_STREAM = "canConnectStream";
 	var UPDATE_SLIDE	= "onUpdateSlide";
+	var START_POINTER	= "startPointer";
+	var UPDATE_POINTER	= "updatePointer";
+	var STOP_POINTER	= "stopPointer";
 }
 
 /**

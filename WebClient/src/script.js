@@ -1,4 +1,4 @@
-(function (console) { "use strict";
+(function (console, $global) { "use strict";
 var $estr = function() { return js_Boot.__string_rec(this,''); };
 var EReg = function(r,opt) {
 	opt = opt.split("u").join("");
@@ -12,6 +12,7 @@ EReg.prototype = {
 		this.r.s = s;
 		return this.r.m != null;
 	}
+	,__class__: EReg
 };
 var HxOverrides = function() { };
 HxOverrides.__name__ = true;
@@ -64,6 +65,7 @@ haxe_Timer.prototype = {
 	}
 	,run: function() {
 	}
+	,__class__: haxe_Timer
 };
 var haxe_ds_StringMap = function() {
 	this.h = { };
@@ -113,6 +115,7 @@ haxe_ds_StringMap.prototype = {
 		}
 		return out;
 	}
+	,__class__: haxe_ds_StringMap
 };
 var js_Boot = function() { };
 js_Boot.__name__ = true;
@@ -134,6 +137,15 @@ js_Boot.__trace = function(v,i) {
 	}
 	var d;
 	if(typeof(document) != "undefined" && (d = document.getElementById("haxe:trace")) != null) d.innerHTML += js_Boot.__unhtml(msg) + "<br/>"; else if(typeof console != "undefined" && console.log != null) console.log(msg);
+};
+js_Boot.getClass = function(o) {
+	if((o instanceof Array) && o.__enum__ == null) return Array; else {
+		var cl = o.__class__;
+		if(cl != null) return cl;
+		var name = js_Boot.__nativeClassName(o);
+		if(name != null) return js_Boot.__resolveNativeClass(name);
+		return null;
+	}
 };
 js_Boot.__string_rec = function(o,s) {
 	if(o == null) return "null";
@@ -202,6 +214,61 @@ js_Boot.__string_rec = function(o,s) {
 		return String(o);
 	}
 };
+js_Boot.__interfLoop = function(cc,cl) {
+	if(cc == null) return false;
+	if(cc == cl) return true;
+	var intf = cc.__interfaces__;
+	if(intf != null) {
+		var _g1 = 0;
+		var _g = intf.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var i1 = intf[i];
+			if(i1 == cl || js_Boot.__interfLoop(i1,cl)) return true;
+		}
+	}
+	return js_Boot.__interfLoop(cc.__super__,cl);
+};
+js_Boot.__instanceof = function(o,cl) {
+	if(cl == null) return false;
+	switch(cl) {
+	case Int:
+		return (o|0) === o;
+	case Float:
+		return typeof(o) == "number";
+	case Bool:
+		return typeof(o) == "boolean";
+	case String:
+		return typeof(o) == "string";
+	case Array:
+		return (o instanceof Array) && o.__enum__ == null;
+	case Dynamic:
+		return true;
+	default:
+		if(o != null) {
+			if(typeof(cl) == "function") {
+				if(o instanceof cl) return true;
+				if(js_Boot.__interfLoop(js_Boot.getClass(o),cl)) return true;
+			} else if(typeof(cl) == "object" && js_Boot.__isNativeObj(cl)) {
+				if(o instanceof cl) return true;
+			}
+		} else return false;
+		if(cl == Class && o.__name__ != null) return true;
+		if(cl == Enum && o.__ename__ != null) return true;
+		return o.__enum__ == cl;
+	}
+};
+js_Boot.__nativeClassName = function(o) {
+	var name = js_Boot.__toStr.call(o).slice(8,-1);
+	if(name == "Object" || name == "Function" || name == "Math" || name == "JSON") return null;
+	return name;
+};
+js_Boot.__isNativeObj = function(o) {
+	return js_Boot.__nativeClassName(o) != null;
+};
+js_Boot.__resolveNativeClass = function(name) {
+	return $global[name];
+};
 var speech_State = { __ename__ : true, __constructs__ : ["SETUP","WATCH_BEFORE","WATCH"] };
 speech_State.SETUP = ["SETUP",0];
 speech_State.SETUP.toString = $estr;
@@ -259,7 +326,13 @@ speech_Main.prototype = {
 			this._dom.getOutput("error","setup").innerText = "";
 			break;
 		case 1:
-			this._dom.getDialog("loading").close();
+			try {
+				this._dom.getDialog("loading").close();
+			} catch( e ) {
+				if( js_Boot.__instanceof(e,Error) ) {
+					haxe_Log.trace(e,{ fileName : "Main.hx", lineNumber : 103, className : "speech.Main", methodName : "setState"});
+				} else throw(e);
+			}
 			break;
 		case 2:
 			if(this._webRtcPeer != null) {
@@ -286,7 +359,13 @@ speech_Main.prototype = {
 			this._dom.getButton("submit").addEventListener("click",$bind(this,this.onClickButtonStart));
 			break;
 		case 1:
-			this._dom.getDialog("loading").showModal();
+			try {
+				this._dom.getDialog("loading").showModal();
+			} catch( e1 ) {
+				if( js_Boot.__instanceof(e1,Error) ) {
+					haxe_Log.trace(e1,{ fileName : "Main.hx", lineNumber : 146, className : "speech.Main", methodName : "setState"});
+				} else throw(e1);
+			}
 			this._ws = new WebSocket(this.WS_URL);
 			this._ws.addEventListener("open",$bind(this,this.onWsConnect));
 			this._ws.addEventListener("close",$bind(this,this.onWsClose));
@@ -354,12 +433,12 @@ speech_Main.prototype = {
 		}
 		this._webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerRecvonly({ remoteVideo : this._dom.getVideo(), onicecandidate : $bind(this,this.onIcecandidate)},function(err1) {
 			if(err1 != null) {
-				haxe_Log.trace("webrtcpeer error",{ fileName : "Main.hx", lineNumber : 231, className : "speech.Main", methodName : "connectStream", customParams : [err1]});
+				haxe_Log.trace("webrtcpeer error",{ fileName : "Main.hx", lineNumber : 240, className : "speech.Main", methodName : "connectStream", customParams : [err1]});
 				_g._webRtcPeer = null;
 			}
 			_g._webRtcPeer.generateOffer(function(err2,offerSdp) {
 				if(err2 != null) {
-					haxe_Log.trace("webrtcpeer error",{ fileName : "Main.hx", lineNumber : 236, className : "speech.Main", methodName : "connectStream", customParams : [err2]});
+					haxe_Log.trace("webrtcpeer error",{ fileName : "Main.hx", lineNumber : 245, className : "speech.Main", methodName : "connectStream", customParams : [err2]});
 					_g._webRtcPeer = null;
 				}
 				_g.send(speech_Request.CONNECT_STREAM(offerSdp));
@@ -387,7 +466,7 @@ speech_Main.prototype = {
 	,addComment: function(text,name) {
 		this._dom.get("comment-list","live").insertAdjacentHTML("afterbegin","<li class=\"discuss-comment new\"><img class=\"discuss-comment-image\" src=\"img/avatar.png\"><div class=\"discuss-comment-body\"><strong>" + name + "</strong><p>" + text + "</p></div></li>");
 		this._dom.query(".discuss-comment.new").addEventListener("animationend",function(e) {
-			haxe_Log.trace("animation end",{ fileName : "Main.hx", lineNumber : 279, className : "speech.Main", methodName : "addComment"});
+			haxe_Log.trace("animation end",{ fileName : "Main.hx", lineNumber : 288, className : "speech.Main", methodName : "addComment"});
 			if(e.animationName == "comment-move-in") {
 				var elem = e.target;
 				elem.classList.remove("new");
@@ -419,21 +498,23 @@ speech_Main.prototype = {
 		}
 	}
 	,onWsConnect: function(e) {
-		haxe_Log.trace("open ws",{ fileName : "Main.hx", lineNumber : 309, className : "speech.Main", methodName : "onWsConnect"});
+		haxe_Log.trace("open ws",{ fileName : "Main.hx", lineNumber : 318, className : "speech.Main", methodName : "onWsConnect"});
 		this.send(speech_Request.JOIN_VIEWER);
 	}
 	,onWsClose: function(e) {
-		haxe_Log.trace("close ws",{ fileName : "Main.hx", lineNumber : 316, className : "speech.Main", methodName : "onWsClose"});
+		haxe_Log.trace("close ws",{ fileName : "Main.hx", lineNumber : 325, className : "speech.Main", methodName : "onWsClose"});
 		this.setState(speech_State.SETUP);
 	}
 	,onWsMessage: function(e) {
 		var mes = JSON.parse(e.data);
 		var d = mes.data;
-		haxe_Log.trace(mes.type,{ fileName : "Main.hx", lineNumber : 325, className : "speech.Main", methodName : "onWsMessage"});
+		haxe_Log.trace(mes.type,{ fileName : "Main.hx", lineNumber : 334, className : "speech.Main", methodName : "onWsMessage"});
 		var _g = mes.type;
 		switch(_g) {
 		case "acceptStream":
-			this._webRtcPeer.processAnswer(d);
+			this._webRtcPeer.processAnswer(d,function(e1) {
+				haxe_Log.trace(e1,{ fileName : "Main.hx", lineNumber : 341, className : "speech.Main", methodName : "onWsMessage"});
+			});
 			break;
 		case "updateAudience":
 			this._dom.get("num-audience","live").innerText = d;
@@ -446,7 +527,7 @@ speech_Main.prototype = {
 			var name;
 			if(comment.name != null) name = StringTools.htmlEscape(comment.name); else name = "nanashi";
 			var text = StringTools.htmlEscape(comment.text);
-			haxe_Log.trace(comment.type,{ fileName : "Main.hx", lineNumber : 346, className : "speech.Main", methodName : "onWsMessage"});
+			haxe_Log.trace(comment.type,{ fileName : "Main.hx", lineNumber : 357, className : "speech.Main", methodName : "onWsMessage"});
 			var _g1 = comment.type;
 			switch(_g1) {
 			case "normal":
@@ -475,7 +556,7 @@ speech_Main.prototype = {
 			}
 			break;
 		case "onError":
-			haxe_Log.trace("error message",{ fileName : "Main.hx", lineNumber : 380, className : "speech.Main", methodName : "onWsMessage", customParams : [d]});
+			haxe_Log.trace("error message",{ fileName : "Main.hx", lineNumber : 391, className : "speech.Main", methodName : "onWsMessage", customParams : [d]});
 			this._dom.getOutput("error","setup").innerText = StringTools.htmlEscape(d);
 			break;
 		case "finish":
@@ -495,12 +576,18 @@ speech_Main.prototype = {
 		case "onUpdateSlide":
 			this._dom.getSlide().src = d;
 			break;
+		case "startPointer":
+			break;
+		case "updatePointer":
+			break;
+		case "stopPointer":
+			break;
 		default:
-			haxe_Log.trace("unknown message",{ fileName : "Main.hx", lineNumber : 407, className : "speech.Main", methodName : "onWsMessage", customParams : [mes]});
+			haxe_Log.trace("unknown message",{ fileName : "Main.hx", lineNumber : 427, className : "speech.Main", methodName : "onWsMessage", customParams : [mes]});
 		}
 	}
 	,onWsError: function(e) {
-		haxe_Log.trace("ws error",{ fileName : "Main.hx", lineNumber : 413, className : "speech.Main", methodName : "onWsError", customParams : [e]});
+		haxe_Log.trace("ws error",{ fileName : "Main.hx", lineNumber : 433, className : "speech.Main", methodName : "onWsError", customParams : [e]});
 	}
 	,onClickButtonStart: function() {
 		this._name = this._dom.getInput("viewer","setup").value;
@@ -525,6 +612,7 @@ speech_Main.prototype = {
 	,onIcecandidate: function(candidate) {
 		this.send(speech_Request.ICE_CANDIDATE(candidate));
 	}
+	,__class__: speech_Main
 };
 var speech_manager_DomManager = function() {
 	this._idMap = new haxe_ds_StringMap();
@@ -612,14 +700,26 @@ speech_manager_DomManager.prototype = {
 			child = child.nextElementSibling;
 		}
 	}
+	,__class__: speech_manager_DomManager
 };
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; }
+String.prototype.__class__ = String;
 String.__name__ = true;
 Array.__name__ = true;
+Date.prototype.__class__ = Date;
 Date.__name__ = ["Date"];
+var Int = { __name__ : ["Int"]};
+var Dynamic = { __name__ : ["Dynamic"]};
+var Float = Number;
+Float.__name__ = ["Float"];
+var Bool = Boolean;
+Bool.__ename__ = ["Bool"];
+var Class = { __name__ : ["Class"]};
+var Enum = { };
 var __map_reserved = {}
+js_Boot.__toStr = {}.toString;
 speech_Main.main();
-})(typeof console != "undefined" ? console : {log:function(){}});
+})(typeof console != "undefined" ? console : {log:function(){}}, typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
 
 //# sourceMappingURL=script.js.map
