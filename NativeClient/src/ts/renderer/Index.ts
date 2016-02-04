@@ -4,6 +4,7 @@ module Speech
 {
     declare var MediaStreamTrack: any;
     const WS_URL:string = "wss://seibe.jp:8081/speech";
+    const IS_DEBUG = false;
     
     enum State {
         SETUP,
@@ -103,8 +104,8 @@ module Speech
                     this._slideView.removeEventListener("keydown", this);
                     this._slideView.removeEventListener("wheel", this);
                     this._slideView.removeEventListener("mouseup", this);
-                    this._slideView.removeEventListener("focus", this.onFocusSlide);
-                    this._slideView.removeEventListener("blur", this.onBlurSlide);
+                    this._slideView.removeEventListener("focus", this);
+                    this._slideView.removeEventListener("blur", this);
                     this._dom.getButton("finish").removeEventListener("click", this);
                     
                     if (nextState == State.SETUP) {
@@ -118,6 +119,8 @@ module Speech
                 case State.LIVE_AFTER: {
                     if (this._ws) this._ws.close();
                     this._ws = null;
+                    
+                    this._dom.getButton("finish").removeEventListener("click", this);
                     
                     break;
                 }
@@ -183,14 +186,15 @@ module Speech
                     this._slideView.addEventListener("keydown", this);
                     this._slideView.addEventListener("wheel", this);
                     this._slideView.addEventListener("mouseup", this);
-                    this._slideView.addEventListener("focus", this.onFocusSlide);
-                    this._slideView.addEventListener("blur", this.onBlurSlide);
+                    this._slideView.addEventListener("focus", this);
+                    this._slideView.addEventListener("blur", this);
                     this._dom.getButton("finish").addEventListener("click", this);
                     
                     break;
                 }
                 
                 case State.LIVE_AFTER: {
+                    this._dom.getButton("finish").addEventListener("click", this);
                     break;
                 }
                 
@@ -212,7 +216,7 @@ module Speech
                 throw 'send error';
             }
             
-            console.log("send", type);
+            this.trace("send", type);
             this._ws.send(JSON.stringify({
                 type: type,
                 data: data
@@ -278,6 +282,8 @@ module Speech
         --------------------------------- */
         
         handleEvent(e: Event) {
+            this.trace(e.type, e.currentTarget);
+            
             switch(e.type) {
                 case "resize": {
                     if (e.currentTarget == window) this.onResize();
@@ -300,20 +306,22 @@ module Speech
                     break;
                 }
                 
+                case "focus": {
+                    if (e.currentTarget == this._slideView) window.removeEventListener("keydown", this);
+                    break;
+                }
+                
+                case "blur": {
+                    if (e.currentTarget == this._slideView) window.addEventListener("keydown", this);
+                    break;
+                }
+                
                 case "click": {
                     if (e.currentTarget == this._dom.getButton("submit", "setup")) this.onClickStart();
                     if (e.currentTarget == this._dom.getButton("finish", "live")) this.onClickFinish();
                     break;
                 }
             }
-        }
-        
-        private onFocusSlide() {
-            window.removeEventListener("keydown", this);
-        }
-        
-        private onBlurSlide() {
-            window.addEventListener("keydown", this);
         }
         
         private onChangeSlide() {
@@ -341,7 +349,18 @@ module Speech
         }
         
         private onClickFinish() {
-            this.send(ClientMessageType.REQUEST_LOG);
+            switch (this._state) {
+                case State.LIVE:
+                    this.send(ClientMessageType.REQUEST_LOG);
+                    break;
+                
+                case State.LIVE_AFTER:
+                    this.setState(State.SETUP);
+                    break;
+                    
+                default:
+                    throw 'finish event error';
+            }
         }
         
         private onResize() {
@@ -387,30 +406,30 @@ module Speech
                         onicecandidate: (candidate) => { this.send(ClientMessageType.ICE_CANDIDATE, candidate); }
                     }, (error) => {
                         if (error) {
-                            console.log('webrtcpeer error', error);
+                            this.trace('webrtcpeer error', error);
                             this.setState(State.SETUP);
                         }
                         this._webRtcPeer.generateOffer((err:any, sdp:RTCSessionDescription) => {
-                            if (err) console.log('generateoffer error', error);
+                            if (err) this.trace('generateoffer error', error);
                             this.send(ClientMessageType.START_STREAM, {
                                 offer: sdp,
                                 target: "webcam"
                             });
                         });
                     });
-                }, (error) => { console.log('getusermedia error', error.message); } );
+                }, (error) => { this.trace('getusermedia error', error.message); } );
             }
         }
         
         private onWsClose(e: CloseEvent) {
-            console.log("close websocket");
+            this.trace("close websocket");
         }
         
         private onWsMessage(e: MessageEvent) {
             let message = JSON.parse(e.data);
             let type: string = message.type;
             let data: any = message.data;
-            console.log("receive", type);
+            this.trace("receive", type);
             
             switch (type) {
                 case ServerMessageType.ACCEPT_STREAM:{
@@ -467,12 +486,13 @@ module Speech
                 }
                 
                 case ServerMessageType.ERROR:{
-                    console.log("server error", data);
+                    this.trace("server error", data);
                     break;
                 }
                 
                 case ServerMessageType.FINISH:{
-                    this.setState(State.SETUP);
+                    // this.setState(State.SETUP);
+                    this.addComment("配信は終了しました。再度終了ボタンを押すと設定画面に戻ります", "システムメッセージ");
                     break;
                 }
                 
@@ -488,19 +508,24 @@ module Speech
                 }
                 
                 case ServerMessageType.CREATE_LOG:{
-                    console.log(data);
+                    this.trace(data);
+                    this.addComment("ログが生成されました: " + data, "システムメッセージ");
                     this.setState(State.LIVE_AFTER);
                     break;
                 }
                 
                 default:{
-                    //console.log("unknown message", message);
+                    //this.trace("unknown message", message);
                 }
             }
         }
         
         private onWsError(e: ErrorEvent) {
-            console.log("websocket error", e.message);
+            this.trace("websocket error", e.message);
+        }
+        
+        private trace(...params: any[]): void {
+            if (IS_DEBUG) console.log(params);
         }
     }
 }

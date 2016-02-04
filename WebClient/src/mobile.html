@@ -11,10 +11,10 @@
 	<script src="script.js"></script>
 </head>
 <body>
-    <main class="main">
+    <main class="main mobile">
         <div class="main-visual">
 			
-			<section class="scene create" id="scene-setup">
+			<section class="scene create hide" id="scene-setup">
                 <h1 class="create-h1">参加者情報の入力</h1>
                 <div class="create-item">
                     <span class="create-item-label">お名前</span>
@@ -26,7 +26,7 @@
                 </div>
             </section>
             
-            <section class="scene live hide" id="scene-live">
+            <section class="scene live" id="scene-live">
                 <div class="live-left">
                     <div class="live-header">
                         <div class="live-header-logo"><img alt="Speech" src="img/logo.png" /></div>
@@ -35,9 +35,7 @@
                     
                     <iframe class="live-slide readonly" id="live-slide"></iframe>
 					
-                    <div class="live-footer">
-                        <video class="live-footer-video" id="live-video" autoplay></video>
-                        
+                    <div class="live-footer hide">
                         <div class="live-footer-tool">
                             <div class="live-footer-tool-form">
                                 <input type="text" class="live-footer-tool-form-input" id="input-live-comment" placeholder="ここにコメントを入力できます" />
@@ -92,6 +90,7 @@
                         <div class="live-atmos-count">現在<span id="live-num-audience">0</span>人</div>
                     </div>
                     
+                    <video class="live-right-video" id="live-video" autoplay></video>
                 </div>
             </section>
             

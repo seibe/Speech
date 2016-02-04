@@ -102,6 +102,23 @@ button {
         -ms-flex-direction: column;
             flex-direction: column;
 }
+.live-right-video {
+    width: 401px;
+    height: 300px;
+    margin-top: 25px;
+    border-radius: 4px;
+    background: #000;
+    box-shadow: 0 0 15px rgba(102,102,51,0.15);
+    -webkit-transform-origin: bottom right;
+            transform-origin: bottom right;
+    transition: -webkit-transform 0.1s;
+    transition: transform 0.1s;
+    transition: transform 0.1s, -webkit-transform 0.1s;
+}
+.live-right-video:hover {
+    -webkit-transform: scale(1.5, 1.5);
+            transform: scale(1.5, 1.5);
+}
 
 .live-header {
     height: 41px;
@@ -156,6 +173,9 @@ button {
     background: #000;
     box-shadow: 0 0 15px rgba(102,102,51,0.15);
 }
+.mobile .live-slide {
+    margin-bottom: 0;
+}
 
 .live-footer {
     height: 138px;
@@ -167,7 +187,13 @@ button {
     width: 184px;
     border-radius: 4px;
     background: #000;
-    box-shadow: 0 0 15px rgba(102,102,51,0.15);
+    box-shadow: 0 0 15px rgba(102,102,51,0.15);transition: -webkit-transform 0.1s;transition: transform 0.1s;transition: transform 0.1s, -webkit-transform 0.1s;
+    -webkit-transform-origin: bottom left;
+            transform-origin: bottom left;
+}
+.live-footer-video:hover {
+    -webkit-transform: scale(2, 2);
+            transform: scale(2, 2);
 }
 .live-footer-tool {
     -webkit-flex: 1;
@@ -381,6 +407,9 @@ button {
 #live-discus-question:checked ~ .live-discus-wrapper #live-question-list {
     display: block;
 }
+.mobile .live-discus-group {
+    height: calc(100vh - 595px);
+}
 
 .live-atmos {
     height: 160px;
@@ -435,6 +464,20 @@ button {
     100% {
         opacity: 0.8;
         bottom: 200px;
+    }
+}
+
+@media (max-height: 635px) {
+    .live-right {
+        -webkit-justify-content: flex-end;
+            -ms-flex-pack: end;
+                justify-content: flex-end;
+    }
+    .live-atmos {
+        border-radius: 4px;
+    }
+    .live-discus {
+        display: none !important;
     }
 }
 

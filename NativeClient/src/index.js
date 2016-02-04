@@ -129,6 +129,7 @@ var Speech;
 var Speech;
 (function (Speech) {
     var WS_URL = "wss://seibe.jp:8081/speech";
+    var IS_DEBUG = false;
     var State;
     (function (State) {
         State[State["SETUP"] = 0] = "SETUP";
@@ -191,8 +192,8 @@ var Speech;
                     this._slideView.removeEventListener("keydown", this);
                     this._slideView.removeEventListener("wheel", this);
                     this._slideView.removeEventListener("mouseup", this);
-                    this._slideView.removeEventListener("focus", this.onFocusSlide);
-                    this._slideView.removeEventListener("blur", this.onBlurSlide);
+                    this._slideView.removeEventListener("focus", this);
+                    this._slideView.removeEventListener("blur", this);
                     this._dom.getButton("finish").removeEventListener("click", this);
                     if (nextState == State.SETUP) {
                         this._ws.close();
@@ -204,6 +205,7 @@ var Speech;
                     if (this._ws)
                         this._ws.close();
                     this._ws = null;
+                    this._dom.getButton("finish").removeEventListener("click", this);
                     break;
                 }
             }
@@ -249,12 +251,13 @@ var Speech;
                     this._slideView.addEventListener("keydown", this);
                     this._slideView.addEventListener("wheel", this);
                     this._slideView.addEventListener("mouseup", this);
-                    this._slideView.addEventListener("focus", this.onFocusSlide);
-                    this._slideView.addEventListener("blur", this.onBlurSlide);
+                    this._slideView.addEventListener("focus", this);
+                    this._slideView.addEventListener("blur", this);
                     this._dom.getButton("finish").addEventListener("click", this);
                     break;
                 }
                 case State.LIVE_AFTER: {
+                    this._dom.getButton("finish").addEventListener("click", this);
                     break;
                 }
                 default: {
@@ -267,7 +270,7 @@ var Speech;
             if (!this._ws) {
                 throw 'send error';
             }
-            console.log("send", type);
+            this.trace("send", type);
             this._ws.send(JSON.stringify({
                 type: type,
                 data: data
@@ -311,6 +314,7 @@ var Speech;
             return s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
         };
         Main.prototype.handleEvent = function (e) {
+            this.trace(e.type, e.currentTarget);
             switch (e.type) {
                 case "resize": {
                     if (e.currentTarget == window)
@@ -334,6 +338,16 @@ var Speech;
                         this.onChangeSlide();
                     break;
                 }
+                case "focus": {
+                    if (e.currentTarget == this._slideView)
+                        window.removeEventListener("keydown", this);
+                    break;
+                }
+                case "blur": {
+                    if (e.currentTarget == this._slideView)
+                        window.addEventListener("keydown", this);
+                    break;
+                }
                 case "click": {
                     if (e.currentTarget == this._dom.getButton("submit", "setup"))
                         this.onClickStart();
@@ -342,12 +356,6 @@ var Speech;
                     break;
                 }
             }
-        };
-        Main.prototype.onFocusSlide = function () {
-            window.removeEventListener("keydown", this);
-        };
-        Main.prototype.onBlurSlide = function () {
-            window.addEventListener("keydown", this);
         };
         Main.prototype.onChangeSlide = function () {
             var _this = this;
@@ -373,7 +381,16 @@ var Speech;
             }
         };
         Main.prototype.onClickFinish = function () {
-            this.send(Speech.ClientMessageType.REQUEST_LOG);
+            switch (this._state) {
+                case State.LIVE:
+                    this.send(Speech.ClientMessageType.REQUEST_LOG);
+                    break;
+                case State.LIVE_AFTER:
+                    this.setState(State.SETUP);
+                    break;
+                default:
+                    throw 'finish event error';
+            }
         };
         Main.prototype.onResize = function () {
             var playerHeight = window.innerHeight - 272;
@@ -407,29 +424,29 @@ var Speech;
                         onicecandidate: function (candidate) { _this.send(Speech.ClientMessageType.ICE_CANDIDATE, candidate); }
                     }, function (error) {
                         if (error) {
-                            console.log('webrtcpeer error', error);
+                            _this.trace('webrtcpeer error', error);
                             _this.setState(State.SETUP);
                         }
                         _this._webRtcPeer.generateOffer(function (err, sdp) {
                             if (err)
-                                console.log('generateoffer error', error);
+                                _this.trace('generateoffer error', error);
                             _this.send(Speech.ClientMessageType.START_STREAM, {
                                 offer: sdp,
                                 target: "webcam"
                             });
                         });
                     });
-                }, function (error) { console.log('getusermedia error', error.message); });
+                }, function (error) { _this.trace('getusermedia error', error.message); });
             }
         };
         Main.prototype.onWsClose = function (e) {
-            console.log("close websocket");
+            this.trace("close websocket");
         };
         Main.prototype.onWsMessage = function (e) {
             var message = JSON.parse(e.data);
             var type = message.type;
             var data = message.data;
-            console.log("receive", type);
+            this.trace("receive", type);
             switch (type) {
                 case Speech.ServerMessageType.ACCEPT_STREAM: {
                     this._webRtcPeer.processAnswer(data);
@@ -481,11 +498,11 @@ var Speech;
                     break;
                 }
                 case Speech.ServerMessageType.ERROR: {
-                    console.log("server error", data);
+                    this.trace("server error", data);
                     break;
                 }
                 case Speech.ServerMessageType.FINISH: {
-                    this.setState(State.SETUP);
+                    this.addComment("配信は終了しました。再度終了ボタンを押すと設定画面に戻ります", "システムメッセージ");
                     break;
                 }
                 case Speech.ServerMessageType.STOP_STREAM: {
@@ -498,7 +515,8 @@ var Speech;
                     break;
                 }
                 case Speech.ServerMessageType.CREATE_LOG: {
-                    console.log(data);
+                    this.trace(data);
+                    this.addComment("ログが生成されました: " + data, "システムメッセージ");
                     this.setState(State.LIVE_AFTER);
                     break;
                 }
@@ -507,7 +525,15 @@ var Speech;
             }
         };
         Main.prototype.onWsError = function (e) {
-            console.log("websocket error", e.message);
+            this.trace("websocket error", e.message);
+        };
+        Main.prototype.trace = function () {
+            var params = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                params[_i - 0] = arguments[_i];
+            }
+            if (IS_DEBUG)
+                console.log(params);
         };
         return Main;
     }());
